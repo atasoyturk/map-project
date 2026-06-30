@@ -1,8 +1,11 @@
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using BackendApi.Services;
 using BackendApi.Settings;
+using BackendApi.Data;
+using BackendApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +52,11 @@ builder.Services.AddAuthorization();
 // Application Services 
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Pipeline 
 var app = builder.Build();

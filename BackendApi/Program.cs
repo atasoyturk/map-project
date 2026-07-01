@@ -1,4 +1,6 @@
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -54,7 +56,10 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.UseNetTopologySuite()
+    ));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 

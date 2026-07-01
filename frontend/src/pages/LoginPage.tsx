@@ -48,7 +48,7 @@ export function LoginPage() {
 
         {/* Sol — Globe */}
         <div className="flex flex-col items-center gap-6">
-          <GlobeCanvas />
+           <GlobeCanvas />
           <div className="text-center">
             <p style={{ color: "rgba(186,230,253,.85)", fontSize: 14, fontWeight: 500, letterSpacing: ".5px" }}>
               Coğrafi Bilgi Sistemi

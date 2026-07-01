@@ -1,9 +1,18 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+   type ReactNode,
+} from "react";
+
+import { createApiFetch } from "../api/apiFetch";
 
 interface AuthContextValue {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  apiFetch: ReturnType<typeof createApiFetch>;  // ← eklendi
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -23,8 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
   }
 
+  const apiFetch = useMemo(() => createApiFetch(logout), []);  
+
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, login, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

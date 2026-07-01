@@ -12,4 +12,9 @@ public sealed class AppDbContext : DbContext
     public DbSet<PointEntity>   Points   => Set<PointEntity>();
     public DbSet<LineEntity>    Lines    => Set<LineEntity>();
     public DbSet<PolygonEntity> Polygons => Set<PolygonEntity>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasPostgresExtension("postgis");
+    }
 }

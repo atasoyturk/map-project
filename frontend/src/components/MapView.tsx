@@ -10,6 +10,7 @@ const INITIAL_ZOOM  = 6;
 
 interface MapViewProps {
   onMapReady?: (map: Map) => void;   
+  height?: string;
 }
 
 export function MapView({ onMapReady }: MapViewProps) {

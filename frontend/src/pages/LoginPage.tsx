@@ -1,6 +1,8 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { GlobeCanvas } from "../components/GlobeCanvas";
+
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
@@ -38,75 +40,79 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">
-          Giriş Yap
-        </h1>
-        <p className="text-sm text-slate-500 mb-6">
-          Hesabınıza erişmek için bilgilerinizi girin.
-        </p>
+    <div
+      className="min-h-screen w-full flex items-center justify-center"
+      style={{ background: "#030d1a" }}
+    >
+      <div className="flex flex-col md:flex-row items-center justify-center gap-16 px-8">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              E-posta
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-              placeholder="ornek@sirket.com"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Şifre
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-              {error}
+        {/* Sol — Globe */}
+        <div className="flex flex-col items-center gap-6">
+          <GlobeCanvas />
+          <div className="text-center">
+            <p style={{ color: "rgba(186,230,253,.85)", fontSize: 14, fontWeight: 500, letterSpacing: ".5px" }}>
+              Coğrafi Bilgi Sistemi
             </p>
-          )}
+            <p style={{ color: "rgba(148,163,184,.5)", fontSize: 11, marginTop: 4 }}>
+              Güvenli Erişim Platformu
+            </p>
+          </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-slate-900 text-white text-sm font-medium rounded-lg py-2.5
-                       hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-          </button>
-        </form>
-        <p className="text-sm text-slate-500 text-center mt-6">
-          Hesabınız yok mu?{" "}
-          <Link to="/register" className="text-slate-900 font-medium hover:underline">
-            Kayıt olun
-          </Link>
-        </p>
+        {/* Sağ — Form */}
+        <div
+          className="w-full max-w-sm rounded-2xl p-8"
+          style={{ background: "#ffffff", minWidth: 320, color: "#0f172a" }}
+        >
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-2 h-2 rounded-full" style={{ background: "#3b82f6" }} />
+            <span style={{ fontWeight: 600, color: "#0f172a", fontSize: 14, letterSpacing: ".3px" }}>GisPortal</span>
+          </div>
+
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Giriş Yap</h1>
+          <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
+            Hesabınıza erişmek için bilgilerinizi girin.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 4 }}>
+                E-posta
+              </label>
+              <input id="email" type="email" required value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{ borderColor: "#cbd5e1", color: "#0f172a", background: "#f8fafc" }}
+                placeholder="ornek@sirket.com" />
+            </div>
+            <div>
+              <label htmlFor="password" style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 4 }}>
+                Şifre
+              </label>
+              <input id="password" type="password" required value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{ borderColor: "#cbd5e1", color: "#0f172a", background: "#f8fafc" }}
+                placeholder="••••••••" />
+            </div>
+            {error && (
+              <p style={{ fontSize: 14, color: "#dc2626", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 12px" }}>
+                {error}
+              </p>
+            )}
+            <button type="submit" disabled={isLoading}
+              className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg,#1d4ed8,#2563eb)", marginTop: 4 }}>
+              {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+            </button>
+          </form>
+
+          <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 24 }}>
+            Hesabınız yok mu?{" "}
+            <Link to="/register" style={{ color: "#2563eb", fontWeight: 500 }}>Kayıt olun</Link>
+          </p>
+        </div>
+
       </div>
     </div>
   );

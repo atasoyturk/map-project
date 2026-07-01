@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using BackendApi.DTOs;
 using BackendApi.Repositories;
 using BackendApi.Services;
+using BackendApi.Entities;
 
 namespace BackendApi.Controllers;
 
@@ -16,6 +17,24 @@ public sealed class AuthController : ControllerBase
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        if (await _userRepository.ExistsByEmailAsync(request.Email))
+            return Conflict("Bu e-posta adresi zaten kayıtlı.");
+
+        var user = new User
+        {
+            Email        = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role         = "User"
+        };
+
+        await _userRepository.AddAsync(user);
+
+        return Created(string.Empty, null);
     }
 
     [HttpPost("login")]

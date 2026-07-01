@@ -1,5 +1,5 @@
 import { useState, type SyntheticEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export function LoginPage() {
@@ -101,6 +101,12 @@ export function LoginPage() {
             {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
         </form>
+        <p className="text-sm text-slate-500 text-center mt-6">
+          Hesabınız yok mu?{" "}
+          <Link to="/register" className="text-slate-900 font-medium hover:underline">
+            Kayıt olun
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ namespace BackendApi.DTOs;
 
 public sealed class GeoRequestDto
 {
-    [Required, MinLength(1)]
+    [Required, MinLength(1), MaxLength(25000)]
     public string WktGeometry { get; init; } = string.Empty;
 
     [MaxLength(100)]

@@ -2,6 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
 using BackendApi.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services;
 
@@ -32,4 +33,13 @@ public sealed class PointService : IPointService
             GeometryConverter.ToWkt(geometry)
         );
     }
+
+    public async Task<IEnumerable<PointResponseDto>> GetAllAsync() =>
+        await _context.Points
+            .Select(p => new PointResponseDto(
+                p.Id,
+                p.Name,
+                p.Color,
+                GeometryConverter.ToWkt(p.Geometry)))
+            .ToListAsync();
 }

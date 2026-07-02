@@ -1,30 +1,38 @@
-using BackendApi.Data;
 using BackendApi.DTOs;
-using BackendApi.Entities;
-using BackendApi.Helpers;
+using BackendApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackendApi.Controllers;
+
+// takes DI -> Call services -> return HTTP response
 
 [ApiController]
 [Route("api")]
 [Authorize]
 public sealed class GeoController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IPointService   _pointService;
+    private readonly ILineService    _lineService;
+    private readonly IPolygonService _polygonService;
 
-    public GeoController(AppDbContext context) => _context = context;
+    public GeoController(
+        IPointService   pointService,
+        ILineService    lineService,
+        IPolygonService polygonService)
+    {
+        _pointService   = pointService;
+        _lineService    = lineService;
+        _polygonService = polygonService;
+    }
 
     [HttpPost("point")]
     public async Task<IActionResult> SavePoint([FromBody] GeoRequestDto request)
     {
         try
         {
-            var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-            _context.Points.Add(new PointEntity { Geometry = geometry });
-            await _context.SaveChangesAsync();
-            return Created(string.Empty, null);
+            var result = await _pointService.SaveAsync(request);
+            return Created(string.Empty, result);
         }
         catch (Exception)
         {
@@ -37,10 +45,8 @@ public sealed class GeoController : ControllerBase
     {
         try
         {
-            var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-            _context.Lines.Add(new LineEntity { Geometry = geometry });
-            await _context.SaveChangesAsync();
-            return Created(string.Empty, null);
+            var result = await _lineService.SaveAsync(request);
+            return Created(string.Empty, result);
         }
         catch (Exception)
         {
@@ -53,10 +59,8 @@ public sealed class GeoController : ControllerBase
     {
         try
         {
-            var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-            _context.Polygons.Add(new PolygonEntity { Geometry = geometry });
-            await _context.SaveChangesAsync();
-            return Created(string.Empty, null);
+            var result = await _polygonService.SaveAsync(request);
+            return Created(string.Empty, result);
         }
         catch (Exception)
         {

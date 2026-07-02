@@ -53,6 +53,10 @@ builder.Services.AddAuthorization();
 
 // Application Services 
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IPointService,   PointService>();
+builder.Services.AddScoped<ILineService,    LineService>();
+builder.Services.AddScoped<IPolygonService, PolygonService>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>

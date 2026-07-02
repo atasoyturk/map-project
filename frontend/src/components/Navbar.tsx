@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AttributeModal } from "./AttributeModal";
 import { Toast } from "./Toast";
+import { Style, Fill, Stroke, Circle, Text } from "ol/style";
 
 interface NavbarProps { map: Map | null; }
 
@@ -29,6 +30,13 @@ const LABEL_MAP: Record<DrawType, string> = {
 interface ToastState {
   message: string;
   type:    "success" | "error";
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 export function Navbar({ map }: NavbarProps) {
@@ -68,13 +76,23 @@ export function Navbar({ map }: NavbarProps) {
       const geometry = event.feature.getGeometry();
       if (!geometry) return;
 
-      // EPSG:3857 → EPSG:4326
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
-      setPendingGeometry({ wkt, type: activeType });
+      // Default geçici stil
+      event.feature.setStyle(
+        new Style({
+          fill:   new Fill({ color: "rgba(59,130,246,0.15)" }),
+          stroke: new Stroke({ color: "#3b82f6", width: 2 }),
+          image:  new Circle({
+            radius: 6,
+            fill:   new Fill({ color: "#3b82f6" }),
+            stroke: new Stroke({ color: "#ffffff", width: 2 }),
+          }),
+        })
+      );
 
-      // prevent zombie interaction
+      setPendingGeometry({ wkt, type: activeType, feature: event.feature });
       setActiveType(null);
     });
 
@@ -94,7 +112,7 @@ export function Navbar({ map }: NavbarProps) {
     try {
       const response = await apiFetch(ENDPOINT_MAP[pendingGeometry.type], {
         method: "POST",
-        body:   JSON.stringify({
+        body: JSON.stringify({
           wktGeometry: pendingGeometry.wkt,
           name,
           color,
@@ -106,18 +124,45 @@ export function Navbar({ map }: NavbarProps) {
         return;
       }
 
-      // If its polygon, show intersected inventory count in the toast message
+      // Polygon ise önce JSON oku — sonra style güncelle
+      let intersectedCount: number | null = null;
       if (pendingGeometry.type === "Polygon") {
         const data = await response.json();
+        intersectedCount = data.intersectedInventoryCount;
+      }
+
+      // Kayıt başarılı — feature stilini güncelle
+      pendingGeometry.feature.setStyle(
+        new Style({
+          fill:   new Fill({ color: hexToRgba(color, 0.2) }),
+          stroke: new Stroke({ color, width: 2 }),
+          image:  new Circle({
+            radius: 6,
+            fill:   new Fill({ color }),
+            stroke: new Stroke({ color: "#ffffff", width: 2 }),
+          }),
+          text: new Text({
+            text:     name,
+            font:     "bold 13px sans-serif",
+            fill:     new Fill({ color: "#0f172a" }),
+            stroke:   new Stroke({ color: "#ffffff", width: 3 }),
+            offsetY:  -16,
+            overflow: true,
+          }),
+        })
+      );
+
+      // Toast
+      if (intersectedCount !== null) {
         setToast({
-          message: `Poligon başarıyla kaydedildi! Çizilen alan içerisinde ${data.intersectedInventoryCount} adet envanter bulundu.`,
+          message: `Poligon başarıyla kaydedildi! Çizilen alan içerisinde ${intersectedCount} adet envanter mevcut.`,
           type:    "success",
         });
       } else {
         setToast({ message: "Başarıyla kaydedildi.", type: "success" });
       }
 
-      setPendingGeometry(null);  // modal close
+      setPendingGeometry(null);
 
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
@@ -127,8 +172,9 @@ export function Navbar({ map }: NavbarProps) {
   }
 
   function handleModalCancel() {
-    // Geometry deletion from VectorSource
-    sourceRef.current.clear();
+    if (pendingGeometry) {
+      sourceRef.current.removeFeature(pendingGeometry.feature);  // sadece bu feature
+    }
     setPendingGeometry(null);
     setActiveType(null);
   }

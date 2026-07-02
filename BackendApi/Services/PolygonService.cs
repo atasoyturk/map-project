@@ -38,4 +38,11 @@ public sealed class PolygonService : IPolygonService
             intersectedCount
         );
     }
+
+    public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync() =>
+    await _context.Polygons
+        .Select(p => new PolygonResponseDto(
+            p.Id, p.Name, p.Color,
+            GeometryConverter.ToWkt(p.Geometry), 0))
+        .ToListAsync();
 }

@@ -2,6 +2,8 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
 using BackendApi.Helpers;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace BackendApi.Services;
 
@@ -32,4 +34,10 @@ public sealed class LineService : ILineService
             GeometryConverter.ToWkt(geometry)
         );
     }
+    public async Task<IEnumerable<LineResponseDto>> GetAllAsync() =>
+    await _context.Lines
+        .Select(l => new LineResponseDto(
+            l.Id, l.Name, l.Color,
+            GeometryConverter.ToWkt(l.Geometry)))
+        .ToListAsync();
 }

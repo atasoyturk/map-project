@@ -4,6 +4,6 @@ namespace BackendApi.Services;
 
 public interface IPointService
 {
-    Task<PointResponseDto> SaveAsync(GeoRequestDto request);
-    Task<IEnumerable<PointResponseDto>> GetAllAsync(); 
+    Task<PointResponseDto>             SaveAsync(GeoRequestDto request, int userId);
+    Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId);
 }

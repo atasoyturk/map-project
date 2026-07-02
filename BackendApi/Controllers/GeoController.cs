@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BackendApi.Controllers;
 
-// takes DI -> Call services -> return HTTP response
-
 [ApiController]
 [Route("api")]
 [Authorize]
@@ -29,42 +27,33 @@ public sealed class GeoController : ControllerBase
     [HttpPost("point")]
     public async Task<IActionResult> SavePoint([FromBody] GeoRequestDto request)
     {
-        try
-        {
-            var result = await _pointService.SaveAsync(request);
-            return Created(string.Empty, result);
-        }
-        catch (Exception)
-        {
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+        try { return Created(string.Empty, await _pointService.SaveAsync(request)); }
+        catch (Exception) { return BadRequest("Geçersiz WKT formatı."); }
     }
 
     [HttpPost("line")]
     public async Task<IActionResult> SaveLine([FromBody] GeoRequestDto request)
     {
-        try
-        {
-            var result = await _lineService.SaveAsync(request);
-            return Created(string.Empty, result);
-        }
-        catch (Exception)
-        {
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+        try { return Created(string.Empty, await _lineService.SaveAsync(request)); }
+        catch (Exception) { return BadRequest("Geçersiz WKT formatı."); }
     }
 
     [HttpPost("polygon")]
     public async Task<IActionResult> SavePolygon([FromBody] GeoRequestDto request)
     {
-        try
-        {
-            var result = await _polygonService.SaveAsync(request);
-            return Created(string.Empty, result);
-        }
-        catch (Exception)
-        {
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+        try { return Created(string.Empty, await _polygonService.SaveAsync(request)); }
+        catch (Exception) { return BadRequest("Geçersiz WKT formatı."); }
     }
+
+    [HttpGet("point")]
+    public async Task<IActionResult> GetPoints() =>
+        Ok(await _pointService.GetAllAsync());
+
+    [HttpGet("line")]
+    public async Task<IActionResult> GetLines() =>
+        Ok(await _lineService.GetAllAsync());
+
+    [HttpGet("polygon")]
+    public async Task<IActionResult> GetPolygons() =>
+        Ok(await _polygonService.GetAllAsync());
 }

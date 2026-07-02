@@ -12,7 +12,7 @@ public sealed class PointService : IPointService
 
     public PointService(AppDbContext context) => _context = context;
 
-    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request)
+    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
@@ -20,7 +20,8 @@ public sealed class PointService : IPointService
         {
             Geometry = geometry,
             Name     = request.Name,
-            Color    = request.Color
+            Color    = request.Color,
+            UserId   = userId          
         };
 
         _context.Points.Add(entity);
@@ -34,8 +35,9 @@ public sealed class PointService : IPointService
         );
     }
 
-    public async Task<IEnumerable<PointResponseDto>> GetAllAsync() =>
+    public async Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId) =>
         await _context.Points
+            .Where(p => p.UserId == userId)  
             .Select(p => new PointResponseDto(
                 p.Id,
                 p.Name,

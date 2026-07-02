@@ -12,19 +12,21 @@ public sealed class PolygonService : IPolygonService
 
     public PolygonService(AppDbContext context) => _context = context;
 
-    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request)
+    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        // Spatial intersection analysis
-        var allPoints = await _context.Points.ToListAsync();
+        var allPoints     = await _context.Points
+            .Where(p => p.UserId == userId)   
+            .ToListAsync();
         var intersectedCount = allPoints.Count(p => geometry.Contains(p.Geometry));
 
         var entity = new PolygonEntity
         {
             Geometry = geometry,
             Name     = request.Name,
-            Color    = request.Color
+            Color    = request.Color,
+            UserId   = userId          
         };
 
         _context.Polygons.Add(entity);
@@ -39,10 +41,14 @@ public sealed class PolygonService : IPolygonService
         );
     }
 
-    public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync() =>
-    await _context.Polygons
-        .Select(p => new PolygonResponseDto(
-            p.Id, p.Name, p.Color,
-            GeometryConverter.ToWkt(p.Geometry), 0))
-        .ToListAsync();
+    public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId) =>
+        await _context.Polygons
+            .Where(p => p.UserId == userId)   
+            .Select(p => new PolygonResponseDto(
+                p.Id,
+                p.Name,
+                p.Color,
+                GeometryConverter.ToWkt(p.Geometry),
+                0))
+            .ToListAsync();
 }

@@ -4,7 +4,6 @@ using BackendApi.Entities;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace BackendApi.Services;
 
 public sealed class LineService : ILineService
@@ -13,7 +12,7 @@ public sealed class LineService : ILineService
 
     public LineService(AppDbContext context) => _context = context;
 
-    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request)
+    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
@@ -21,7 +20,8 @@ public sealed class LineService : ILineService
         {
             Geometry = geometry,
             Name     = request.Name,
-            Color    = request.Color
+            Color    = request.Color,
+            UserId   = userId          // ← eklendi
         };
 
         _context.Lines.Add(entity);
@@ -34,10 +34,14 @@ public sealed class LineService : ILineService
             GeometryConverter.ToWkt(geometry)
         );
     }
-    public async Task<IEnumerable<LineResponseDto>> GetAllAsync() =>
-    await _context.Lines
-        .Select(l => new LineResponseDto(
-            l.Id, l.Name, l.Color,
-            GeometryConverter.ToWkt(l.Geometry)))
-        .ToListAsync();
+
+    public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId) =>
+        await _context.Lines
+            .Where(l => l.UserId == userId)   // ← filtreleme eklendi
+            .Select(l => new LineResponseDto(
+                l.Id,
+                l.Name,
+                l.Color,
+                GeometryConverter.ToWkt(l.Geometry)))
+            .ToListAsync();
 }

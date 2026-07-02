@@ -21,7 +21,7 @@ public sealed class LineService : ILineService
             Geometry = geometry,
             Name     = request.Name,
             Color    = request.Color,
-            UserId   = userId          // ← eklendi
+            UserId   = userId          
         };
 
         _context.Lines.Add(entity);
@@ -37,7 +37,7 @@ public sealed class LineService : ILineService
 
     public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId) =>
         await _context.Lines
-            .Where(l => l.UserId == userId)   // ← filtreleme eklendi
+            .Where(l => l.UserId == userId)  
             .Select(l => new LineResponseDto(
                 l.Id,
                 l.Name,

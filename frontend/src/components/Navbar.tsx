@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-
+import { Feature } from "ol";
 import Map from "ol/Map";
 import Draw from "ol/interaction/Draw";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { WKT } from "ol/format";
-
 import type { DrawType, PendingGeometry } from "../types/drawing";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +38,27 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function buildStyle(color: string, name: string) {
+  const c = color || "#3b82f6";
+  return new Style({
+    fill:   new Fill({ color: hexToRgba(c, 0.2) }),
+    stroke: new Stroke({ color: c, width: 2 }),
+    image:  new Circle({
+      radius: 6,
+      fill:   new Fill({ color: c }),
+      stroke: new Stroke({ color: "#ffffff", width: 2 }),
+    }),
+    text: name ? new Text({
+      text:     name,
+      font:     "bold 13px sans-serif",
+      fill:     new Fill({ color: "#0f172a" }),
+      stroke:   new Stroke({ color: "#ffffff", width: 3 }),
+      offsetY:  -16,
+      overflow: true,
+    }) : undefined,
+  });
+}
+
 export function Navbar({ map }: NavbarProps) {
   const [activeType,      setActiveType]      = useState<DrawType | null>(null);
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -59,7 +79,71 @@ export function Navbar({ map }: NavbarProps) {
     return () => { map.removeLayer(layer); };
   }, [map]);
 
-  // Draw interaction 
+  // upload the current valued from db
+  useEffect(() => {
+    if (!map) return;
+
+    const wktFormat = new WKT();
+
+    async function loadFeatures() {
+      try {
+        const [pointsRes, linesRes, polygonsRes] = await Promise.all([
+          apiFetch("/api/point"),
+          apiFetch("/api/line"),
+          apiFetch("/api/polygon"),
+        ]);
+
+        if (!pointsRes.ok || !linesRes.ok || !polygonsRes.ok) return;
+
+        const [points, lines, polygons] = await Promise.all([
+          pointsRes.json(),
+          linesRes.json(),
+          polygonsRes.json(),
+        ]);
+
+        const features: Feature[] = [];
+
+        for (const p of points) {
+          const geom = wktFormat.readGeometry(p.wktGeometry, {
+            dataProjection:    "EPSG:4326",
+            featureProjection: "EPSG:3857",
+          });
+          const feature = new Feature({ geometry: geom });
+          feature.setStyle(buildStyle(p.color, p.name));
+          features.push(feature);
+        }
+
+        for (const l of lines) {
+          const geom = wktFormat.readGeometry(l.wktGeometry, {
+            dataProjection:    "EPSG:4326",
+            featureProjection: "EPSG:3857",
+          });
+          const feature = new Feature({ geometry: geom });
+          feature.setStyle(buildStyle(l.color, l.name));
+          features.push(feature);
+        }
+
+        for (const p of polygons) {
+          const geom = wktFormat.readGeometry(p.wktGeometry, {
+            dataProjection:    "EPSG:4326",
+            featureProjection: "EPSG:3857",
+          });
+          const feature = new Feature({ geometry: geom });
+          feature.setStyle(buildStyle(p.color, p.name));
+          features.push(feature);
+        }
+
+        sourceRef.current.addFeatures(features);
+
+      } catch {
+        
+      }
+    }
+
+    loadFeatures();
+  }, [map]);
+
+  // Draw interaction
   useEffect(() => {
     if (!map) return;
 
@@ -79,17 +163,7 @@ export function Navbar({ map }: NavbarProps) {
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
-      event.feature.setStyle(
-        new Style({
-          fill:   new Fill({ color: "rgba(59,130,246,0.15)" }),
-          stroke: new Stroke({ color: "#3b82f6", width: 2 }),
-          image:  new Circle({
-            radius: 6,
-            fill:   new Fill({ color: "#3b82f6" }),
-            stroke: new Stroke({ color: "#ffffff", width: 2 }),
-          }),
-        })
-      );
+      event.feature.setStyle(buildStyle("#3b82f6", ""));
 
       setPendingGeometry({ wkt, type: activeType, feature: event.feature });
       setActiveType(null);
@@ -123,34 +197,14 @@ export function Navbar({ map }: NavbarProps) {
         return;
       }
 
-      
       let intersectedCount: number | null = null;
       if (pendingGeometry.type === "Polygon") {
         const data = await response.json();
         intersectedCount = data.intersectedInventoryCount;
       }
 
-      pendingGeometry.feature.setStyle(
-        new Style({
-          fill:   new Fill({ color: hexToRgba(color, 0.2) }),
-          stroke: new Stroke({ color, width: 2 }),
-          image:  new Circle({
-            radius: 6,
-            fill:   new Fill({ color }),
-            stroke: new Stroke({ color: "#ffffff", width: 2 }),
-          }),
-          text: new Text({
-            text:     name,
-            font:     "bold 13px sans-serif",
-            fill:     new Fill({ color: "#0f172a" }),
-            stroke:   new Stroke({ color: "#ffffff", width: 3 }),
-            offsetY:  -16,
-            overflow: true,
-          }),
-        })
-      );
+      pendingGeometry.feature.setStyle(buildStyle(color, name));
 
-      // Toast
       if (intersectedCount !== null) {
         setToast({
           message: `Poligon başarıyla kaydedildi! Çizilen alan içerisinde ${intersectedCount} adet envanter mevcut.`,
@@ -171,7 +225,7 @@ export function Navbar({ map }: NavbarProps) {
 
   function handleModalCancel() {
     if (pendingGeometry) {
-      sourceRef.current.removeFeature(pendingGeometry.feature);  
+      sourceRef.current.removeFeature(pendingGeometry.feature);
     }
     setPendingGeometry(null);
     setActiveType(null);
@@ -183,6 +237,7 @@ export function Navbar({ map }: NavbarProps) {
   }
 
   function handleLogout() {
+    sourceRef.current.clear();
     logout();
     navigate("/login");
   }
@@ -218,19 +273,19 @@ export function Navbar({ map }: NavbarProps) {
             <button
               key={type}
               onClick={() => handleSelect(type)}
-              disabled={!!pendingGeometry}  // lock buttons when a geometry is pending
+              disabled={!!pendingGeometry}
               style={{
-                padding:     "6px 14px",
+                padding:      "6px 14px",
                 borderRadius: 8,
-                border:      "1px solid",
-                borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
-                background:  activeType === type ? "rgba(59,130,246,.2)" : "transparent",
-                color:       activeType === type ? "#93c5fd" : "#94a3b8",
-                fontSize:    13,
-                fontWeight:  500,
-                cursor:      pendingGeometry ? "not-allowed" : "pointer",
-                opacity:     pendingGeometry ? 0.5 : 1,
-                transition:  "all .15s",
+                border:       "1px solid",
+                borderColor:  activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
+                background:   activeType === type ? "rgba(59,130,246,.2)" : "transparent",
+                color:        activeType === type ? "#93c5fd" : "#94a3b8",
+                fontSize:     13,
+                fontWeight:   500,
+                cursor:       pendingGeometry ? "not-allowed" : "pointer",
+                opacity:      pendingGeometry ? 0.5 : 1,
+                transition:   "all .15s",
               }}
             >
               {LABEL_MAP[type]}
@@ -241,13 +296,13 @@ export function Navbar({ map }: NavbarProps) {
             <button
               onClick={() => { setActiveType(null); setToast(null); }}
               style={{
-                padding:     "6px 12px",
+                padding:      "6px 12px",
                 borderRadius: 8,
-                border:      "1px solid rgba(239,68,68,.4)",
-                background:  "rgba(239,68,68,.1)",
-                color:       "#fca5a5",
-                fontSize:    12,
-                cursor:      "pointer",
+                border:       "1px solid rgba(239,68,68,.4)",
+                background:   "rgba(239,68,68,.1)",
+                color:        "#fca5a5",
+                fontSize:     12,
+                cursor:       "pointer",
               }}
             >
               İptal
@@ -259,15 +314,15 @@ export function Navbar({ map }: NavbarProps) {
         <button
           onClick={handleLogout}
           style={{
-            padding:     "6px 14px",
+            padding:      "6px 14px",
             borderRadius: 8,
-            border:      "1px solid rgba(255,255,255,.15)",
-            background:  "transparent",
-            color:       "#94a3b8",
-            fontSize:    13,
-            fontWeight:  500,
-            cursor:      "pointer",
-            minWidth:    80,
+            border:       "1px solid rgba(255,255,255,.15)",
+            background:   "transparent",
+            color:        "#94a3b8",
+            fontSize:     13,
+            fontWeight:   500,
+            cursor:       "pointer",
+            minWidth:     80,
           }}
         >
           Çıkış Yap

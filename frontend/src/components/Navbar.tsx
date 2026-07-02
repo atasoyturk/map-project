@@ -79,7 +79,6 @@ export function Navbar({ map }: NavbarProps) {
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
-      // Default geçici stil
       event.feature.setStyle(
         new Style({
           fill:   new Fill({ color: "rgba(59,130,246,0.15)" }),
@@ -124,14 +123,13 @@ export function Navbar({ map }: NavbarProps) {
         return;
       }
 
-      // Polygon ise önce JSON oku — sonra style güncelle
+      
       let intersectedCount: number | null = null;
       if (pendingGeometry.type === "Polygon") {
         const data = await response.json();
         intersectedCount = data.intersectedInventoryCount;
       }
 
-      // Kayıt başarılı — feature stilini güncelle
       pendingGeometry.feature.setStyle(
         new Style({
           fill:   new Fill({ color: hexToRgba(color, 0.2) }),
@@ -173,7 +171,7 @@ export function Navbar({ map }: NavbarProps) {
 
   function handleModalCancel() {
     if (pendingGeometry) {
-      sourceRef.current.removeFeature(pendingGeometry.feature);  // sadece bu feature
+      sourceRef.current.removeFeature(pendingGeometry.feature);  
     }
     setPendingGeometry(null);
     setActiveType(null);
@@ -220,7 +218,7 @@ export function Navbar({ map }: NavbarProps) {
             <button
               key={type}
               onClick={() => handleSelect(type)}
-              disabled={!!pendingGeometry}  // modal açıkken butonları kilitle
+              disabled={!!pendingGeometry}  // lock buttons when a geometry is pending
               style={{
                 padding:     "6px 14px",
                 borderRadius: 8,

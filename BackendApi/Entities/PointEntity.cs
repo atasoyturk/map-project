@@ -8,4 +8,6 @@ public sealed class PointEntity
 {
     public int      Id       { get; init; }
     public Geometry Geometry { get; set; } = null!;
+    public string   Name     { get; set; } = string.Empty;  
+    public string   Color    { get; set; } = string.Empty;  
 }

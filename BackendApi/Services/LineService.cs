@@ -55,4 +55,17 @@ public sealed class LineService : ILineService
         return new LineResponseDto(entity.Id, entity.Name, entity.Color,
             GeometryConverter.ToWkt(entity.Geometry));
     }
+
+    public async Task<bool> DeleteAsync(int id, int userId)
+    {
+        var entity = await _context.Lines
+            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
+
+        if (entity is null) return false;
+
+        entity.IsDeleted    = true;
+        entity.ModifiedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

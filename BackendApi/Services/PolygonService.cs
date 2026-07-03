@@ -64,4 +64,17 @@ public sealed class PolygonService : IPolygonService
         return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
             GeometryConverter.ToWkt(entity.Geometry), 0);
     }
+
+    public async Task<bool> DeleteAsync(int id, int userId)
+    {
+        var entity = await _context.Polygons
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+
+        if (entity is null) return false;
+
+        entity.IsDeleted    = true;
+        entity.ModifiedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

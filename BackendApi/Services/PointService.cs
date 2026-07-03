@@ -55,4 +55,17 @@ public sealed class PointService : IPointService
         return new PointResponseDto(entity.Id, entity.Name, entity.Color,
             GeometryConverter.ToWkt(entity.Geometry));
     }
+
+    public async Task<bool> DeleteAsync(int id, int userId)
+    {
+        var entity = await _context.Points
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+
+        if (entity is null) return false;
+
+        entity.IsDeleted    = true;
+        entity.ModifiedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

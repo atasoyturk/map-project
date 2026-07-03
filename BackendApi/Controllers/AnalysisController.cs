@@ -22,15 +22,20 @@ public sealed class AnalysisController : ControllerBase
         _logger          = logger;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int? GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(value, out var id) ? id : null;
+    }
 
     [HttpPost("temp-inventory")]
     public async Task<IActionResult> TempInventory([FromBody] GeoRequestDto request)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
         try
         {
-            var count = await _analysisService.TempInventoryAsync(request, GetUserId());
+            var count = await _analysisService.TempInventoryAsync(request, userId.Value);
             return Ok(new { intersectedInventoryCount = count });
         }
         catch (Exception ex)

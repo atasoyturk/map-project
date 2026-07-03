@@ -28,29 +28,38 @@ public sealed class GeoController : ControllerBase
         _logger         = logger;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int? GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(value, out var id) ? id : null;
+    }
 
     [HttpGet("point")]
     public async Task<IActionResult> GetPoints()
     {
-        try { return Ok(await _pointService.GetAllAsync(GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Ok(await _pointService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetPoints failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("point")]
     public async Task<IActionResult> SavePoint([FromBody] GeoRequestDto request)
     {
-        try { return Created(string.Empty, await _pointService.SaveAsync(request, GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Created(string.Empty, await _pointService.SaveAsync(request, userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "SavePoint failed"); return BadRequest("Geçersiz WKT formatı."); }
     }
 
     [HttpPut("point/{id:int}")]
     public async Task<IActionResult> UpdatePoint(int id, [FromBody] GeoRequestDto request)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
         try
         {
-            var result = await _pointService.UpdateAsync(id, request, GetUserId());
+            var result = await _pointService.UpdateAsync(id, request, userId.Value);
             return result is null ? NotFound() : Ok(result);
         }
         catch (Exception ex) { _logger.LogError(ex, "UpdatePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
@@ -59,23 +68,29 @@ public sealed class GeoController : ControllerBase
     [HttpGet("line")]
     public async Task<IActionResult> GetLines()
     {
-        try { return Ok(await _lineService.GetAllAsync(GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Ok(await _lineService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetLines failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("line")]
     public async Task<IActionResult> SaveLine([FromBody] GeoRequestDto request)
     {
-        try { return Created(string.Empty, await _lineService.SaveAsync(request, GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Created(string.Empty, await _lineService.SaveAsync(request, userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "SaveLine failed"); return BadRequest("Geçersiz WKT formatı."); }
     }
 
     [HttpPut("line/{id:int}")]
     public async Task<IActionResult> UpdateLine(int id, [FromBody] GeoRequestDto request)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
         try
         {
-            var result = await _lineService.UpdateAsync(id, request, GetUserId());
+            var result = await _lineService.UpdateAsync(id, request, userId.Value);
             return result is null ? NotFound() : Ok(result);
         }
         catch (Exception ex) { _logger.LogError(ex, "UpdateLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
@@ -84,23 +99,29 @@ public sealed class GeoController : ControllerBase
     [HttpGet("polygon")]
     public async Task<IActionResult> GetPolygons()
     {
-        try { return Ok(await _polygonService.GetAllAsync(GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Ok(await _polygonService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetPolygons failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("polygon")]
     public async Task<IActionResult> SavePolygon([FromBody] GeoRequestDto request)
     {
-        try { return Created(string.Empty, await _polygonService.SaveAsync(request, GetUserId())); }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try { return Created(string.Empty, await _polygonService.SaveAsync(request, userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "SavePolygon failed"); return BadRequest("Geçersiz WKT formatı."); }
     }
 
     [HttpPut("polygon/{id:int}")]
     public async Task<IActionResult> UpdatePolygon(int id, [FromBody] GeoRequestDto request)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
         try
         {
-            var result = await _polygonService.UpdateAsync(id, request, GetUserId());
+            var result = await _polygonService.UpdateAsync(id, request, userId.Value);
             return result is null ? NotFound() : Ok(result);
         }
         catch (Exception ex) { _logger.LogError(ex, "UpdatePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }

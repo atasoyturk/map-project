@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { WKT } from "ol/format";
+import { useState, useRef }  from "react";
+import { WKT }               from "ol/format";
+import type { Geometry }     from "ol/geom";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
-import { useAuth } from "../context/AuthContext";
+import { useAuth }           from "../context/AuthContext";
 
 interface InfoPopupProps {
   info:      SelectedFeatureInfo;
@@ -22,23 +23,32 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
-  const [name,      setName]      = useState(info.name);
-  const [color,     setColor]     = useState(info.color || "#3b82f6");
-  const [isSaving,  setIsSaving]  = useState(false);
-  const [error,     setError]     = useState<string | null>(null);
+  const [name,     setName]     = useState(info.name);
+  const [color,    setColor]    = useState(info.color || "#3b82f6");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+
+  // original geometry to restore if user cancels
+  const originalGeomRef = useRef<Geometry | null>(
+    info.feature.getGeometry()?.clone() ?? null
+  );
 
   const { apiFetch } = useAuth();
+
+  function handleCancel() {
+    if (originalGeomRef.current) {
+      info.feature.setGeometry(originalGeomRef.current);  // visual restore
+    }
+    onClose();
+  }
 
   async function handleUpdate() {
     setIsSaving(true);
     setError(null);
-
     try {
-      // take current geometry of the feature
       const geometry = info.feature.getGeometry();
       if (!geometry) return;
 
-      // EPSG:3857 → EPSG:4326
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
@@ -49,10 +59,8 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
 
       if (!response.ok) { setError("Güncelleme başarısız."); return; }
 
-      // Feature metadata update
       info.feature.set("name",  name);
       info.feature.set("color", color);
-
       onUpdated(name, color);
       onClose();
     } catch {
@@ -65,24 +73,18 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
   return (
     <div
       style={{
-        position:       "fixed",
-        inset:          0,
-        zIndex:         2000,
-        background:     "rgba(0,0,0,0.4)",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
+        position: "fixed", inset: 0, zIndex: 2000,
+        background: "rgba(0,0,0,0.4)",
+        display: "flex", alignItems: "center", justifyContent: "center",
       }}
-      onClick={onClose}
+      onClick={handleCancel}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background:   "#ffffff",
-          borderRadius: 16,
-          padding:      "28px 32px",
-          width:        340,
-          boxShadow:    "0 20px 60px rgba(0,0,0,0.25)",
+          background: "#ffffff", borderRadius: 16,
+          padding: "28px 32px", width: 340,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
         }}
       >
         <span style={{ fontSize: 11, fontWeight: 600, color: "#6366f1", letterSpacing: ".8px", textTransform: "uppercase" }}>
@@ -103,7 +105,8 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
             style={{
               width: "100%", boxSizing: "border-box",
               padding: "8px 12px", borderRadius: 8,
-              border: "1px solid #e2e8f0", fontSize: 14, color: "#0f172a", outline: "none",
+              border: "1px solid #e2e8f0", fontSize: 14,
+              color: "#0f172a", outline: "none",
             }}
             onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
             onBlur={(e)  => (e.target.style.borderColor = "#e2e8f0")}
@@ -133,7 +136,7 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
 
         <div style={{ display: "flex", gap: 10 }}>
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             style={{
               flex: 1, padding: "9px 0", borderRadius: 8,
               border: "1px solid #e2e8f0", background: "#f8fafc",

@@ -46,7 +46,7 @@ export function LoginPage() {
     >
       <div className="flex flex-col md:flex-row items-center justify-center gap-16 px-8">
 
-        {/* Sol — Globe */}
+        {/* Left — Globe */}
         <div className="flex flex-col items-center gap-6">
            <GlobeCanvas />
           <div className="text-center">
@@ -59,7 +59,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Sağ — Form */}
+        {/* Right — Form */}
         <div
           className="w-full max-w-sm rounded-2xl p-8"
           style={{ background: "#ffffff", minWidth: 320, color: "#0f172a" }}

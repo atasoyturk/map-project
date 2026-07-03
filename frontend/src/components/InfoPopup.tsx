@@ -8,6 +8,7 @@ interface InfoPopupProps {
   info:      SelectedFeatureInfo;
   onClose:   () => void;
   onUpdated: (name: string, color: string) => void;
+  onDelete:  () => void;
 }
 
 const ENDPOINT: Record<string, string> = {
@@ -22,7 +23,7 @@ const TYPE_LABEL: Record<string, string> = {
   polygon: "Poligon",
 };
 
-export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
+export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps) {
   const [name,     setName]     = useState(info.name);
   const [color,    setColor]    = useState(info.color || "#3b82f6");
   const [isSaving, setIsSaving] = useState(false);
@@ -67,6 +68,24 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
       setError("Sunucuya bağlanılamadı.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      const response = await apiFetch(`${ENDPOINT[info.type]}/${info.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) { setError("Silme başarısız."); return; }
+      onDelete();
+      onClose();
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -134,9 +153,10 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
           <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 12 }}>{error}</p>
         )}
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
           <button
             onClick={handleCancel}
+            disabled={isSaving || isDeleting}
             style={{
               flex: 1, padding: "9px 0", borderRadius: 8,
               border: "1px solid #e2e8f0", background: "#f8fafc",
@@ -147,7 +167,7 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
           </button>
           <button
             onClick={handleUpdate}
-            disabled={isSaving}
+            disabled={isSaving || isDeleting}
             style={{
               flex: 2, padding: "9px 0", borderRadius: 8, border: "none",
               background: isSaving ? "#a5b4fc" : "linear-gradient(135deg,#4f46e5,#6366f1)",
@@ -158,6 +178,21 @@ export function InfoPopup({ info, onClose, onUpdated }: InfoPopupProps) {
             {isSaving ? "Güncelleniyor..." : "Güncelle"}
           </button>
         </div>
+
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting || isSaving}
+          style={{
+            width: "100%", padding: "8px 0", borderRadius: 8,
+            border: "1px solid rgba(239,68,68,.3)",
+            background: "rgba(239,68,68,.05)",
+            color: "#ef4444", fontSize: 12, fontWeight: 500,
+            cursor: isDeleting ? "not-allowed" : "pointer",
+            opacity: isDeleting ? 0.6 : 1,
+          }}
+        >
+          {isDeleting ? "Siliniyor..." : "Nesneyi Sil"}
+        </button>
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Map from "ol/Map";
 import VectorSource from "ol/source/Vector";
 import { Style, Fill, Stroke, Circle, Text } from "ol/style";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { useDrawing } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
+import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
 import { Toast } from "./Toast";
 import type { DrawType, PendingGeometry } from "../types/drawing";
@@ -58,13 +59,14 @@ function buildStyle(color: string, name: string): Style {
 }
 
 export function Navbar({ map }: NavbarProps) {
-  const [activeType,      setActiveType]      = useState<DrawType | null>(null);
-  const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
-  const [isSaving,        setIsSaving]        = useState(false);
-  const [toast,           setToast]           = useState<ToastState | null>(null);
+  const [activeType,     setActiveType]     = useState<DrawType | null>(null);
+  const [pendingGeometry,setPendingGeometry]= useState<PendingGeometry | null>(null);
+  const [isSaving,       setIsSaving]       = useState(false);
+  const [toast,          setToast]          = useState<ToastState | null>(null);
+  const [analysisActive, setAnalysisActive] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<number | null>(null);
 
   const sourceRef = useRef(new VectorSource());
-
   const { logout, apiFetch } = useAuth();
   const navigate             = useNavigate();
 
@@ -72,52 +74,74 @@ export function Navbar({ map }: NavbarProps) {
 
   useDrawing({
     map,
-    source:     sourceRef.current,
+    source:    sourceRef.current,
     activeType,
-    onDrawEnd:  (pending) => {
+    onDrawEnd: (pending) => {
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
       setPendingGeometry(pending);
       setActiveType(null);
     },
   });
 
+  const { clear: clearAnalysis } = useAnalysis({
+    map,
+    active:   analysisActive,
+    apiFetch,
+    onResult: (count) => {
+      setAnalysisResult(count);
+      setAnalysisActive(false);
+      setToast({
+        message: `Analiz tamamlandı! Seçilen alan içinde ${count} adet envanter bulundu.`,
+        type:    "success",
+      });
+    },
+    onError: (msg) => setToast({ message: msg, type: "error" }),
+  });
+
   async function handleModalSave(name: string, color: string) {
     if (!pendingGeometry) return;
     setIsSaving(true);
-
     try {
       const response = await apiFetch(ENDPOINT_MAP[pendingGeometry.type], {
         method: "POST",
         body:   JSON.stringify({ wktGeometry: pendingGeometry.wkt, name, color }),
       });
-
-      if (!response.ok) {
-        setToast({ message: "Kaydetme başarısız.", type: "error" });
-        return;
-      }
+      if (!response.ok) { setToast({ message: "Kaydetme başarısız.", type: "error" }); return; }
 
       let intersectedCount: number | null = null;
       if (pendingGeometry.type === "Polygon") {
         const data = await response.json();
         intersectedCount = data.intersectedInventoryCount;
       }
-
       pendingGeometry.feature.setStyle(buildStyle(color, name));
-
       setToast({
         message: intersectedCount !== null
           ? `Poligon kaydedildi! Alan içinde ${intersectedCount} envanter mevcut.`
           : "Başarıyla kaydedildi.",
         type: "success",
       });
-
       setPendingGeometry(null);
-
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
     } finally {
       setIsSaving(false);
     }
+  }
+
+  function handleSelect(type: DrawType) {
+    setToast(null);
+    setAnalysisActive(false);
+    setAnalysisResult(null);
+    clearAnalysis();
+    setActiveType((p) => p === type ? null : type);
+  }
+
+  function handleAnalysisToggle() {
+    const next = !analysisActive;
+    setAnalysisActive(next);
+    setActiveType(null);
+    if (!next) { clearAnalysis(); setAnalysisResult(null); }
+    setToast(null);
   }
 
   function handleModalCancel() {
@@ -142,6 +166,7 @@ export function Navbar({ map }: NavbarProps) {
         justifyContent: "space-between",
         padding: "0 20px", zIndex: 1000, gap: 12,
       }}>
+        {/* Brand */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 120 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
           <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
@@ -149,11 +174,14 @@ export function Navbar({ map }: NavbarProps) {
           </span>
         </div>
 
+        {/* Araçlar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+
+          {/* Çizim butonları */}
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
               key={type}
-              onClick={() => { setToast(null); setActiveType((p) => p === type ? null : type); }}
+              onClick={() => handleSelect(type)}
               disabled={!!pendingGeometry}
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
@@ -170,6 +198,7 @@ export function Navbar({ map }: NavbarProps) {
             </button>
           ))}
 
+          {/* Çizim iptal */}
           {activeType && !pendingGeometry && (
             <button
               onClick={() => { setActiveType(null); setToast(null); }}
@@ -183,8 +212,45 @@ export function Navbar({ map }: NavbarProps) {
               İptal
             </button>
           )}
+
+          {/* Ayraç */}
+          <div style={{ width: 1, height: 24, background: "rgba(255,255,255,.1)" }} />
+
+          {/* Envanter Analizi */}
+          <button
+            onClick={handleAnalysisToggle}
+            disabled={!!pendingGeometry}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
+              background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
+              color:       analysisActive ? "#fde047" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   pendingGeometry ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Envanter Analizi
+          </button>
+
+          {/* Analizi Temizle */}
+          {analysisResult !== null && (
+            <button
+              onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
+              style={{
+                padding: "6px 12px", borderRadius: 8,
+                border: "1px solid rgba(234,179,8,.4)",
+                background: "rgba(234,179,8,.1)",
+                color: "#fde047", fontSize: 12, cursor: "pointer",
+              }}
+            >
+              Analizi Temizle
+            </button>
+          )}
         </div>
 
+        {/* Çıkış */}
         <button
           onClick={handleLogout}
           style={{

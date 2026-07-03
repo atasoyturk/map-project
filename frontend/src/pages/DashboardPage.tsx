@@ -1,5 +1,6 @@
 import { useState }          from "react";
 import Map                   from "ol/Map";
+import VectorSource from "ol/source/Vector";  
 import { MapView }           from "../components/MapView";
 import { Navbar }            from "../components/Navbar";
 import { InfoPopup }         from "../components/InfoPopup";
@@ -38,6 +39,10 @@ export function DashboardPage() {
           onClose={() => setSelected(null)}
           onUpdated={(name, color) => {
             selected.feature.setStyle(buildStyle(color, name));
+            setSelected(null);
+          }}
+          onDelete={() => {
+            (selected.feature.get("source") as VectorSource)?.removeFeature(selected.feature);
             setSelected(null);
           }}
         />

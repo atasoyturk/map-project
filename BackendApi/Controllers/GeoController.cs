@@ -126,4 +126,43 @@ public sealed class GeoController : ControllerBase
         }
         catch (Exception ex) { _logger.LogError(ex, "UpdatePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
+
+    [HttpDelete("point/{id:int}")]
+    public async Task<IActionResult> DeletePoint(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _pointService.DeleteAsync(id, userId.Value);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeletePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpDelete("line/{id:int}")]
+    public async Task<IActionResult> DeleteLine(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _lineService.DeleteAsync(id, userId.Value);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeleteLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpDelete("polygon/{id:int}")]
+    public async Task<IActionResult> DeletePolygon(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _polygonService.DeleteAsync(id, userId.Value);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeletePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
 }

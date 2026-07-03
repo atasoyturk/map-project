@@ -6,15 +6,17 @@ import { InfoPopup }         from "../components/InfoPopup";
 import { useSelect }         from "../hooks/useSelect";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import { buildStyle }        from "../utils/mapStyle";
+import type { DrawType }     from "../types/drawing";
 
 export function DashboardPage() {
   const [map,            setMap]           = useState<Map | null>(null);
   const [selected,       setSelected]      = useState<SelectedFeatureInfo | null>(null);
   const [analysisActive, setAnalysisActive] = useState(false);
+  const [activeType,     setActiveType]     = useState<DrawType | null>(null);  
 
   useSelect({
     map,
-    enabled:  !analysisActive,
+    enabled:  !analysisActive && activeType === null, 
     onSelect: setSelected,
   });
 
@@ -24,6 +26,8 @@ export function DashboardPage() {
         map={map}
         analysisActive={analysisActive}
         onAnalysisChange={setAnalysisActive}
+        activeType={activeType}
+        onActiveTypeChange={setActiveType}
       />
       <div style={{ marginTop: 56, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />

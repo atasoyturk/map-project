@@ -16,6 +16,8 @@ interface NavbarProps {
   map:              Map | null;
   analysisActive:   boolean;           
   onAnalysisChange: (v: boolean) => void;
+  activeType:        DrawType | null;        
+  onActiveTypeChange:(v: DrawType | null) => void; 
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -35,8 +37,14 @@ interface ToastState {
   type:    "success" | "error";
 }
 
-export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
-  const [activeType,     setActiveType]     = useState<DrawType | null>(null);
+export function Navbar({
+  map,
+  analysisActive,
+  onAnalysisChange,
+  activeType,
+  onActiveTypeChange,
+}: NavbarProps) {
+  
   const [pendingGeometry,setPendingGeometry]= useState<PendingGeometry | null>(null);
   const [isSaving,       setIsSaving]       = useState(false);
   const [toast,          setToast]          = useState<ToastState | null>(null);
@@ -55,7 +63,7 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
     onDrawEnd: (pending) => {
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
       setPendingGeometry(pending);
-      setActiveType(null);
+      onActiveTypeChange(null); 
     },
   });
 
@@ -109,13 +117,13 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
     onAnalysisChange(false); 
     setAnalysisResult(null);
     clearAnalysis();
-    setActiveType((p) => p === type ? null : type);
+    onActiveTypeChange(activeType === type ? null : type);
   }
 
   function handleAnalysisToggle() {
     const next = !analysisActive;
     onAnalysisChange(next);        
-    setActiveType(null);
+    onActiveTypeChange(null);
     if (!next) { clearAnalysis(); setAnalysisResult(null); }
     setToast(null);
   }
@@ -123,7 +131,7 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
   function handleModalCancel() {
     if (pendingGeometry) sourceRef.current.removeFeature(pendingGeometry.feature);
     setPendingGeometry(null);
-    setActiveType(null);
+    onActiveTypeChange(null);
   }
 
   function handleLogout() {
@@ -150,10 +158,10 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
           </span>
         </div>
 
-        {/* Araçlar */}
+        {/*Tools*/}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 
-          {/* Çizim butonları */}
+          {/* drawing buttons */}
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
               key={type}
@@ -174,10 +182,10 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
             </button>
           ))}
 
-          {/* Çizim iptal */}
+          {/* cancel draw*/}
           {activeType && !pendingGeometry && (
             <button
-              onClick={() => { setActiveType(null); setToast(null); }}
+              onClick={() => { onActiveTypeChange(null);; setToast(null); }}
               style={{
                 padding: "6px 12px", borderRadius: 8,
                 border: "1px solid rgba(239,68,68,.4)",
@@ -189,10 +197,9 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
             </button>
           )}
 
-          {/* Ayraç */}
           <div style={{ width: 1, height: 24, background: "rgba(255,255,255,.1)" }} />
 
-          {/* Envanter Analizi */}
+          {/* Inventory Analysis */}
           <button
             onClick={handleAnalysisToggle}
             disabled={!!pendingGeometry}
@@ -210,7 +217,7 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
             Envanter Analizi
           </button>
 
-          {/* Analizi Temizle */}
+          {/* Clear analyiss*/}
           {analysisResult !== null && (
             <button
               onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
@@ -226,7 +233,7 @@ export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
           )}
         </div>
 
-        {/* Çıkış */}
+        {/* Exit */}
         <button
           onClick={handleLogout}
           style={{

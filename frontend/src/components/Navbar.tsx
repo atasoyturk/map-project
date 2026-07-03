@@ -1,16 +1,14 @@
-import { useEffect, useRef, useState } from "react";
-import { Feature } from "ol";
+import { useRef, useState } from "react";
 import Map from "ol/Map";
-import Draw from "ol/interaction/Draw";
-import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import { WKT } from "ol/format";
-import type { DrawType, PendingGeometry } from "../types/drawing";
-import { useAuth } from "../context/AuthContext";
+import { Style, Fill, Stroke, Circle, Text } from "ol/style";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useDrawing } from "../hooks/useDrawing";
+import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { AttributeModal } from "./AttributeModal";
 import { Toast } from "./Toast";
-import { Style, Fill, Stroke, Circle, Text } from "ol/style";
+import type { DrawType, PendingGeometry } from "../types/drawing";
 
 interface NavbarProps { map: Map | null; }
 
@@ -38,7 +36,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function buildStyle(color: string, name: string) {
+function buildStyle(color: string, name: string): Style {
   const c = color || "#3b82f6";
   return new Style({
     fill:   new Fill({ color: hexToRgba(c, 0.2) }),
@@ -65,118 +63,23 @@ export function Navbar({ map }: NavbarProps) {
   const [isSaving,        setIsSaving]        = useState(false);
   const [toast,           setToast]           = useState<ToastState | null>(null);
 
-  const drawRef   = useRef<Draw | null>(null);
   const sourceRef = useRef(new VectorSource());
 
   const { logout, apiFetch } = useAuth();
   const navigate             = useNavigate();
 
-  // Vector Layer
-  useEffect(() => {
-    if (!map) return;
-    const layer = new VectorLayer({ source: sourceRef.current, zIndex: 1 });
-    map.addLayer(layer);
-    return () => { map.removeLayer(layer); };
-  }, [map]);
+  useFeatureLoader({ map, source: sourceRef.current, apiFetch, buildStyle });
 
-  // upload the current valued from db
-  useEffect(() => {
-    if (!map) return;
-
-    const wktFormat = new WKT();
-
-    async function loadFeatures() {
-      try {
-        const [pointsRes, linesRes, polygonsRes] = await Promise.all([
-          apiFetch("/api/point"),
-          apiFetch("/api/line"),
-          apiFetch("/api/polygon"),
-        ]);
-
-        if (!pointsRes.ok || !linesRes.ok || !polygonsRes.ok) return;
-
-        const [points, lines, polygons] = await Promise.all([
-          pointsRes.json(),
-          linesRes.json(),
-          polygonsRes.json(),
-        ]);
-
-        const features: Feature[] = [];
-
-        for (const p of points) {
-          const geom = wktFormat.readGeometry(p.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
-          });
-          const feature = new Feature({ geometry: geom });
-          feature.setStyle(buildStyle(p.color, p.name));
-          features.push(feature);
-        }
-
-        for (const l of lines) {
-          const geom = wktFormat.readGeometry(l.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
-          });
-          const feature = new Feature({ geometry: geom });
-          feature.setStyle(buildStyle(l.color, l.name));
-          features.push(feature);
-        }
-
-        for (const p of polygons) {
-          const geom = wktFormat.readGeometry(p.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
-          });
-          const feature = new Feature({ geometry: geom });
-          feature.setStyle(buildStyle(p.color, p.name));
-          features.push(feature);
-        }
-
-        sourceRef.current.addFeatures(features);
-
-      } catch {
-        
-      }
-    }
-
-    loadFeatures();
-  }, [map]);
-
-  // Draw interaction
-  useEffect(() => {
-    if (!map) return;
-
-    if (drawRef.current) {
-      map.removeInteraction(drawRef.current);
-      drawRef.current = null;
-    }
-
-    if (!activeType) return;
-
-    const draw = new Draw({ source: sourceRef.current, type: activeType });
-
-    draw.on("drawend", (event) => {
-      const geometry = event.feature.getGeometry();
-      if (!geometry) return;
-
-      const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
-      const wkt    = new WKT().writeGeometry(cloned);
-
-      event.feature.setStyle(buildStyle("#3b82f6", ""));
-
-      setPendingGeometry({ wkt, type: activeType, feature: event.feature });
+  useDrawing({
+    map,
+    source:     sourceRef.current,
+    activeType,
+    onDrawEnd:  (pending) => {
+      pending.feature.setStyle(buildStyle("#3b82f6", ""));
+      setPendingGeometry(pending);
       setActiveType(null);
-    });
-
-    map.addInteraction(draw);
-    drawRef.current = draw;
-
-    return () => {
-      map.removeInteraction(draw);
-      drawRef.current = null;
-    };
-  }, [map, activeType]);
+    },
+  });
 
   async function handleModalSave(name: string, color: string) {
     if (!pendingGeometry) return;
@@ -185,11 +88,7 @@ export function Navbar({ map }: NavbarProps) {
     try {
       const response = await apiFetch(ENDPOINT_MAP[pendingGeometry.type], {
         method: "POST",
-        body: JSON.stringify({
-          wktGeometry: pendingGeometry.wkt,
-          name,
-          color,
-        }),
+        body:   JSON.stringify({ wktGeometry: pendingGeometry.wkt, name, color }),
       });
 
       if (!response.ok) {
@@ -205,14 +104,12 @@ export function Navbar({ map }: NavbarProps) {
 
       pendingGeometry.feature.setStyle(buildStyle(color, name));
 
-      if (intersectedCount !== null) {
-        setToast({
-          message: `Poligon başarıyla kaydedildi! Çizilen alan içerisinde ${intersectedCount} adet envanter mevcut.`,
-          type:    "success",
-        });
-      } else {
-        setToast({ message: "Başarıyla kaydedildi.", type: "success" });
-      }
+      setToast({
+        message: intersectedCount !== null
+          ? `Poligon kaydedildi! Alan içinde ${intersectedCount} envanter mevcut.`
+          : "Başarıyla kaydedildi.",
+        type: "success",
+      });
 
       setPendingGeometry(null);
 
@@ -224,16 +121,9 @@ export function Navbar({ map }: NavbarProps) {
   }
 
   function handleModalCancel() {
-    if (pendingGeometry) {
-      sourceRef.current.removeFeature(pendingGeometry.feature);
-    }
+    if (pendingGeometry) sourceRef.current.removeFeature(pendingGeometry.feature);
     setPendingGeometry(null);
     setActiveType(null);
-  }
-
-  function handleSelect(type: DrawType) {
-    setToast(null);
-    setActiveType((prev) => (prev === type ? null : type));
   }
 
   function handleLogout() {
@@ -244,22 +134,14 @@ export function Navbar({ map }: NavbarProps) {
 
   return (
     <>
-      <nav
-        style={{
-          position:       "fixed",
-          top: 0, left: 0, right: 0,
-          height:         56,
-          background:     "#0f172a",
-          borderBottom:   "1px solid rgba(255,255,255,.08)",
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "space-between",
-          padding:        "0 20px",
-          zIndex:         1000,
-          gap:            12,
-        }}
-      >
-        {/* Brand */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0,
+        height: 56, background: "#0f172a",
+        borderBottom: "1px solid rgba(255,255,255,.08)",
+        display: "flex", alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 20px", zIndex: 1000, gap: 12,
+      }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 120 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
           <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
@@ -267,25 +149,21 @@ export function Navbar({ map }: NavbarProps) {
           </span>
         </div>
 
-        {/* Drawing Buttons */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
               key={type}
-              onClick={() => handleSelect(type)}
+              onClick={() => { setToast(null); setActiveType((p) => p === type ? null : type); }}
               disabled={!!pendingGeometry}
               style={{
-                padding:      "6px 14px",
-                borderRadius: 8,
-                border:       "1px solid",
-                borderColor:  activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
-                background:   activeType === type ? "rgba(59,130,246,.2)" : "transparent",
-                color:        activeType === type ? "#93c5fd" : "#94a3b8",
-                fontSize:     13,
-                fontWeight:   500,
-                cursor:       pendingGeometry ? "not-allowed" : "pointer",
-                opacity:      pendingGeometry ? 0.5 : 1,
-                transition:   "all .15s",
+                padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
+                background:  activeType === type ? "rgba(59,130,246,.2)" : "transparent",
+                color:       activeType === type ? "#93c5fd" : "#94a3b8",
+                fontSize: 13, fontWeight: 500,
+                cursor:   pendingGeometry ? "not-allowed" : "pointer",
+                opacity:  pendingGeometry ? 0.5 : 1,
+                transition: "all .15s",
               }}
             >
               {LABEL_MAP[type]}
@@ -296,13 +174,10 @@ export function Navbar({ map }: NavbarProps) {
             <button
               onClick={() => { setActiveType(null); setToast(null); }}
               style={{
-                padding:      "6px 12px",
-                borderRadius: 8,
-                border:       "1px solid rgba(239,68,68,.4)",
-                background:   "rgba(239,68,68,.1)",
-                color:        "#fca5a5",
-                fontSize:     12,
-                cursor:       "pointer",
+                padding: "6px 12px", borderRadius: 8,
+                border: "1px solid rgba(239,68,68,.4)",
+                background: "rgba(239,68,68,.1)",
+                color: "#fca5a5", fontSize: 12, cursor: "pointer",
               }}
             >
               İptal
@@ -310,26 +185,20 @@ export function Navbar({ map }: NavbarProps) {
           )}
         </div>
 
-        {/* Exit */}
         <button
           onClick={handleLogout}
           style={{
-            padding:      "6px 14px",
-            borderRadius: 8,
-            border:       "1px solid rgba(255,255,255,.15)",
-            background:   "transparent",
-            color:        "#94a3b8",
-            fontSize:     13,
-            fontWeight:   500,
-            cursor:       "pointer",
-            minWidth:     80,
+            padding: "6px 14px", borderRadius: 8,
+            border: "1px solid rgba(255,255,255,.15)",
+            background: "transparent", color: "#94a3b8",
+            fontSize: 13, fontWeight: 500,
+            cursor: "pointer", minWidth: 80,
           }}
         >
           Çıkış Yap
         </button>
       </nav>
 
-      {/* Modal */}
       {pendingGeometry && (
         <AttributeModal
           pending={pendingGeometry}
@@ -339,7 +208,6 @@ export function Navbar({ map }: NavbarProps) {
         />
       )}
 
-      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}

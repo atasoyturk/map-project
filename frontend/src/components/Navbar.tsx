@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Map from "ol/Map";
 import VectorSource from "ol/source/Vector";
-import { Style, Fill, Stroke, Circle, Text } from "ol/style";
+import { buildStyle } from "../utils/mapStyle"
 import { useDrawing } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";
@@ -28,34 +28,6 @@ const LABEL_MAP: Record<DrawType, string> = {
 interface ToastState {
   message: string;
   type:    "success" | "error";
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-function buildStyle(color: string, name: string): Style {
-  const c = color || "#3b82f6";
-  return new Style({
-    fill:   new Fill({ color: hexToRgba(c, 0.2) }),
-    stroke: new Stroke({ color: c, width: 2 }),
-    image:  new Circle({
-      radius: 6,
-      fill:   new Fill({ color: c }),
-      stroke: new Stroke({ color: "#ffffff", width: 2 }),
-    }),
-    text: name ? new Text({
-      text:     name,
-      font:     "bold 13px sans-serif",
-      fill:     new Fill({ color: "#0f172a" }),
-      stroke:   new Stroke({ color: "#ffffff", width: 3 }),
-      offsetY:  -16,
-      overflow: true,
-    }) : undefined,
-  });
 }
 
 export function Navbar({ map }: NavbarProps) {

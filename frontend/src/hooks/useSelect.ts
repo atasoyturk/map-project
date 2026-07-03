@@ -14,16 +14,24 @@ interface SelectedFeatureInfo {
 }
 
 interface UseSelectOptions {
-  map:        Map | null;
-  onSelect:   (info: SelectedFeatureInfo | null) => void;
+  map:      Map | null;
+  enabled:  boolean;
+  onSelect: (info: SelectedFeatureInfo | null) => void;
 }
 
-export function useSelect({ map, onSelect }: UseSelectOptions) {
+export function useSelect({ map, enabled, onSelect }: UseSelectOptions) {
   const selectRef = useRef<Select | null>(null);
   const modifyRef = useRef<Modify | null>(null);
 
   useEffect(() => {
     if (!map) return;
+
+    if (!enabled) {
+      if (selectRef.current) { map.removeInteraction(selectRef.current); selectRef.current = null; }
+      if (modifyRef.current) { map.removeInteraction(modifyRef.current); modifyRef.current = null; }
+      onSelect(null);
+      return;
+    }
 
     const select = new Select({ condition: click });
     const modify = new Modify({ features: select.getFeatures() });
@@ -31,7 +39,6 @@ export function useSelect({ map, onSelect }: UseSelectOptions) {
     select.on("select", (e) => {
       const feature = e.selected[0];
       if (!feature) { onSelect(null); return; }
-
       onSelect({
         feature,
         id:    feature.get("id"),
@@ -43,17 +50,16 @@ export function useSelect({ map, onSelect }: UseSelectOptions) {
 
     map.addInteraction(select);
     map.addInteraction(modify);
-
     selectRef.current = select;
     modifyRef.current = modify;
 
     return () => {
-      map.removeInteraction(select);  // cleanup 
+      map.removeInteraction(select);
       map.removeInteraction(modify);
       selectRef.current = null;
       modifyRef.current = null;
     };
-  }, [map]);
+  }, [map, enabled]);
 }
 
 export type { SelectedFeatureInfo };

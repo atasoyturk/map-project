@@ -11,7 +11,12 @@ import { AttributeModal } from "./AttributeModal";
 import { Toast } from "./Toast";
 import type { DrawType, PendingGeometry } from "../types/drawing";
 
-interface NavbarProps { map: Map | null; }
+
+interface NavbarProps {
+  map:              Map | null;
+  analysisActive:   boolean;           
+  onAnalysisChange: (v: boolean) => void;
+}
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
   Point:      "/api/point",
@@ -30,12 +35,11 @@ interface ToastState {
   type:    "success" | "error";
 }
 
-export function Navbar({ map }: NavbarProps) {
+export function Navbar({ map, analysisActive, onAnalysisChange }: NavbarProps) {
   const [activeType,     setActiveType]     = useState<DrawType | null>(null);
   const [pendingGeometry,setPendingGeometry]= useState<PendingGeometry | null>(null);
   const [isSaving,       setIsSaving]       = useState(false);
   const [toast,          setToast]          = useState<ToastState | null>(null);
-  const [analysisActive, setAnalysisActive] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<number | null>(null);
 
   const sourceRef = useRef(new VectorSource());
@@ -61,7 +65,7 @@ export function Navbar({ map }: NavbarProps) {
     apiFetch,
     onResult: (count) => {
       setAnalysisResult(count);
-      setAnalysisActive(false);
+      onAnalysisChange(false);
       setToast({
         message: `Analiz tamamlandı! Seçilen alan içinde ${count} adet envanter bulundu.`,
         type:    "success",
@@ -102,7 +106,7 @@ export function Navbar({ map }: NavbarProps) {
 
   function handleSelect(type: DrawType) {
     setToast(null);
-    setAnalysisActive(false);
+    onAnalysisChange(false); 
     setAnalysisResult(null);
     clearAnalysis();
     setActiveType((p) => p === type ? null : type);
@@ -110,7 +114,7 @@ export function Navbar({ map }: NavbarProps) {
 
   function handleAnalysisToggle() {
     const next = !analysisActive;
-    setAnalysisActive(next);
+    onAnalysisChange(next);        
     setActiveType(null);
     if (!next) { clearAnalysis(); setAnalysisResult(null); }
     setToast(null);

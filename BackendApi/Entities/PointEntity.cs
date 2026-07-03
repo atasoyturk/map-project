@@ -11,4 +11,7 @@ public sealed class PointEntity
     public string   Name     { get; set; } = string.Empty;  
     public string   Color    { get; set; } = string.Empty; 
     public int      UserId   { get; set; } 
+    public bool     IsActive     { get; set; } = true;   
+    public bool     IsDeleted    { get; set; } = false;  
+    public DateTime ModifiedDate { get; set; } = DateTime.UtcNow; 
 }

@@ -12,7 +12,7 @@ interface AuthContextValue {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
-  apiFetch: ReturnType<typeof createApiFetch>;  // ← eklendi
+  apiFetch: ReturnType<typeof createApiFetch>;  
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);

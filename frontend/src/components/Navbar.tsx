@@ -237,7 +237,7 @@ export function Navbar({
               transition: "all .15s",
             }}
           >
-            Sorgulama
+            Geçmiş
           </button>
 
           <button
@@ -254,7 +254,7 @@ export function Navbar({
               transition: "all .15s",
             }}
           >
-            Envanter Analizi
+            Alan Tara
           </button>
 
           {analysisResult !== null && (

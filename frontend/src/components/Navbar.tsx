@@ -100,7 +100,7 @@ export function Navbar({
       setAnalysisResult(count);
       onAnalysisChange(false);
       setToast({
-        message: `Analiz tamamlandı! Seçilen alan içinde ${count} adet envanter bulundu.`,
+        message: `Analiz tamamlandı! Seçilen alan içinde ${count} adet öğe bulundu.`,
         type:    "success",
       });
     },
@@ -125,7 +125,7 @@ export function Navbar({
       pendingGeometry.feature.setStyle(buildStyle(color, name));
       setToast({
         message: intersectedCount !== null
-          ? `Poligon kaydedildi! Alan içinde ${intersectedCount} envanter mevcut.`
+          ? `Poligon kaydedildi! Alan içinde ${intersectedCount} öğe mevcut.`
           : "Başarıyla kaydedildi.",
         type: "success",
       });
@@ -177,7 +177,8 @@ export function Navbar({
     <>
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0,
-        height: 56, background: "#0f172a",
+        height: 50, 
+        background: "#030d1a",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
@@ -225,7 +226,7 @@ export function Navbar({
             </button>
           )}
 
-          <div style={{ width: 1, height: 24, background: "rgba(255,255,255,.1)" }} />
+          <div style={{ width: 1, height: 24, background: "rgba(255, 255, 255, 0.2)" }} />
 
           <button
             onClick={onQueryPanelToggle}

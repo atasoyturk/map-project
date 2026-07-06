@@ -13,7 +13,7 @@ interface MapViewProps {
   height?: string;
 }
 
-export function MapView({ onMapReady }: MapViewProps) {
+export function MapView({ onMapReady }: MapViewProps, height = "100vh") {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,5 +30,5 @@ export function MapView({ onMapReady }: MapViewProps) {
     return () => { map.setTarget(undefined); };
   }, []);
 
-  return <div ref={mapRef} style={{ width: "100%", height: "100vh", zIndex: 0 }} />;
+  return <div ref={mapRef} style={{ width: "100%", height: height, zIndex: 0 }} />;
 }

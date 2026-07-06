@@ -114,7 +114,7 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
           {TYPE_LABEL[info.type]} — ID: {info.id}
         </span>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "4px 0 20px" }}>
-          Obje Güncelle
+          Öğe Durumu
         </h2>
 
         <div style={{ marginBottom: 16 }}>
@@ -195,12 +195,12 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
             opacity: isDeleting ? 0.6 : 1,
           }}
         >
-          {isDeleting ? "Siliniyor..." : "Nesneyi Sil"}
+          {isDeleting ? "Siliniyor..." : "Sil"}
         </button>
       </div>
       {showConfirm && (
         <ConfirmModal
-          message="Bu objeyi silmek istediğinize emin misiniz?"
+          message="Bu öğeyi silmek istediğinize emin misiniz?"
           onConfirm={() => { setShowConfirm(false); handleDelete(); }}
           onCancel={() => setShowConfirm(false)}
         />

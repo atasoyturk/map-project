@@ -102,14 +102,14 @@ export function LoginPage() {
             )}
             <button type="submit" disabled={isLoading}
               className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg,#1d4ed8,#2563eb)", marginTop: 4 }}>
+              style={{ background: "linear-gradient(to right, #030d1a, #002d8f, #030d1a)", marginTop: 4 }}>
               {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
             </button>
           </form>
 
           <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 24 }}>
             Hesabınız yok mu?{" "}
-            <Link to="/register" style={{ color: "#2563eb", fontWeight: 500 }}>Kayıt olun</Link>
+            <Link to="/register" style={{ color: "#030d1a", fontWeight: 500 }}>Kayıt olun</Link>
           </p>
         </div>
 

@@ -48,7 +48,7 @@ export function DashboardPage() {
         layerControlOpen={layerControlOpen}
         onLayerControlToggle={() => setLayerControlOpen((p) => !p)}
       />
-      <div style={{ position: "relative", marginTop: 56, flex: 1 }}>
+      <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
         <LayerControl layers={layers} visible = {layerControlOpen}/>
       </div>

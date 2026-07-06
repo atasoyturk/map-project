@@ -54,17 +54,6 @@ export function AttributeModal({
       >
         {/* Header */}
         <div style={{ marginBottom: 20 }}>
-          <span
-            style={{
-              fontSize:      11,
-              fontWeight:    600,
-              color:         "#6366f1",
-              letterSpacing: ".8px",
-              textTransform: "uppercase",
-            }}
-          >
-            {TYPE_LABEL[pending.type]} Öznitelikleri
-          </span>
           <h2
             style={{
               fontSize:   18,
@@ -73,7 +62,7 @@ export function AttributeModal({
               margin:     "4px 0 0",
             }}
           >
-            Çizim Bilgilerini Girin
+            {TYPE_LABEL[pending.type]} Türü
           </h2>
         </div>
 

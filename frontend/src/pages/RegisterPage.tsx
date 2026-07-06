@@ -106,7 +106,7 @@ export function RegisterPage() {
             )}
             <button type="submit" disabled={isLoading}
               className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg,#1d4ed8,#2563eb)", marginTop: 4 }}>
+              style={{ background: "linear-gradient(to right, #030d1a, #002d8f, #030d1a)", marginTop: 4 }}>
               {isLoading ? "Kayıt olunuyor..." : "Kayıt Ol"}
             </button>
           </form>

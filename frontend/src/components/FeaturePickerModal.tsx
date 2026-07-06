@@ -31,10 +31,10 @@ export function FeaturePickerModal({ features, onPick, onClose }: FeaturePickerM
         }}
       >
         <h2 style={{ fontSize: 16, fontWeight: 600, color: "#0f172a", margin: "0 0 6px" }}>
-          Birden Fazla Obje Bulundu
+          Birden Fazla Öğe Bulundu
         </h2>
         <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 16px" }}>
-          Hangi objeyi incelemek istersiniz?
+          Hangi öğeyi incelemek istersiniz?
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

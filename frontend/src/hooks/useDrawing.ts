@@ -3,8 +3,13 @@ import Map from "ol/Map";
 import Draw from "ol/interaction/Draw";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
+import Cluster from "ol/source/Cluster";
 import { WKT } from "ol/format";
 import type { DrawType, PendingGeometry } from "../types/drawing";
+
+import { Style, Fill, Stroke, Circle, Text } from "ol/style";
+import type { Feature } from "ol";
+
 
 interface UseDrawingOptions {
   map:          Map | null;
@@ -37,7 +42,28 @@ export function useDrawing({
   useEffect(() => {
     if (!map) return;
 
-    const pointLayer   = new VectorLayer({ source: pointSource,   zIndex: 1 });
+    const clusterSource = new Cluster({ source: pointSource, distance: 40 });
+    const pointLayer    = new VectorLayer({
+      source: clusterSource, // when lots of points, 
+      zIndex: 1,
+      style:  (feature) => {
+        const features = feature.get("features") as Feature[];
+        const size     = features.length;
+        if (size === 1) return undefined; 
+        return new Style({
+          image: new Circle({
+            radius: 12 + Math.min(size, 20),
+            fill:   new Fill({ color: "#3b82f6" }),
+            stroke: new Stroke({ color: "#ffffff", width: 2 }),
+          }),
+          text: new Text({
+            text: size.toString(),
+            fill: new Fill({ color: "#ffffff" }),
+            font: "bold 12px sans-serif",
+          }),
+        });
+      },
+    });
     const lineLayer    = new VectorLayer({ source: lineSource,    zIndex: 1 });
     const polygonLayer = new VectorLayer({ source: polygonSource, zIndex: 1 });
 

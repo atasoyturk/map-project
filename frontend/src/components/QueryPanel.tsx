@@ -6,6 +6,7 @@ interface DrawingRow {
   name:        string;
   color:       string;
   type:        string;
+  createdDate: string;
 }
 
 interface QueryPanelProps {
@@ -168,7 +169,9 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
                       <span style={{ fontFamily: "monospace", fontSize: 11 }}>{row.color}</span>
                     </div>
                   </td>
-                  <td style={tdStyle}>—</td>
+                  <td style={tdStyle}>
+                    {row.createdDate ? new Date(row.createdDate).toLocaleDateString("tr-TR") : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>

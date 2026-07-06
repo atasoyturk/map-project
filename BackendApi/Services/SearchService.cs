@@ -14,11 +14,11 @@ public sealed class SearchService : ISearchService
 
     public async Task<SearchResponseDto> SearchAsync(SearchQueryDto q, int userId)
     {
-        return new SearchResponseDto(
-            await SearchPoints(q, userId),
-            await SearchLines(q, userId),
-            await SearchPolygons(q, userId)
-        );
+        var points   = q.Type is null or "point"   ? await SearchPoints(q, userId)   : Enumerable.Empty<PointResponseDto>();
+        var lines    = q.Type is null or "line"    ? await SearchLines(q, userId)    : Enumerable.Empty<LineResponseDto>();
+        var polygons = q.Type is null or "polygon" ? await SearchPolygons(q, userId) : Enumerable.Empty<PolygonResponseDto>();
+
+        return new SearchResponseDto(points, lines, polygons);
     }
 
     private async Task<IEnumerable<PointResponseDto>> SearchPoints(SearchQueryDto q, int userId)

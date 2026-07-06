@@ -6,15 +6,19 @@ import { WKT } from "ol/format";
 import { Style } from "ol/style";
 
 interface FeatureLoaderOptions {
-  map:        Map | null;
-  source:     VectorSource;
-  apiFetch:   (path: string, options?: RequestInit) => Promise<Response>;
-  buildStyle: (color: string, name: string) => Style;
+  map:          Map | null;
+  pointSource:  VectorSource;
+  lineSource:   VectorSource;
+  polygonSource:VectorSource;
+  apiFetch:     (path: string, options?: RequestInit) => Promise<Response>;
+  buildStyle:   (color: string, name: string) => Style;
 }
 
 export function useFeatureLoader({
   map,
-  source,
+  pointSource,
+  lineSource,
+  polygonSource,
   apiFetch,
   buildStyle,
 }: FeatureLoaderOptions) {
@@ -39,51 +43,43 @@ export function useFeatureLoader({
           polygr.json(),
         ]);
 
-        const features: Feature[] = [];
-
         for (const p of points) {
           const geom = wktFormat.readGeometry(p.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
+            dataProjection: "EPSG:4326", featureProjection: "EPSG:3857",
           });
           const f = new Feature({ geometry: geom });
-          f.set("id",   p.id);       
-          f.set("type", "point");    
-          f.set("name", p.name);     
-          f.set("color", p.color);   
+          f.set("id", p.id); f.set("type", "point");
+          f.set("name", p.name); f.set("color", p.color);
+          f.set("source", pointSource);
           f.setStyle(buildStyle(p.color, p.name));
-          features.push(f);
+          pointSource.addFeature(f);
         }
 
         for (const l of lines) {
           const geom = wktFormat.readGeometry(l.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
+            dataProjection: "EPSG:4326", featureProjection: "EPSG:3857",
           });
           const f = new Feature({ geometry: geom });
-          f.set("id",   l.id);
-          f.set("type", "line");
-          f.set("name", l.name);
-          f.set("color", l.color);
+          f.set("id", l.id); f.set("type", "line");
+          f.set("name", l.name); f.set("color", l.color);
+          f.set("source", lineSource);
           f.setStyle(buildStyle(l.color, l.name));
-          features.push(f);
+          lineSource.addFeature(f);
         }
 
         for (const p of polygons) {
           const geom = wktFormat.readGeometry(p.wktGeometry, {
-            dataProjection:    "EPSG:4326",
-            featureProjection: "EPSG:3857",
+            dataProjection: "EPSG:4326", featureProjection: "EPSG:3857",
           });
           const f = new Feature({ geometry: geom });
-          f.set("id",   p.id);
-          f.set("type", "polygon");
-          f.set("name", p.name);
-          f.set("color", p.color);
+          f.set("id", p.id); f.set("type", "polygon");
+          f.set("name", p.name); f.set("color", p.color);
+          f.set("source", polygonSource);
           f.setStyle(buildStyle(p.color, p.name));
-          features.push(f);
+          polygonSource.addFeature(f);
         }
 
-        source.addFeatures(features);
+        
       } catch {
         // sessiz hata — harita yine de çalışır
       }

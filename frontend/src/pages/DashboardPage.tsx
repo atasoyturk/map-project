@@ -1,30 +1,35 @@
-import { useState }          from "react";
-import Map                   from "ol/Map";
-import VectorSource          from "ol/source/Vector";
-import { MapView }           from "../components/MapView";
-import { Navbar }            from "../components/Navbar";
-import { InfoPopup }         from "../components/InfoPopup";
-import { LayerControl }      from "../components/LayerControl";
-import { useSelect }         from "../hooks/useSelect";
+import { useState }               from "react";
+import Map                        from "ol/Map";
+import VectorSource               from "ol/source/Vector";
+import { MapView }                from "../components/MapView";
+import { Navbar }                 from "../components/Navbar";
+import { InfoPopup }              from "../components/InfoPopup";
+import { LayerControl }           from "../components/LayerControl";
+import { FeaturePickerModal }     from "../components/FeaturePickerModal";
+import { QueryPanel }             from "../components/QueryPanel";
+import { useMapClick }            from "../hooks/useMapClick";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
-import { buildStyle }        from "../utils/mapStyle";
-import type { DrawType }     from "../types/drawing";
-import { QueryPanel } from "../components/QueryPanel";
-
+import { buildStyle }             from "../utils/mapStyle";
+import type { DrawType }          from "../types/drawing";
 
 export function DashboardPage() {
   const [map,            setMap]           = useState<Map | null>(null);
   const [selected,       setSelected]      = useState<SelectedFeatureInfo | null>(null);
+  const [candidates,     setCandidates]    = useState<SelectedFeatureInfo[]>([]);
   const [analysisActive, setAnalysisActive] = useState(false);
   const [activeType,     setActiveType]     = useState<DrawType | null>(null);
   const [layers,         setLayers]         = useState<DrawingLayers | null>(null);
   const [queryPanelOpen, setQueryPanelOpen] = useState(false);
 
-  useSelect({
+  useMapClick({
     map,
-    enabled:  !analysisActive && activeType === null,
-    onSelect: setSelected,
+    enabled: !analysisActive && activeType === null,
+    onFeaturesFound: (found) => {
+      if (found.length === 0) { setSelected(null); setCandidates([]); return; }
+      if (found.length === 1) { setSelected(found[0]); setCandidates([]); return; }
+      setCandidates(found);
+    },
   });
 
   return (
@@ -58,8 +63,16 @@ export function DashboardPage() {
           }}
         />
       )}
-      
-      {queryPanelOpen && (    
+
+      {candidates.length > 1 && (
+        <FeaturePickerModal
+          features={candidates}
+          onPick={(info) => { setSelected(info); setCandidates([]); }}
+          onClose={() => setCandidates([])}
+        />
+      )}
+
+      {queryPanelOpen && (
         <QueryPanel onClose={() => setQueryPanelOpen(false)} />
       )}
     </div>

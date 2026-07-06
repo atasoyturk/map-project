@@ -21,6 +21,8 @@ export function DashboardPage() {
   const [activeType,     setActiveType]     = useState<DrawType | null>(null);
   const [layers,         setLayers]         = useState<DrawingLayers | null>(null);
   const [queryPanelOpen, setQueryPanelOpen] = useState(false);
+  const [layerControlOpen, setLayerControlOpen] = useState(false);
+
 
   useMapClick({
     map,
@@ -43,10 +45,12 @@ export function DashboardPage() {
         onLayersReady={setLayers}
         queryPanelOpen={queryPanelOpen}
         onQueryPanelToggle={() => setQueryPanelOpen((p) => !p)}
+        layerControlOpen={layerControlOpen}
+        onLayerControlToggle={() => setLayerControlOpen((p) => !p)}
       />
       <div style={{ position: "relative", marginTop: 56, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
-        <LayerControl layers={layers} />
+        <LayerControl layers={layers} visible = {layerControlOpen}/>
       </div>
 
       {selected && (

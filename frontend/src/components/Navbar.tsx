@@ -18,6 +18,8 @@ interface NavbarProps {
   activeType:        DrawType | null;
   onActiveTypeChange:(v: DrawType | null) => void;
   onLayersReady?:    (layers: DrawingLayers) => void;
+  queryPanelOpen:    boolean;
+  onQueryPanelToggle:() => void;
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -44,6 +46,8 @@ export function Navbar({
   activeType,
   onActiveTypeChange,
   onLayersReady,
+  queryPanelOpen,
+  onQueryPanelToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -218,6 +222,23 @@ export function Navbar({
           )}
 
           <div style={{ width: 1, height: 24, background: "rgba(255,255,255,.1)" }} />
+
+          <button
+            onClick={onQueryPanelToggle}
+            disabled={!!pendingGeometry}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: queryPanelOpen ? "#6366f1" : "rgba(255,255,255,.15)",
+              background:  queryPanelOpen ? "rgba(99,102,241,.2)" : "transparent",
+              color:       queryPanelOpen ? "#a5b4fc" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   pendingGeometry ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Sorgulama
+          </button>
 
           <button
             onClick={handleAnalysisToggle}

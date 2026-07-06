@@ -49,6 +49,7 @@ public sealed class LineService : ILineService
         entity.Name         = request.Name;
         entity.Color        = request.Color;
         entity.ModifiedDate = DateTime.UtcNow;
+        entity.ModifiedUserId  = userId; 
 
         await _context.SaveChangesAsync();
 
@@ -65,6 +66,7 @@ public sealed class LineService : ILineService
 
         entity.IsDeleted    = true;
         entity.ModifiedDate = DateTime.UtcNow;
+        entity.ModifiedUserId  = userId; 
         await _context.SaveChangesAsync();
         return true;
     }

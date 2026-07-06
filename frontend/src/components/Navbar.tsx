@@ -20,6 +20,8 @@ interface NavbarProps {
   onLayersReady?:    (layers: DrawingLayers) => void;
   queryPanelOpen:    boolean;
   onQueryPanelToggle:() => void;
+  layerControlOpen : boolean;
+  onLayerControlToggle: () => void;
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -48,6 +50,8 @@ export function Navbar({
   onLayersReady,
   queryPanelOpen,
   onQueryPanelToggle,
+  layerControlOpen,
+  onLayerControlToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -257,6 +261,23 @@ export function Navbar({
             Alan Tara
           </button>
 
+          <button
+            onClick={onLayerControlToggle}
+            disabled={!!pendingGeometry}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: layerControlOpen ? "#3b82f6" : "rgba(255,255,255,.15)",
+              background:  layerControlOpen ? "rgba(59,130,246,.2)" : "transparent",
+              color:       layerControlOpen ? "#93c5fd" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   pendingGeometry ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Filtre
+          </button>
+
           {analysisResult !== null && (
             <button
               onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
@@ -267,7 +288,7 @@ export function Navbar({
                 color: "#fde047", fontSize: 12, cursor: "pointer",
               }}
             >
-              Analizi Temizle
+              Temizle
             </button>
           )}
         </div>

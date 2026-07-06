@@ -4,7 +4,7 @@ import Draw from "ol/interaction/Draw";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { WKT } from "ol/format";
-import { Style, Fill, Stroke } from "ol/style";
+import { Style, Fill, Stroke, Circle} from "ol/style";
 
 interface UseAnalysisOptions {
   map:       Map | null;
@@ -58,7 +58,19 @@ export function useAnalysis({
 
     if (!active) return;
 
-    const draw = new Draw({ source: sourceRef.current, type: "Polygon" });
+    const draw = new Draw({
+      source: sourceRef.current,
+      type:   "Polygon",
+      style:  new Style({
+        fill:   new Fill({ color: "rgba(234,179,8,0.15)" }),
+        stroke: new Stroke({ color: "#eab308", width: 2, lineDash: [6, 4] }),
+        image:  new Circle({
+          radius: 6,
+          fill:   new Fill({ color: "#eab308" }),
+          stroke: new Stroke({ color: "#ffffff", width: 2 }),
+        }),
+      }),
+    });
 
     draw.on("drawend", async (event) => {
       const geometry = event.feature.getGeometry();

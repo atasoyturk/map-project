@@ -37,14 +37,14 @@ public sealed class PolygonService : IPolygonService
         await _context.SaveChangesAsync();
 
         return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry), intersectedCount);
+            GeometryConverter.ToWkt(geometry), intersectedCount, entity.CreatedDate);
     }
 
     public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId) =>
         await _context.Polygons
             .Where(p => p.UserId == userId && !p.IsDeleted)
             .Select(p => new PolygonResponseDto(p.Id, p.Name, p.Color,
-                GeometryConverter.ToWkt(p.Geometry), 0))
+                GeometryConverter.ToWkt(p.Geometry), 0, p.CreatedDate))
             .ToListAsync();
 
     public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
@@ -63,7 +63,7 @@ public sealed class PolygonService : IPolygonService
         await _context.SaveChangesAsync();
 
         return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), 0);
+            GeometryConverter.ToWkt(entity.Geometry), 0, entity.CreatedDate);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)

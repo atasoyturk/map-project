@@ -28,14 +28,14 @@ public sealed class PointService : IPointService
         await _context.SaveChangesAsync();
 
         return new PointResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry));
+            GeometryConverter.ToWkt(geometry), entity.CreatedDate);
     }
 
     public async Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId) =>
         await _context.Points
             .Where(p => p.UserId == userId && !p.IsDeleted)  
             .Select(p => new PointResponseDto(p.Id, p.Name, p.Color,
-                GeometryConverter.ToWkt(p.Geometry)))
+                GeometryConverter.ToWkt(p.Geometry), p.CreatedDate))
             .ToListAsync();
 
     public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
@@ -54,7 +54,7 @@ public sealed class PointService : IPointService
         await _context.SaveChangesAsync();
 
         return new PointResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry));
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)

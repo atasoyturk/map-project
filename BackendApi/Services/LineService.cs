@@ -28,14 +28,14 @@ public sealed class LineService : ILineService
         await _context.SaveChangesAsync();
 
         return new LineResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry));
+            GeometryConverter.ToWkt(geometry), entity.CreatedDate);
     }
 
     public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId) =>
         await _context.Lines
             .Where(l => l.UserId == userId && !l.IsDeleted)
             .Select(l => new LineResponseDto(l.Id, l.Name, l.Color,
-                GeometryConverter.ToWkt(l.Geometry)))
+                GeometryConverter.ToWkt(l.Geometry), l.CreatedDate))
             .ToListAsync();
 
     public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
@@ -54,7 +54,7 @@ public sealed class LineService : ILineService
         await _context.SaveChangesAsync();
 
         return new LineResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry));
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)

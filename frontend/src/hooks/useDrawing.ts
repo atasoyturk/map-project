@@ -7,26 +7,52 @@ import { WKT } from "ol/format";
 import type { DrawType, PendingGeometry } from "../types/drawing";
 
 interface UseDrawingOptions {
-  map:        Map | null;
-  source:     VectorSource;
-  activeType: DrawType | null;
-  onDrawEnd:  (pending: PendingGeometry) => void;
+  map:          Map | null;
+  pointSource:  VectorSource;
+  lineSource:   VectorSource;
+  polygonSource:VectorSource;
+  activeType:   DrawType | null;
+  onDrawEnd:    (pending: PendingGeometry) => void;
+}
+
+export interface DrawingLayers {
+  pointLayer:   VectorLayer<VectorSource>;
+  lineLayer:    VectorLayer<VectorSource>;
+  polygonLayer: VectorLayer<VectorSource>;
 }
 
 export function useDrawing({
   map,
-  source,
+  pointSource,
+  lineSource,
+  polygonSource,
   activeType,
   onDrawEnd,
-}: UseDrawingOptions) {
-  const drawRef = useRef<Draw | null>(null);
+}: UseDrawingOptions): { layers: DrawingLayers | null } {
 
-  // VectorLayer
+  const drawRef   = useRef<Draw | null>(null);
+  const layersRef = useRef<DrawingLayers | null>(null);
+
+  // 3 different VectorLayer
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source, zIndex: 1 });
-    map.addLayer(layer);
-    return () => { map.removeLayer(layer); };
+
+    const pointLayer   = new VectorLayer({ source: pointSource,   zIndex: 1 });
+    const lineLayer    = new VectorLayer({ source: lineSource,    zIndex: 1 });
+    const polygonLayer = new VectorLayer({ source: polygonSource, zIndex: 1 });
+
+    map.addLayer(pointLayer);
+    map.addLayer(lineLayer);
+    map.addLayer(polygonLayer);
+
+    layersRef.current = { pointLayer, lineLayer, polygonLayer };
+
+    return () => {
+      map.removeLayer(pointLayer);
+      map.removeLayer(lineLayer);
+      map.removeLayer(polygonLayer);
+      layersRef.current = null;
+    };
   }, [map]);
 
   // Draw interaction
@@ -40,7 +66,12 @@ export function useDrawing({
 
     if (!activeType) return;
 
-    const draw = new Draw({ source, type: activeType });
+    const activeSource =
+      activeType === "Point"      ? pointSource  :
+      activeType === "LineString" ? lineSource   :
+                                    polygonSource;
+
+    const draw = new Draw({ source: activeSource, type: activeType });
 
     draw.on("drawend", (event) => {
       const geometry = event.feature.getGeometry();
@@ -60,4 +91,6 @@ export function useDrawing({
       drawRef.current = null;
     };
   }, [map, activeType]);
+
+  return { layers: layersRef.current };
 }

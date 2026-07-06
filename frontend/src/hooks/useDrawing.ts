@@ -44,17 +44,29 @@ export function useDrawing({
 
     const clusterSource = new Cluster({ source: pointSource, distance: 40 });
     const pointLayer    = new VectorLayer({
-      source: clusterSource, // when lots of points, 
+      source: clusterSource,
       zIndex: 1,
       style:  (feature) => {
         const features = feature.get("features") as Feature[];
         const size     = features.length;
-        if (size === 1) return undefined; 
+
+        if (size === 1) {
+          const originalStyle = features[0].getStyle();
+          if (originalStyle) return originalStyle as Style;
+          return new Style({
+            image: new Circle({
+              radius: 6,
+              fill:   new Fill({ color: "#0f172a" }),
+              stroke: new Stroke({ color: "#94a3b8", width: 2 }),
+            }),
+          });
+        }
+
         return new Style({
           image: new Circle({
-            radius: 12 + Math.min(size, 20),
-            fill:   new Fill({ color: "#3b82f6" }),
-            stroke: new Stroke({ color: "#ffffff", width: 2 }),
+            radius: 10,
+            fill:   new Fill({ color: "#0f172a" }),
+            stroke: new Stroke({ color: "#94a3b8", width: 2 }),
           }),
           text: new Text({
             text: size.toString(),

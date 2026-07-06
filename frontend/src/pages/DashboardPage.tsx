@@ -10,6 +10,8 @@ import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
 import { buildStyle }        from "../utils/mapStyle";
 import type { DrawType }     from "../types/drawing";
+import { QueryPanel } from "../components/QueryPanel";
+
 
 export function DashboardPage() {
   const [map,            setMap]           = useState<Map | null>(null);
@@ -17,6 +19,7 @@ export function DashboardPage() {
   const [analysisActive, setAnalysisActive] = useState(false);
   const [activeType,     setActiveType]     = useState<DrawType | null>(null);
   const [layers,         setLayers]         = useState<DrawingLayers | null>(null);
+  const [queryPanelOpen, setQueryPanelOpen] = useState(false);
 
   useSelect({
     map,
@@ -33,6 +36,8 @@ export function DashboardPage() {
         activeType={activeType}
         onActiveTypeChange={setActiveType}
         onLayersReady={setLayers}
+        queryPanelOpen={queryPanelOpen}
+        onQueryPanelToggle={() => setQueryPanelOpen((p) => !p)}
       />
       <div style={{ position: "relative", marginTop: 56, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
@@ -52,6 +57,10 @@ export function DashboardPage() {
             setSelected(null);
           }}
         />
+      )}
+      
+      {queryPanelOpen && (    
+        <QueryPanel onClose={() => setQueryPanelOpen(false)} />
       )}
     </div>
   );

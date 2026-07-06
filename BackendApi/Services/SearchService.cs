@@ -38,7 +38,8 @@ public sealed class SearchService : ISearchService
             : (q.SortOrder == "asc" ? query.OrderBy(p => p.CreatedDate) : query.OrderByDescending(p => p.CreatedDate));
 
         return await query
-            .Select(p => new PointResponseDto(p.Id, p.Name, p.Color, GeometryConverter.ToWkt(p.Geometry)))
+            .Select(p => new PointResponseDto(p.Id, p.Name, p.Color,
+                GeometryConverter.ToWkt(p.Geometry), p.CreatedDate))  // ← CreatedDate eklendi
             .ToListAsync();
     }
 
@@ -59,7 +60,8 @@ public sealed class SearchService : ISearchService
             : (q.SortOrder == "asc" ? query.OrderBy(l => l.CreatedDate) : query.OrderByDescending(l => l.CreatedDate));
 
         return await query
-            .Select(l => new LineResponseDto(l.Id, l.Name, l.Color, GeometryConverter.ToWkt(l.Geometry)))
+            .Select(l => new LineResponseDto(l.Id, l.Name, l.Color,
+                GeometryConverter.ToWkt(l.Geometry), l.CreatedDate))  // ← CreatedDate eklendi
             .ToListAsync();
     }
 
@@ -80,7 +82,8 @@ public sealed class SearchService : ISearchService
             : (q.SortOrder == "asc" ? query.OrderBy(p => p.CreatedDate) : query.OrderByDescending(p => p.CreatedDate));
 
         return await query
-            .Select(p => new PolygonResponseDto(p.Id, p.Name, p.Color, GeometryConverter.ToWkt(p.Geometry), 0))
+            .Select(p => new PolygonResponseDto(p.Id, p.Name, p.Color,
+                GeometryConverter.ToWkt(p.Geometry), 0, p.CreatedDate))  // ← CreatedDate eklendi
             .ToListAsync();
     }
 }

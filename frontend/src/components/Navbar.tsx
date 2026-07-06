@@ -1,23 +1,23 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Map from "ol/Map";
 import VectorSource from "ol/source/Vector";
-import { buildStyle } from "../utils/mapStyle"
-import { useDrawing } from "../hooks/useDrawing";
+import { buildStyle } from "../utils/mapStyle";
+import { useDrawing, type DrawingLayers } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
 import { Toast } from "./Toast";
 import type { DrawType, PendingGeometry } from "../types/drawing";
 
-
 interface NavbarProps {
-  map:              Map | null;
-  analysisActive:   boolean;           
-  onAnalysisChange: (v: boolean) => void;
-  activeType:        DrawType | null;        
-  onActiveTypeChange:(v: DrawType | null) => void; 
+  map:               Map | null;
+  analysisActive:    boolean;
+  onAnalysisChange:  (v: boolean) => void;
+  activeType:        DrawType | null;
+  onActiveTypeChange:(v: DrawType | null) => void;
+  onLayersReady?:    (layers: DrawingLayers) => void;
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -43,29 +43,46 @@ export function Navbar({
   onAnalysisChange,
   activeType,
   onActiveTypeChange,
+  onLayersReady,
 }: NavbarProps) {
-  
-  const [pendingGeometry,setPendingGeometry]= useState<PendingGeometry | null>(null);
-  const [isSaving,       setIsSaving]       = useState(false);
-  const [toast,          setToast]          = useState<ToastState | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<number | null>(null);
 
-  const sourceRef = useRef(new VectorSource());
+  const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
+  const [isSaving,        setIsSaving]        = useState(false);
+  const [toast,           setToast]           = useState<ToastState | null>(null);
+  const [analysisResult,  setAnalysisResult]  = useState<number | null>(null);
+
+  const pointSourceRef   = useRef(new VectorSource());
+  const lineSourceRef    = useRef(new VectorSource());
+  const polygonSourceRef = useRef(new VectorSource());
+
   const { logout, apiFetch } = useAuth();
   const navigate             = useNavigate();
 
-  useFeatureLoader({ map, source: sourceRef.current, apiFetch, buildStyle });
-
-  useDrawing({
+  useFeatureLoader({
     map,
-    source:    sourceRef.current,
+    pointSource:   pointSourceRef.current,
+    lineSource:    lineSourceRef.current,
+    polygonSource: polygonSourceRef.current,
+    apiFetch,
+    buildStyle,
+  });
+
+  const { layers } = useDrawing({
+    map,
+    pointSource:   pointSourceRef.current,
+    lineSource:    lineSourceRef.current,
+    polygonSource: polygonSourceRef.current,
     activeType,
     onDrawEnd: (pending) => {
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
       setPendingGeometry(pending);
-      onActiveTypeChange(null); 
+      onActiveTypeChange(null);
     },
   });
+
+  useEffect(() => {
+    if (layers) onLayersReady?.(layers);
+  }, [layers]);
 
   const { clear: clearAnalysis } = useAnalysis({
     map,
@@ -114,7 +131,7 @@ export function Navbar({
 
   function handleSelect(type: DrawType) {
     setToast(null);
-    onAnalysisChange(false); 
+    onAnalysisChange(false);
     setAnalysisResult(null);
     clearAnalysis();
     onActiveTypeChange(activeType === type ? null : type);
@@ -122,20 +139,28 @@ export function Navbar({
 
   function handleAnalysisToggle() {
     const next = !analysisActive;
-    onAnalysisChange(next);        
+    onAnalysisChange(next);
     onActiveTypeChange(null);
     if (!next) { clearAnalysis(); setAnalysisResult(null); }
     setToast(null);
   }
 
   function handleModalCancel() {
-    if (pendingGeometry) sourceRef.current.removeFeature(pendingGeometry.feature);
+    if (pendingGeometry) {
+      const src =
+        pendingGeometry.type === "Point"      ? pointSourceRef.current   :
+        pendingGeometry.type === "LineString"  ? lineSourceRef.current    :
+                                                 polygonSourceRef.current;
+      src.removeFeature(pendingGeometry.feature);
+    }
     setPendingGeometry(null);
     onActiveTypeChange(null);
   }
 
   function handleLogout() {
-    sourceRef.current.clear();
+    pointSourceRef.current.clear();
+    lineSourceRef.current.clear();
+    polygonSourceRef.current.clear();
     logout();
     navigate("/login");
   }
@@ -150,7 +175,6 @@ export function Navbar({
         justifyContent: "space-between",
         padding: "0 20px", zIndex: 1000, gap: 12,
       }}>
-        {/* Brand */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 120 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
           <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
@@ -158,10 +182,7 @@ export function Navbar({
           </span>
         </div>
 
-        {/*Tools*/}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-
-          {/* drawing buttons */}
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
               key={type}
@@ -182,10 +203,9 @@ export function Navbar({
             </button>
           ))}
 
-          {/* cancel draw*/}
           {activeType && !pendingGeometry && (
             <button
-              onClick={() => { onActiveTypeChange(null);; setToast(null); }}
+              onClick={() => { onActiveTypeChange(null); setToast(null); }}
               style={{
                 padding: "6px 12px", borderRadius: 8,
                 border: "1px solid rgba(239,68,68,.4)",
@@ -199,7 +219,6 @@ export function Navbar({
 
           <div style={{ width: 1, height: 24, background: "rgba(255,255,255,.1)" }} />
 
-          {/* Inventory Analysis */}
           <button
             onClick={handleAnalysisToggle}
             disabled={!!pendingGeometry}
@@ -217,7 +236,6 @@ export function Navbar({
             Envanter Analizi
           </button>
 
-          {/* Clear analyiss*/}
           {analysisResult !== null && (
             <button
               onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
@@ -233,7 +251,6 @@ export function Navbar({
           )}
         </div>
 
-        {/* Exit */}
         <button
           onClick={handleLogout}
           style={{

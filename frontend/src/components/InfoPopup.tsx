@@ -3,6 +3,8 @@ import { WKT }               from "ol/format";
 import type { Geometry }     from "ol/geom";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import { useAuth }           from "../context/AuthContext";
+import { ConfirmModal } from "./ConfirmModal";
+
 
 interface InfoPopupProps {
   info:      SelectedFeatureInfo;
@@ -72,6 +74,8 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
   }
 
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -180,7 +184,7 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
         </div>
 
         <button
-          onClick={handleDelete}
+          onClick={() => setShowConfirm(true)}
           disabled={isDeleting || isSaving}
           style={{
             width: "100%", padding: "8px 0", borderRadius: 8,
@@ -194,6 +198,13 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
           {isDeleting ? "Siliniyor..." : "Nesneyi Sil"}
         </button>
       </div>
+      {showConfirm && (
+        <ConfirmModal
+          message="Bu objeyi silmek istediğinize emin misiniz?"
+          onConfirm={() => { setShowConfirm(false); handleDelete(); }}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-namespace BackendApi.Entities;
+namespace BackendApi.Entities.Auth;
 
 public sealed class UserRole
 {

@@ -174,7 +174,7 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
             disabled={isSaving || isDeleting}
             style={{
               flex: 2, padding: "9px 0", borderRadius: 8, border: "none",
-              background: isSaving ? "#a5b4fc" : "linear-gradient(135deg,#4f46e5,#6366f1)",
+              background: isSaving ? "#030c21" : "linear-gradient(135deg,#4f46e5,#6366f1)",
               color: "#ffffff", fontSize: 13, fontWeight: 600,
               cursor: isSaving ? "not-allowed" : "pointer",
             }}

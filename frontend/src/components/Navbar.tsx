@@ -170,7 +170,7 @@ export function Navbar({
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0,
         height: 50, 
-        background: "#030d1a",
+        background: "#030c21",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
@@ -192,7 +192,7 @@ export function Navbar({
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
-                background:  activeType === type ? "rgba(59,130,246,.2)" : "transparent",
+                background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
                 color:       activeType === type ? "#93c5fd" : "#94a3b8",
                 fontSize: 13, fontWeight: 500,
                 cursor:   pendingGeometry ? "not-allowed" : "pointer",

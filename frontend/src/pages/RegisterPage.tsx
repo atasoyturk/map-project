@@ -45,7 +45,7 @@ export function RegisterPage() {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center"
-      style={{ background: "#030d1a" }}
+      style={{ background: "#030c21" }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center gap-16 px-8">
 
@@ -106,7 +106,7 @@ export function RegisterPage() {
             )}
             <button type="submit" disabled={isLoading}
               className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(to right, #030d1a, #002d8f, #030d1a)", marginTop: 4 }}>
+              style={{ background: "linear-gradient(to right, #030c21, #002d8f, #030c21)", marginTop: 4 }}>
               {isLoading ? "Kayıt olunuyor..." : "Kayıt Ol"}
             </button>
           </form>

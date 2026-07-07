@@ -17,7 +17,7 @@ export function LayerControl({ layers, visible }: LayerControlProps) {
   return (
     <div style={{
       position: "absolute", top: 80, right: 16, zIndex: 10,
-      background: "rgba(255,255,255,0.7)", borderRadius: 10,
+      background: "rgba(3,12,33)", borderRadius: 10,
       padding: "10px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
       display: "flex", flexDirection: "column", gap: 8,
     }}>
@@ -32,7 +32,7 @@ export function LayerControl({ layers, visible }: LayerControlProps) {
             onChange={(e) => layer.setVisible(e.target.checked)}
             style={{ cursor: "pointer" }}
           />
-          <span style={{ fontSize: 13, color: "#374151" }}>{label}</span>
+          <span style={{ fontSize: 13, color: "#94a3b8" }}>{label}</span>
         </label>
       ))}
     </div>

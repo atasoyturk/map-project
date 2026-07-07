@@ -109,7 +109,19 @@ export function useDrawing({
       activeType === "LineString" ? lineSource   :
                                     polygonSource;
 
-    const draw = new Draw({ source: activeSource, type: activeType });
+    const draw = new Draw({
+      source: activeSource,
+      type:   activeType,
+      style:  new Style({
+        fill:   new Fill({ color: "rgba(3,13,26,0.1)" }),
+        stroke: new Stroke({ color: "#030c21", width: 2 }),
+        image:  new Circle({
+          radius: 5,
+          fill:   new Fill({ color: "#030c21" }),
+          stroke: new Stroke({ color: "#001d46", width: 2 }),
+        }),
+      }),
+    });
 
     draw.on("drawend", (event) => {
       const geometry = event.feature.getGeometry();

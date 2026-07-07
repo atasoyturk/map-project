@@ -42,7 +42,7 @@ export function LoginPage() {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center"
-      style={{ background: "#030d1a" }}
+      style={{ background: "#030c21" }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center gap-16 px-8">
 
@@ -102,14 +102,14 @@ export function LoginPage() {
             )}
             <button type="submit" disabled={isLoading}
               className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(to right, #030d1a, #002d8f, #030d1a)", marginTop: 4 }}>
+              style={{ background: "linear-gradient(to right, #030c21, #002d8f, #030c21)", marginTop: 4 }}>
               {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
             </button>
           </form>
 
           <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 24 }}>
             Hesabınız yok mu?{" "}
-            <Link to="/register" style={{ color: "#030d1a", fontWeight: 500 }}>Kayıt olun</Link>
+            <Link to="/register" style={{ color: "#030c21", fontWeight: 500 }}>Kayıt olun</Link>
           </p>
         </div>
 

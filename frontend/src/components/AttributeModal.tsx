@@ -21,7 +21,7 @@ export function AttributeModal({
   isSaving,
 }: AttributeModalProps) {
   const [name,  setName]  = useState("");
-  const [color, setColor] = useState("#3b82f6");
+  const [color, setColor] = useState("#030c21");
 
   function handleSave() {
     onSave(name, color);
@@ -158,9 +158,9 @@ export function AttributeModal({
               flex:         2,
               padding:      "9px 0",
               borderRadius: 8,
-              border:       "none",
-              background:   isSaving ? "#a5b4fc" : "linear-gradient(135deg,#4f46e5,#6366f1)",
-              color:        "#ffffff",
+              border:       "1px solid rgba(255,255,255,.15)",
+              background:   isSaving ? "#1e293b" : "#030c21",
+              color:        isSaving ? "#64748b" : "#94a3b8",
               fontSize:     13,
               fontWeight:   600,
               cursor:       isSaving ? "not-allowed" : "pointer",

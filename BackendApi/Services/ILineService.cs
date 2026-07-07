@@ -4,8 +4,9 @@ namespace BackendApi.Services;
 
 public interface ILineService
 {
-    Task<LineResponseDto>             SaveAsync(GeoRequestDto request, int userId);
-    Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId);
-    Task<LineResponseDto?>             UpdateAsync(int id, GeoRequestDto request, int userId);
+    Task<LineResponseDto>               SaveAsync(GeoRequestDto request, int userId);
+    Task<IEnumerable<LineResponseDto>>  GetAllAsync(int userId);
+    Task<LineResponseDto?>              UpdateAsync(int id, GeoRequestDto request, int userId);
     Task<bool>                          DeleteAsync(int id, int userId);
+    Task<LineResponseDto?>              GetByIdAsync(int id, int userId);
 }

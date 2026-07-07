@@ -1,5 +1,5 @@
 using BackendApi.Data;
-using BackendApi.DTOs;
+using BackendApi.DTOs.Geo;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 

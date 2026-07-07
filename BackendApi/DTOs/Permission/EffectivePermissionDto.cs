@@ -1,4 +1,4 @@
-namespace BackendApi.DTOs;
+namespace BackendApi.DTOs.Permission;
 
 public sealed record EffectivePermissionDto(
     string Name,

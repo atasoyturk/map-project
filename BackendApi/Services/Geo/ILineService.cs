@@ -1,4 +1,4 @@
-using BackendApi.DTOs;
+using BackendApi.DTOs.Geo;
 
 namespace BackendApi.Services.Geo;
 

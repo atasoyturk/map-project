@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BackendApi.Data;
-using BackendApi.Entities;
+using BackendApi.Entities.Auth;
 
 namespace BackendApi.Repositories;
 

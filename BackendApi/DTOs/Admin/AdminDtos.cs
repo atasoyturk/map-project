@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackendApi.DTOs;
+namespace BackendApi.DTOs.Admin;
 
 public sealed record UserListDto(
     int    Id,

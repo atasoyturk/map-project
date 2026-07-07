@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using BackendApi.Entities;
 using BackendApi.Entities.Auth;
 using BackendApi.Entities.Geo;
 

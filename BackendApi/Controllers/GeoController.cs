@@ -1,4 +1,5 @@
-using BackendApi.DTOs;
+using BackendApi.DTOs.Geo;
+using BackendApi.DTOs.Admin;
 using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
 

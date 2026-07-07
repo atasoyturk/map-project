@@ -1,4 +1,4 @@
-namespace BackendApi.DTOs;
+namespace BackendApi.DTOs.Geo;
 
 public sealed record SearchResponseDto(
     IEnumerable<PointResponseDto>   Points,

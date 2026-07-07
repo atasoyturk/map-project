@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackendApi.DTOs;
+namespace BackendApi.DTOs.Auth;
 
 public sealed class LoginRequestDto
 {

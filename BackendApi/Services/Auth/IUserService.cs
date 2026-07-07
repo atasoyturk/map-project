@@ -1,4 +1,4 @@
-using BackendApi.DTOs;
+using BackendApi.DTOs.Auth;
 
 namespace BackendApi.Services.Auth;
 

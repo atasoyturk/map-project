@@ -1,4 +1,4 @@
-using BackendApi.Entities;
+using BackendApi.Entities.Auth;
 
 namespace BackendApi.Repositories;
 

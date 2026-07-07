@@ -1,5 +1,5 @@
 using BackendApi.Data;
-using BackendApi.DTOs;
+using BackendApi.DTOs.Permission;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services.Permission;

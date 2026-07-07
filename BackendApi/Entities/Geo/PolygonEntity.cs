@@ -1,7 +1,7 @@
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BackendApi.Entities;
+namespace BackendApi.Entities.Geo;
 
 [Table("tbl_polygon")]
 public sealed class PolygonEntity : BaseEntity

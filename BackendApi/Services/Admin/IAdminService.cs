@@ -1,4 +1,6 @@
-using BackendApi.DTOs;
+using BackendApi.DTOs.Admin;
+using BackendApi.DTOs.Permission;
+
 
 namespace BackendApi.Services.Admin;
 

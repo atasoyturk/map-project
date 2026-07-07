@@ -1,8 +1,7 @@
 using BackendApi.Data;
-using BackendApi.DTOs;
-using BackendApi.Entities;
+using BackendApi.DTOs.Admin;
+using BackendApi.DTOs.Permission;
 using BackendApi.Entities.Auth;
-using BackendApi.Services.Permission;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services.Admin;

@@ -1,8 +1,7 @@
 using BackendApi.Data;
-using BackendApi.DTOs;
-using BackendApi.Entities;
+using BackendApi.DTOs.Geo;
+using BackendApi.Entities.Geo;
 using BackendApi.Helpers;
-using BackendApi.Services.Geo;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services.Geo;

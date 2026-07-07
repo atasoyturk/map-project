@@ -1,6 +1,6 @@
 using BackendApi.Data;
-using BackendApi.DTOs;
-using BackendApi.Entities;
+using BackendApi.DTOs.Geo;
+using BackendApi.Entities.Geo;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 

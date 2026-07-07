@@ -1,7 +1,4 @@
-using BackendApi.DTOs;
-
-namespace BackendApi.Services.Permission;
-
+using BackendApi.DTOs.Permission;
 public interface IPermissionService
 {
     Task<IList<EffectivePermissionDto>> GetEffectivePermissionsAsync(int userId);

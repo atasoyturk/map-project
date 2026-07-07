@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace BackendApi.DTOs;
+namespace BackendApi.DTOs.Geo;
 
 public sealed class GeoRequestDto
 {

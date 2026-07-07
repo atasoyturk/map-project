@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using BackendApi.DTOs;
+using BackendApi.DTOs.Auth;
 using BackendApi.Repositories;
 using BackendApi.Services.Auth;
 

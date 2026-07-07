@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using BackendApi.Services;
+using BackendApi.Services.Permission;
 using System.Security.Claims;
 
 namespace BackendApi.Authorization;

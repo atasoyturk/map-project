@@ -1,4 +1,4 @@
-using BackendApi.DTOs;
+using BackendApi.DTOs.Geo;
 using BackendApi.Services.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

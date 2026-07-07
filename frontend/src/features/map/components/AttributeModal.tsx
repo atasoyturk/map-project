@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PendingGeometry } from "../types/drawing";
+import type { PendingGeometry } from "../../../shared/types/drawing";
 
 interface AttributeModalProps {
   pending:   PendingGeometry;

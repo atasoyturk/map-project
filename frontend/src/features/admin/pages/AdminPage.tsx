@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../auth/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { UserManagement } from "./UserManagement";
 import { RoleManagement } from "./RoleManagement";

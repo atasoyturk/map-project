@@ -10,8 +10,8 @@ import { QueryPanel }              from "../components/QueryPanel";
 import { useMapClick }             from "../hooks/useMapClick";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
-import { buildStyle }              from "../utils/mapStyle";
-import type { DrawType }           from "../types/drawing";
+import { buildStyle }              from "../../../utils/mapStyle";
+import type { DrawType }           from "../../../shared/types/drawing";
 
 export function DashboardPage() {
   const [map,             setMap]            = useState<Map | null>(null);

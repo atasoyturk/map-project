@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../auth/context/AuthContext";
 
 interface RoleDto {
   id:   number;

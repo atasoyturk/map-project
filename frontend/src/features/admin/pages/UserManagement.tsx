@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { PermissionMatrix } from "../../components/admin/PermissionMatrix";
-import { RoleAssignModal } from "../../components/admin/RoleAssignModal";
+import { useAuth } from "../../auth/context/AuthContext";
+import { PermissionMatrix } from "../components/PermissionMatrix";
+import { RoleAssignModal }  from "../components/RoleAssignModal";
 
 interface UserDto {
   id:       number;

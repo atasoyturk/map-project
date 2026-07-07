@@ -1,17 +1,16 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth }     from "../context/AuthContext";
 import { GlobeCanvas } from "../components/GlobeCanvas";
 
-
-export function LoginPage() {
-  const [email, setEmail] = useState("");
+export function RegisterPage() {
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]       = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, apiFetch } = useAuth();
-  const navigate = useNavigate();
+  const { apiFetch } = useAuth();
+  const navigate     = useNavigate();
 
   async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,19 +18,22 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiFetch("/api/auth/login", {
+      const response = await apiFetch("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        setError("E-posta veya şifre hatalı.");
+      if (response.status === 409) {
+        setError("Bu e-posta adresi zaten kayıtlı.");
         return;
       }
 
-      const data = await response.json();
-      login(data.token);
-      navigate("/dashboard");
+      if (!response.ok) {
+        setError("Kayıt sırasında bir hata oluştu.");
+        return;
+      }
+
+      navigate("/login");
     } catch {
       setError("Sunucuya bağlanılamadı.");
     } finally {
@@ -48,7 +50,7 @@ export function LoginPage() {
 
         {/* Left — Globe */}
         <div className="flex flex-col items-center gap-6">
-           <GlobeCanvas />
+          <GlobeCanvas />
           <div className="text-center">
             <p style={{ color: "rgba(186,230,253,.85)", fontSize: 14, fontWeight: 500, letterSpacing: ".5px" }}>
               Coğrafi Bilgi Sistemi
@@ -69,9 +71,9 @@ export function LoginPage() {
             <span style={{ fontWeight: 600, color: "#0f172a", fontSize: 14, letterSpacing: ".3px" }}>GisPortal</span>
           </div>
 
-          <h1 style={{ fontSize: 24, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Giriş Yap</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Kayıt Ol</h1>
           <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-            Hesabınıza erişmek için bilgilerinizi girin.
+            Hesabınızı oluşturmak için bilgilerinizi girin.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,11 +91,12 @@ export function LoginPage() {
               <label htmlFor="password" style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 4 }}>
                 Şifre
               </label>
-              <input id="password" type="password" required value={password}
+              <input id="password" type="password" required minLength={6}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 style={{ borderColor: "#cbd5e1", color: "#0f172a", background: "#f8fafc" }}
-                placeholder="••••••••" />
+                placeholder="En az 6 karakter" />
             </div>
             {error && (
               <p style={{ fontSize: 14, color: "#dc2626", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 12px" }}>
@@ -103,13 +106,13 @@ export function LoginPage() {
             <button type="submit" disabled={isLoading}
               className="w-full py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(to right, #030c21, #002d8f, #030c21)", marginTop: 4 }}>
-              {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+              {isLoading ? "Kayıt olunuyor..." : "Kayıt Ol"}
             </button>
           </form>
 
           <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 24 }}>
-            Hesabınız yok mu?{" "}
-            <Link to="/register" style={{ color: "#030c21", fontWeight: 500 }}>Kayıt olun</Link>
+            Zaten hesabınız var mı?{" "}
+            <Link to="/login" style={{ color: "#2563eb", fontWeight: 500 }}>Giriş yapın</Link>
           </p>
         </div>
 

@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { jwtDecode } from "jwt-decode";
-import { createApiFetch } from "../api/apiFetch";
+import { createApiFetch } from "../../../shared/api/apiFetch";
 
 interface TokenPayload {
   sub:   string;

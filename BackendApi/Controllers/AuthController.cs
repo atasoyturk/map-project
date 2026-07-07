@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using BackendApi.DTOs;
 using BackendApi.Repositories;
 using BackendApi.Services;
-using BackendApi.Entities;
 
 namespace BackendApi.Controllers;
 
@@ -10,43 +9,55 @@ namespace BackendApi.Controllers;
 [Route("api/auth")]
 public sealed class AuthController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
-    private readonly ITokenService _tokenService;
+    private readonly IUserRepository         _userRepository;
+    private readonly IUserService            _userService;
+    private readonly ITokenService           _tokenService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IUserRepository userRepository, ITokenService tokenService)
+    public AuthController(
+        IUserRepository         userRepository,
+        IUserService            userService,
+        ITokenService           tokenService,
+        ILogger<AuthController> logger)
     {
         _userRepository = userRepository;
-        _tokenService = tokenService;
+        _userService    = userService;
+        _tokenService   = tokenService;
+        _logger         = logger;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
-        if (await _userRepository.ExistsByEmailAsync(request.Email))
-            return Conflict("Bu e-posta adresi zaten kayıtlı.");
-
-        var user = new User
+        try
         {
-            Email        = request.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role         = "User"
-        };
-
-        await _userRepository.AddAsync(user);
-
-        return Created(string.Empty, null);
+            var success = await _userService.RegisterAsync(request);
+            return success ? Created(string.Empty, null) : Conflict("Bu e-posta adresi zaten kayıtlı.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Register failed");
+            return StatusCode(500, "Sunucu hatası.");
+        }
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        try
+        {
+            var user = await _userRepository.GetByEmailAsync(request.Email);
+            if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                return Unauthorized();
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) // user enumuration attack guard
-            return Unauthorized();
-
-        var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
-
-        return Ok(new LoginResponseDto(token));
+            var roles = await _userService.GetUserRolesAsync(user.Id);
+            var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles);
+            return Ok(new LoginResponseDto(token));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Login failed");
+            return StatusCode(500, "Sunucu hatası.");
+        }
     }
 }

@@ -3,24 +3,45 @@ import {
   useContext,
   useState,
   useMemo,
-   type ReactNode,
+  type ReactNode,
 } from "react";
-
+import { jwtDecode } from "jwt-decode";
 import { createApiFetch } from "../api/apiFetch";
 
+interface TokenPayload {
+  sub:   string;
+  email: string;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
+}
+
 interface AuthContextValue {
-  token: string | null;
-  login: (token: string) => void;
-  logout: () => void;
-  apiFetch: ReturnType<typeof createApiFetch>;  
+  token:    string | null;
+  roles:    string[];
+  login:    (token: string) => void;
+  logout:   () => void;
+  apiFetch: ReturnType<typeof createApiFetch>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function getRoles(token: string | null): string[] {
+  if (!token) return [];
+  try {
+    const payload = jwtDecode<TokenPayload>(token);
+    const raw = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+    if (!raw) return [];
+    return Array.isArray(raw) ? raw : [raw];
+  } catch {
+    return [];
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
+
+  const roles = getRoles(token);
 
   function login(newToken: string) {
     localStorage.setItem("token", newToken);
@@ -32,10 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
   }
 
-  const apiFetch = useMemo(() => createApiFetch(logout), []);  
+  const apiFetch = useMemo(() => createApiFetch(logout), []);
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, apiFetch }}>
+    <AuthContext.Provider value={{ token, roles, login, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

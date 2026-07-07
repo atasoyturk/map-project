@@ -5,12 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using BackendApi.Services;
 using BackendApi.Settings;
 using BackendApi.Data;
 using BackendApi.Repositories;
 using BackendApi.Authorization;
+
+using BackendApi.Services.Auth;
 using BackendApi.Services.Geo;
+using BackendApi.Services.Admin;
+using BackendApi.Services.Analysis;
+using BackendApi.Services.Permission;
+using BackendApi.Services.Search;
 
 var builder = WebApplication.CreateBuilder(args);
 

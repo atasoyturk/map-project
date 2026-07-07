@@ -5,7 +5,7 @@ using BackendApi.Helpers;
 using BackendApi.Services.Geo;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Geo;
 
 public sealed class LineService : ILineService
 {

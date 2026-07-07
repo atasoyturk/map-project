@@ -1,6 +1,6 @@
 using BackendApi.DTOs;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Geo;
 
 public interface ILineService
 {

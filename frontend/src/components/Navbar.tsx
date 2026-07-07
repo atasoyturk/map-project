@@ -117,18 +117,10 @@ export function Navbar({
       });
       if (!response.ok) { setToast({ message: "Kaydetme başarısız.", type: "error" }); return; }
 
-      let intersectedCount: number | null = null;
-      if (pendingGeometry.type === "Polygon") {
-        const data = await response.json();
-        intersectedCount = data.intersectedInventoryCount;
-      }
       pendingGeometry.feature.setStyle(buildStyle(color, name));
-      setToast({
-        message: intersectedCount !== null
-          ? `Poligon kaydedildi! Alan içinde ${intersectedCount} öğe mevcut.`
-          : "Başarıyla kaydedildi.",
-        type: "success",
-      });
+      
+      setToast({ message: "Başarıyla kaydedildi.", type: "success" });
+
       setPendingGeometry(null);
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });

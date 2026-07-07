@@ -70,4 +70,15 @@ public sealed class PointService : IPointService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<PointResponseDto?> GetByIdAsync(int id, int userId)
+    {
+        var entity = await _context.Points
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+
+        if (entity is null) return null;
+
+        return new PointResponseDto(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+    }
 }

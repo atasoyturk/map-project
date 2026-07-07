@@ -70,4 +70,14 @@ public sealed class PolygonService : IPolygonService
         await _context.SaveChangesAsync();
         return true;
     }
+    public async Task<PolygonResponseDto?> GetByIdAsync(int id, int userId)
+    {
+        var entity = await _context.Polygons
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+
+        if (entity is null) return null;
+
+        return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), 0, entity.CreatedDate);
+    }
 }

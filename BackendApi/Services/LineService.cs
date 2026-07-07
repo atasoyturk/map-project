@@ -70,4 +70,14 @@ public sealed class LineService : ILineService
         await _context.SaveChangesAsync();
         return true;
     }
+    public async Task<LineResponseDto?> GetByIdAsync(int id, int userId)
+    {
+        var entity = await _context.Lines
+            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
+
+        if (entity is null) return null;
+
+        return new LineResponseDto(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+    }
 }

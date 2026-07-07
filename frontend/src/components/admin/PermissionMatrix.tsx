@@ -75,12 +75,9 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "0 0 6px" }}>
-          Yetki Matrisi
+          Yetkiler
         </h2>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>
-          Kullanıcının efektif yetkileri
-        </p>
-
+      
         {isLoading ? (
           <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>
         ) : (

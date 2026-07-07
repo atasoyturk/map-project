@@ -4,7 +4,7 @@ using BackendApi.Entities;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Search;
 
 public sealed class SearchService : ISearchService
 {

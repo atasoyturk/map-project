@@ -1,4 +1,4 @@
-namespace BackendApi.Services;
+namespace BackendApi.Services.Auth;
 
 public interface ITokenService
 {

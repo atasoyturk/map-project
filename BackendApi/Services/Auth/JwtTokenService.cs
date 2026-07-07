@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using BackendApi.Settings;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Auth;
 
 public sealed class JwtTokenService : ITokenService
 {

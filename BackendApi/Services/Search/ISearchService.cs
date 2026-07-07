@@ -1,6 +1,6 @@
 using BackendApi.DTOs;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Search;
 
 public interface ISearchService
 {

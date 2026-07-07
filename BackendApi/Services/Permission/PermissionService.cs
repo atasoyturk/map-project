@@ -2,7 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Permission;
 
 public sealed class PermissionService : IPermissionService
 {

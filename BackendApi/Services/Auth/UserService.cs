@@ -4,7 +4,7 @@ using BackendApi.Entities;
 using BackendApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Auth;
 
 public sealed class UserService : IUserService
 {

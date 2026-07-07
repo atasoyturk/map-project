@@ -1,9 +1,11 @@
 using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
+using BackendApi.Entities.Auth;
+using BackendApi.Services.Permission;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Admin;
 
 public sealed class AdminService : IAdminService
 {

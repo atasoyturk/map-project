@@ -3,7 +3,7 @@ using BackendApi.DTOs;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Analysis;
 
 public sealed class AnalysisService : IAnalysisService
 {

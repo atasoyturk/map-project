@@ -14,8 +14,8 @@ export function AdminPage() {
   }
 
   const navItems = [
-    { to: "users", label: "Kullanıcı Yönetimi"},
-    { to: "roles", label: "Rol Yönetimi"      },
+    { to: "/admin/users", label: "Kullanıcı Yönetimi"},
+    { to: "/admin/roles", label: "Rol Yönetimi"      },
   ];
 
   return (

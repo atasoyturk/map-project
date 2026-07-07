@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { PermissionMatrix } from "../../components/admin/PermissionMatrix";
+import { RoleAssignModal } from "../../components/admin/RoleAssignModal";
 
 interface UserDto {
   id:       number;
@@ -14,6 +15,8 @@ export function UserManagement() {
   const [isLoading,      setIsLoading]      = useState(true);
   const [error,          setError]          = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [roleUserId, setRoleUserId] = useState<number | null>(null);
+  const [roleUserRoles, setRoleUserRoles] = useState<string[]>([]);
 
   const { apiFetch } = useAuth();
 
@@ -39,7 +42,7 @@ export function UserManagement() {
         body:   JSON.stringify({ isActive: !user.isActive }),
       });
       fetchUsers();
-    } catch { /* sessiz */ }
+    } catch { }
   }
 
   return (
@@ -117,6 +120,23 @@ export function UserManagement() {
                           {user.isActive ? "Pasif Yap" : "Aktif Yap"}
                         </button>
                         <button
+                          onClick={() => {
+                            setRoleUserId(user.id);
+                            setRoleUserRoles(user.roles);
+                          }}
+                          style={{
+                            padding:      "4px 10px",
+                            borderRadius: 6,
+                            border:       "1px solid rgba(59,130,246,.3)",
+                            background:   "rgba(59,130,246,.05)",
+                            color:        "#3b82f6",
+                            fontSize:     12,
+                            cursor:       "pointer",
+                          }}
+                        >
+                          Roller
+                        </button>
+                        <button
                           onClick={() => setSelectedUserId(user.id)}
                           style={{
                             padding:      "4px 10px",
@@ -144,6 +164,15 @@ export function UserManagement() {
         <PermissionMatrix
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+        />
+      )}
+      
+      {roleUserId !== null && (
+        <RoleAssignModal
+          userId={roleUserId}
+          currentRoles={roleUserRoles}
+          onClose={() => setRoleUserId(null)}
+          onUpdated={() => { fetchUsers(); setRoleUserId(null); }}
         />
       )}
     </>

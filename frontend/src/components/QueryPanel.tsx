@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth }             from "../context/AuthContext";
+import Map                     from "ol/Map";
+import { WKT }                 from "ol/format";
+import type { SelectedFeatureInfo } from "../hooks/useSelect";
 
 interface DrawingRow {
   id:          number;
@@ -7,9 +10,11 @@ interface DrawingRow {
   color:       string;
   type:        string;
   createdDate: string;
+  wktGeometry: string;
 }
 
 interface QueryPanelProps {
+  map:     Map | null;
   onClose: () => void;
 }
 
@@ -19,7 +24,7 @@ const TYPE_LABEL: Record<string, string> = {
   polygon: "Poligon",
 };
 
-export function QueryPanel({ onClose }: QueryPanelProps) {
+export function QueryPanel({ map, onClose }: QueryPanelProps) {
   const [rows,      setRows]      = useState<DrawingRow[]>([]);
   const [name,      setName]      = useState("");
   const [startDate, setStartDate] = useState("");
@@ -44,23 +49,18 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
       if (!res.ok) return;
 
       const data = await res.json();
-
       const combined: DrawingRow[] = [
-        ...data.points.map((p: any)   => ({ ...p, type: "point" })),
-        ...data.lines.map((l: any)    => ({ ...l, type: "line" })),
-        ...data.polygons.map((p: any) => ({ ...p, type: "polygon" })),
+        ...data.points.map((p: any)  => ({ ...p, type: "point" })),
+        ...data.lines.map((l: any)   => ({ ...l, type: "line"  })),
+        ...data.polygons.map((p: any)=> ({ ...p, type: "polygon" })),
       ];
-
       setRows(combined);
-    } catch {
-    } finally {
+    } catch { } finally {
       setIsLoading(false);
     }
   }
 
   useEffect(() => { fetchData(); }, []);
-
-  // Filtre/sort happened, refetch data
   useEffect(() => { fetchData(); }, [name, startDate, endDate, sortBy, sortOrder]);
 
   function toggleSort(col: string) {
@@ -73,68 +73,113 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
     return <span style={{ color: "#6366f1" }}>{sortOrder === "asc" ? "↑" : "↓"}</span>;
   }
 
+  function handleInfo(row: DrawingRow) {
+    if (!map) return;
+
+    try {
+      // read geometry from WKT and fit map view
+      const wktFormat = new WKT();
+      const geometry  = wktFormat.readGeometry(row.wktGeometry, {
+        dataProjection:    "EPSG:4326",
+        featureProjection: "EPSG:3857",
+      });
+
+      const extent = geometry.getExtent();
+      map.getView().fit(extent, {
+        padding:  [80, 80, 80, 80],
+        maxZoom:  16,
+        duration: 800,
+      });
+
+      // find the feature on the map and trigger InfoPopup 
+      const found = findFeatureOnMap(map, row.id, row.type);
+      if (found) {
+        window.dispatchEvent(new CustomEvent("gis:selectFeature", {
+          detail: {
+            feature: found.feature,
+            id:      found.id,
+            type:    found.type,
+            name:    found.name,
+            color:   found.color,
+          } as SelectedFeatureInfo,
+        }));
+      }
+    } catch {  }
+  }
+
   return (
     <div style={{
-      position: "fixed", bottom: 0, left: 0, right: 0,
-      height: 320, background: "#ffffff", zIndex: 900,
-      borderTop: "1px solid #e2e8f0",
-      boxShadow: "0 -4px 24px rgba(0,0,0,0.08)",
-      display: "flex", flexDirection: "column",
+      position:   "fixed",
+      bottom:     0, left: 0, right: 0,
+      height:     320,
+      background: "#ffffff",
+      zIndex:     900,
+      borderTop:  "1px solid #e2e8f0",
+      boxShadow:  "0 -4px 24px rgba(0,0,0,0.08)",
+      display:    "flex",
+      flexDirection: "column",
     }}>
-      {/* Header + filters */}
+      {/* Headers + filters*/}
       <div style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "10px 16px", borderBottom: "1px solid #f1f5f9",
-        flexWrap: "wrap",
+        display:       "flex",
+        alignItems:    "center",
+        gap:           12,
+        padding:       "10px 16px",
+        borderBottom:  "1px solid #f1f5f9",
+        flexWrap:      "wrap",
       }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginRight: 8 }}>
-          Sorgulama Paneli
+          Sorgu Paneli
         </span>
-
         <input
           type="text"
           placeholder="İsim ara..."
           value={name}
           onChange={(e) => setName(e.target.value)}
           style={{
-            padding: "5px 10px", borderRadius: 7, border: "1px solid #e2e8f0",
-            fontSize: 12, color: "#0f172a", outline: "none", width: 160,
+            padding: "5px 10px", borderRadius: 7,
+            border: "1px solid #e2e8f0", fontSize: 12,
+            color: "#0f172a", outline: "none", width: 160,
           }}
         />
-
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           style={{
-            padding: "5px 10px", borderRadius: 7, border: "1px solid #e2e8f0",
-            fontSize: 12, color: "#0f172a", outline: "none",
+            padding: "5px 10px", borderRadius: 7,
+            border: "1px solid #e2e8f0", fontSize: 12,
+            color: "#0f172a", outline: "none",
           }}
         />
-
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           style={{
-            padding: "5px 10px", borderRadius: 7, border: "1px solid #e2e8f0",
-            fontSize: 12, color: "#0f172a", outline: "none",
+            padding: "5px 10px", borderRadius: 7,
+            border: "1px solid #e2e8f0", fontSize: 12,
+            color: "#0f172a", outline: "none",
           }}
         />
-
         <button
           onClick={onClose}
           style={{
-            marginLeft: "auto", padding: "5px 12px", borderRadius: 7,
-            border: "1px solid #e2e8f0", background: "transparent",
-            color: "#64748b", fontSize: 12, cursor: "pointer",
+            marginLeft:   "auto",
+            padding:      "5px 12px",
+            borderRadius: 7,
+            border:       "1px solid #e2e8f0",
+            background:   "transparent",
+            color:        "#64748b",
+            fontSize:     12,
+            cursor:       "pointer",
           }}
         >
           Kapat
         </button>
       </div>
 
-      {/* TAble */}
+      {/* Table */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         {isLoading ? (
           <div style={{ padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
@@ -156,6 +201,7 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
                 <th style={thStyle} onClick={() => toggleSort("creationDate")}>
                   Eklenme Tarihi <SortIcon col="creationDate" />
                 </th>
+                <th style={thStyle}>Detay</th>
               </tr>
             </thead>
             <tbody>
@@ -170,7 +216,31 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
                     </div>
                   </td>
                   <td style={tdStyle}>
-                    {row.createdDate ? new Date(row.createdDate).toLocaleDateString("tr-TR") : "—"}
+                    {row.createdDate
+                      ? new Date(row.createdDate).toLocaleDateString("tr-TR")
+                      : "—"}
+                  </td>
+                  <td style={tdStyle}>
+                    <button
+                      onClick={() => handleInfo(row)}
+                      title="Haritada göster"
+                      style={{
+                        width:        28,
+                        height:       28,
+                        borderRadius: "50%",
+                        border:       "1px solid #e2e8f0",
+                        background:   "#f8fafc",
+                        color:        "#6366f1",
+                        fontSize:     13,
+                        fontWeight:   700,
+                        cursor:       "pointer",
+                        display:      "flex",
+                        alignItems:   "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      i
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -182,13 +252,48 @@ export function QueryPanel({ onClose }: QueryPanelProps) {
   );
 }
 
+// search for a feature on the map by ID and type
+function findFeatureOnMap(
+  map: Map,
+  id: number,
+  type: string
+): SelectedFeatureInfo | null {
+  let found: SelectedFeatureInfo | null = null;
+
+  map.getLayers().forEach((layer: any) => {
+    if (found) return;
+    const source = layer.getSource?.();
+    if (!source?.getFeatures) return;
+    const features = source.getFeatures();
+    for (const f of features) {
+      if (f.get("id") === id && f.get("type") === type) {
+        found = {
+          feature: f,
+          id:      f.get("id"),
+          type:    f.get("type"),
+          name:    f.get("name") ?? "",
+          color:   f.get("color") ?? "#3b82f6",
+        };
+        break;
+      }
+    }
+  });
+
+  return found;
+}
+
 const thStyle: React.CSSProperties = {
-  padding: "8px 16px", textAlign: "left",
-  fontSize: 11, fontWeight: 600, color: "#64748b",
-  letterSpacing: ".5px", cursor: "pointer",
-  borderBottom: "1px solid #e2e8f0",
+  padding:       "8px 16px",
+  textAlign:     "left",
+  fontSize:      11,
+  fontWeight:    600,
+  color:         "#64748b",
+  letterSpacing: ".5px",
+  cursor:        "pointer",
+  borderBottom:  "1px solid #e2e8f0",
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "8px 16px", color: "#374151",
+  padding: "8px 16px",
+  color:   "#374151",
 };

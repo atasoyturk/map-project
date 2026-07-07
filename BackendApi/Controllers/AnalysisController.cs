@@ -6,10 +6,8 @@ using System.Security.Claims;
 
 namespace BackendApi.Controllers;
 
-[ApiController]
 [Route("api/analysis")]
-[Authorize]
-public sealed class AnalysisController : ControllerBase
+public sealed class AnalysisController : ApiControllerBase
 {
     private readonly IAnalysisService            _analysisService;
     private readonly ILogger<AnalysisController> _logger;
@@ -22,11 +20,6 @@ public sealed class AnalysisController : ControllerBase
         _logger          = logger;
     }
 
-    private int? GetUserId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(value, out var id) ? id : null;
-    }
 
     [HttpPost("temp-inventory")]
     public async Task<IActionResult> TempInventory([FromBody] GeoRequestDto request)

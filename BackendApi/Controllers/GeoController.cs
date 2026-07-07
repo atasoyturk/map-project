@@ -6,10 +6,8 @@ using System.Security.Claims;
 
 namespace BackendApi.Controllers;
 
-[ApiController]
 [Route("api")]
-[Authorize]
-public sealed class GeoController : ControllerBase
+public sealed class GeoController : ApiControllerBase
 {
     private readonly IPointService          _pointService;
     private readonly ILineService           _lineService;
@@ -28,12 +26,7 @@ public sealed class GeoController : ControllerBase
         _logger         = logger;
     }
 
-    private int? GetUserId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(value, out var id) ? id : null;
-    }
-
+    
     // Point
 
     [HttpGet("point")]

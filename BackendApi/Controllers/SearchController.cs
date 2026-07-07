@@ -6,10 +6,8 @@ using System.Security.Claims;
 
 namespace BackendApi.Controllers;
 
-[ApiController]
 [Route("api/drawings")]
-[Authorize]
-public sealed class SearchController : ControllerBase
+public sealed class SearchController : ApiControllerBase
 {
     private readonly ISearchService            _searchService;
     private readonly ILogger<SearchController> _logger;
@@ -20,11 +18,6 @@ public sealed class SearchController : ControllerBase
         _logger        = logger;
     }
 
-    private int? GetUserId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(value, out var id) ? id : null;
-    }
 
     [HttpGet("search")]
     public async Task<IActionResult> Search([FromQuery] SearchQueryDto query)

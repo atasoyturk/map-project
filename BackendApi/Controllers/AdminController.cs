@@ -7,11 +7,9 @@ using System.Security.Claims;
 
 namespace BackendApi.Controllers;
 
-[ApiController]
 [Route("api/admin")]
-[Authorize]
 [RequirePermission("admin_access")]
-public sealed class AdminController : ControllerBase
+public sealed class AdminController : ApiControllerBase
 {
     private readonly IAdminService            _adminService;
     private readonly ILogger<AdminController> _logger;

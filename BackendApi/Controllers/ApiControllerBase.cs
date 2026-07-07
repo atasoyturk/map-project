@@ -13,4 +13,7 @@ public abstract class ApiControllerBase : ControllerBase
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(value, out var id) ? id : null;
     }
+
+    protected IEnumerable<string> GetUserRoles() =>
+    User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 }

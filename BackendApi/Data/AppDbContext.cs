@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BackendApi.Entities;
+using BackendApi.Entities.Auth;
 
 namespace BackendApi.Data;
 
@@ -20,6 +21,7 @@ public sealed class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
+        modelBuilder.UseIdentityByDefaultColumns();
 
         // Composite PK 
         modelBuilder.Entity<UserRole>()

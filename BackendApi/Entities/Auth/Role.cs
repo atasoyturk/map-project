@@ -1,8 +1,7 @@
-namespace BackendApi.Entities;
+namespace BackendApi.Entities.Auth;
 
-public sealed class Role
+public sealed class Role : BaseEntity
 {
-    public int    Id   { get; init; }
     public string Name { get; set; } = string.Empty;
 
     public ICollection<UserRole>       UserRoles       { get; init; } = [];

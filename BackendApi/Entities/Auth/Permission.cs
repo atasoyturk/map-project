@@ -1,8 +1,7 @@
-namespace BackendApi.Entities;
+namespace BackendApi.Entities.Auth;
 
-public sealed class Permission
+public sealed class Permission : BaseEntity
 {
-    public int    Id          { get; init; }
     public string Name        { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
 

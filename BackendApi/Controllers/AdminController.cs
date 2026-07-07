@@ -22,7 +22,7 @@ public sealed class AdminController : ControllerBase
         _logger       = logger;
     }
 
-    // ── Users ────────────────────────────────────────────────────────────────
+    //Users 
 
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers()

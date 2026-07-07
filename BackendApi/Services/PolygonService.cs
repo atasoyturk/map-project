@@ -15,15 +15,6 @@ public sealed class PolygonService : IPolygonService
     public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId)
     {
         var geometry  = GeometryConverter.FromWkt(request.WktGeometry);
-        
-        var points   = await _context.Points  .Where(p => p.UserId == userId && !p.IsDeleted && p.IsActive).ToListAsync();
-        var lines    = await _context.Lines   .Where(l => l.UserId == userId && !l.IsDeleted && l.IsActive).ToListAsync();
-        var polygons = await _context.Polygons.Where(p => p.UserId == userId && !p.IsDeleted && p.IsActive).ToListAsync();
-
-        var intersectedCount =
-            points  .Count(p => geometry.Intersects(p.Geometry)) +
-            lines   .Count(l => geometry.Intersects(l.Geometry)) +
-            polygons.Count(p => geometry.Intersects(p.Geometry));
 
         var entity = new PolygonEntity
         {
@@ -37,7 +28,7 @@ public sealed class PolygonService : IPolygonService
         await _context.SaveChangesAsync();
 
         return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry), intersectedCount, entity.CreatedDate);
+            GeometryConverter.ToWkt(geometry), 0, entity.CreatedDate);
     }
 
     public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId) =>

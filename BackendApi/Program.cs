@@ -10,6 +10,7 @@ using BackendApi.Settings;
 using BackendApi.Data;
 using BackendApi.Repositories;
 using BackendApi.Authorization;
+using BackendApi.Services.Geo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddScoped<IPermissionService,    PermissionService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IUserService,  UserService>();
+builder.Services.AddScoped<IGeoPermissionService, GeoPermissionService>();
 
 builder.Services.AddControllers();
 

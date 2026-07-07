@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BackendApi.DTOs;
 using BackendApi.Repositories;
-using BackendApi.Services;
+using BackendApi.Services.Auth;
 
 namespace BackendApi.Controllers;
 

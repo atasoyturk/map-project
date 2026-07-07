@@ -1,5 +1,5 @@
 using BackendApi.DTOs;
-using BackendApi.Services;
+using BackendApi.Services.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

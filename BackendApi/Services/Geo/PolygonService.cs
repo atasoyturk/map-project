@@ -2,19 +2,28 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
 using BackendApi.Helpers;
+using BackendApi.Services.Geo;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services;
+namespace BackendApi.Services.Geo;
 
 public sealed class PolygonService : IPolygonService
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext          _context;
+    private readonly IGeoPermissionService _geoPermissionService;
 
-    public PolygonService(AppDbContext context) => _context = context;
-
-    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId)
+    public PolygonService(AppDbContext context, IGeoPermissionService geoPermissionService)
     {
-        var geometry  = GeometryConverter.FromWkt(request.WktGeometry);
+        _context              = context;
+        _geoPermissionService = geoPermissionService;
+    }
+
+    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
+    {
+        var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
 
         var entity = new PolygonEntity
         {
@@ -38,18 +47,23 @@ public sealed class PolygonService : IPolygonService
                 GeometryConverter.ToWkt(p.Geometry), 0, p.CreatedDate))
             .ToListAsync();
 
-    public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
+    public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
+        var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+
         var entity = await _context.Polygons
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
 
         if (entity is null) return null;
 
-        entity.Geometry     = GeometryConverter.FromWkt(request.WktGeometry);
-        entity.Name         = request.Name;
-        entity.Color        = request.Color;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId;
+        entity.Geometry       = geometry;
+        entity.Name           = request.Name;
+        entity.Color          = request.Color;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
 
         await _context.SaveChangesAsync();
 
@@ -64,12 +78,13 @@ public sealed class PolygonService : IPolygonService
 
         if (entity is null) return false;
 
-        entity.IsDeleted    = true;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId;
+        entity.IsDeleted      = true;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
         await _context.SaveChangesAsync();
         return true;
     }
+
     public async Task<PolygonResponseDto?> GetByIdAsync(int id, int userId)
     {
         var entity = await _context.Polygons

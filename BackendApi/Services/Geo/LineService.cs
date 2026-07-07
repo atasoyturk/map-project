@@ -2,6 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
 using BackendApi.Helpers;
+using BackendApi.Services.Geo;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services;
@@ -9,12 +10,20 @@ namespace BackendApi.Services;
 public sealed class LineService : ILineService
 {
     private readonly AppDbContext _context;
+    private readonly IGeoPermissionService _geoPermissionService;
 
-    public LineService(AppDbContext context) => _context = context;
+    public LineService(AppDbContext context, IGeoPermissionService geoPermissionService)
+    {
+        _context              = context;
+        _geoPermissionService = geoPermissionService;
+    }
 
-    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId)
+    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
 
         var entity = new LineEntity
         {
@@ -38,8 +47,13 @@ public sealed class LineService : ILineService
                 GeometryConverter.ToWkt(l.Geometry), l.CreatedDate))
             .ToListAsync();
 
-    public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
+    public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
+        var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+
         var entity = await _context.Lines
             .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
 

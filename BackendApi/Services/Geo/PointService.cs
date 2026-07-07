@@ -2,6 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs;
 using BackendApi.Entities;
 using BackendApi.Helpers;
+using BackendApi.Services.Geo;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services;
@@ -9,12 +10,19 @@ namespace BackendApi.Services;
 public sealed class PointService : IPointService
 {
     private readonly AppDbContext _context;
+    private readonly IGeoPermissionService _geoPermissionService;
+    public PointService(AppDbContext context, IGeoPermissionService geoPermissionService)
+    {
+        _context              = context;
+        _geoPermissionService = geoPermissionService;
+    }
 
-    public PointService(AppDbContext context) => _context = context;
-
-    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId)
+    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
 
         var entity = new PointEntity
         {
@@ -38,8 +46,13 @@ public sealed class PointService : IPointService
                 GeometryConverter.ToWkt(p.Geometry), p.CreatedDate))
             .ToListAsync();
 
-    public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId)
+    public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
+        var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+    
         var entity = await _context.Points
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
 

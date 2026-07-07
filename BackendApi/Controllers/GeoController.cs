@@ -34,6 +34,8 @@ public sealed class GeoController : ControllerBase
         return int.TryParse(value, out var id) ? id : null;
     }
 
+    // Point
+
     [HttpGet("point")]
     public async Task<IActionResult> GetPoints()
     {
@@ -41,6 +43,19 @@ public sealed class GeoController : ControllerBase
         if (userId is null) return Unauthorized();
         try { return Ok(await _pointService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetPoints failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpGet("point/{id:int}")]
+    public async Task<IActionResult> GetPoint(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _pointService.GetByIdAsync(id, userId.Value);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (Exception ex) { _logger.LogError(ex, "GetPoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("point")]
@@ -65,6 +80,21 @@ public sealed class GeoController : ControllerBase
         catch (Exception ex) { _logger.LogError(ex, "UpdatePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
+    [HttpDelete("point/{id:int}")]
+    public async Task<IActionResult> DeletePoint(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _pointService.DeleteAsync(id, userId.Value);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeletePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    // Line
+
     [HttpGet("line")]
     public async Task<IActionResult> GetLines()
     {
@@ -72,6 +102,19 @@ public sealed class GeoController : ControllerBase
         if (userId is null) return Unauthorized();
         try { return Ok(await _lineService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetLines failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpGet("line/{id:int}")]
+    public async Task<IActionResult> GetLine(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _lineService.GetByIdAsync(id, userId.Value);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (Exception ex) { _logger.LogError(ex, "GetLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("line")]
@@ -96,6 +139,21 @@ public sealed class GeoController : ControllerBase
         catch (Exception ex) { _logger.LogError(ex, "UpdateLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
+    [HttpDelete("line/{id:int}")]
+    public async Task<IActionResult> DeleteLine(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _lineService.DeleteAsync(id, userId.Value);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeleteLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    // Polygon
+
     [HttpGet("polygon")]
     public async Task<IActionResult> GetPolygons()
     {
@@ -103,6 +161,19 @@ public sealed class GeoController : ControllerBase
         if (userId is null) return Unauthorized();
         try { return Ok(await _polygonService.GetAllAsync(userId.Value)); }
         catch (Exception ex) { _logger.LogError(ex, "GetPolygons failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpGet("polygon/{id:int}")]
+    public async Task<IActionResult> GetPolygon(int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var result = await _polygonService.GetByIdAsync(id, userId.Value);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (Exception ex) { _logger.LogError(ex, "GetPolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpPost("polygon")]
@@ -125,32 +196,6 @@ public sealed class GeoController : ControllerBase
             return result is null ? NotFound() : Ok(result);
         }
         catch (Exception ex) { _logger.LogError(ex, "UpdatePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
-    }
-
-    [HttpDelete("point/{id:int}")]
-    public async Task<IActionResult> DeletePoint(int id)
-    {
-        var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _pointService.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeletePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
-    }
-
-    [HttpDelete("line/{id:int}")]
-    public async Task<IActionResult> DeleteLine(int id)
-    {
-        var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _lineService.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeleteLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpDelete("polygon/{id:int}")]

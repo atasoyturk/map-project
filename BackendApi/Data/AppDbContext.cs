@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using BackendApi.Entities;
 using BackendApi.Entities.Auth;
+using BackendApi.Entities.Geo;
 
 namespace BackendApi.Data;
 
@@ -17,6 +18,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<PointEntity>    Points     => Set<PointEntity>();
     public DbSet<LineEntity>     Lines      => Set<LineEntity>();
     public DbSet<PolygonEntity>  Polygons   => Set<PolygonEntity>();
+    public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +65,18 @@ public sealed class AppDbContext : DbContext
             .HasOne(up => up.Permission)
             .WithMany(p => p.UserPermissions)
             .HasForeignKey(up => up.PermissionId);
+        
+        modelBuilder.Entity<GeoPermissionEntity>()
+            .HasOne(gp => gp.User)
+            .WithMany()
+            .HasForeignKey(gp => gp.UserId)
+            .IsRequired(false);
+
+        modelBuilder.Entity<GeoPermissionEntity>()
+            .HasOne(gp => gp.Role)
+            .WithMany()
+            .HasForeignKey(gp => gp.RoleId)
+            .IsRequired(false);
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(

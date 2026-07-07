@@ -63,7 +63,7 @@ export function Navbar({
   const lineSourceRef    = useRef(new VectorSource());
   const polygonSourceRef = useRef(new VectorSource());
 
-  const { logout, apiFetch } = useAuth();
+  const { logout, apiFetch, roles } = useAuth();
   const navigate             = useNavigate();
 
   useFeatureLoader({
@@ -285,6 +285,25 @@ export function Navbar({
             </button>
           )}
         </div>
+
+        {roles.includes("Admin") && (
+            <button
+              onClick={() => navigate("/admin")}
+              style={{
+                padding:     "6px 14px",
+                borderRadius: 8,
+                border:      "1px solid rgba(99,102,241,.4)",
+                background:  "rgba(99,102,241,.15)",
+                color:       "#a5b4fc",
+                fontSize:    13,
+                fontWeight:  500,
+                cursor:      "pointer",
+                transition:  "all .15s",
+              }}
+            >
+              Panel
+            </button>
+          )}
 
         <button
           onClick={handleLogout}

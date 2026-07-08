@@ -126,4 +126,25 @@ public sealed class GeoPermissionController : ApiControllerBase
         }
         catch (Exception ex) { _logger.LogError(ex, "RemoveFromRole GeoPermission failed"); return StatusCode(500, "Sunucu hatası."); }
     }
+
+    [HttpPost("validate")]
+    public async Task<IActionResult> Validate([FromBody] GeoValidateRequestDto request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var roles  = GetUserRoles();
+            var result = await _geoPermissionService.ValidateGeometryAsync(
+                userId.Value, roles, request.WktGeometry);
+
+            return result ? Ok() : StatusCode(403, "Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Validate GeoPermission failed");
+            return StatusCode(500, "Sunucu hatası.");
+        }
+}
 }

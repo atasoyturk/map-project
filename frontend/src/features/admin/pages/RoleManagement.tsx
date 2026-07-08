@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
-import { GeoPermissionMap } from "../components/GeoPermissionMap";
+import { RoleGeoPermissionModal } from "../components/RoleGeoPermissionModal";
 
 interface RoleDto {
   id:   number;
@@ -13,9 +13,9 @@ export function RoleManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving,  setIsSaving]  = useState(false);
   const [error,     setError]     = useState<string | null>(null);
-  const [geoRoleId,  setGeoRoleId]  = useState<number | undefined>();
-  const [geoLabel,   setGeoLabel]   = useState("");
-  const [showGeoMap, setShowGeoMap] = useState(false);
+  const [geoRoleId,   setGeoRoleId]   = useState<number | undefined>();
+  const [geoRoleName, setGeoRoleName] = useState("");
+  const [showGeoModal,setShowGeoModal]= useState(false);
 
   const { apiFetch } = useAuth();
 
@@ -140,8 +140,9 @@ export function RoleManagement() {
                         <button
                           onClick={() => {
                             setGeoRoleId(role.id);
-                            setGeoLabel(`Rol: ${role.name}`);
-                            setShowGeoMap(true);
+                            setGeoRoleName(role.name);
+                            setShowGeoModal(true);
+                            
                           }}
                           style={{
                             padding:      "4px 10px",
@@ -165,12 +166,11 @@ export function RoleManagement() {
         )}
       </div>
 
-      {showGeoMap && (
-        <GeoPermissionMap
+      {showGeoModal && geoRoleId !== undefined && (
+        <RoleGeoPermissionModal
           roleId={geoRoleId}
-          label={geoLabel}
-          onClose={() => setShowGeoMap(false)}
-          onSaved={() => setShowGeoMap(false)}
+          roleName={geoRoleName}
+          onClose={() => setShowGeoModal(false)}
         />
       )}
     </>

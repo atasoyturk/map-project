@@ -146,5 +146,27 @@ public sealed class GeoPermissionController : ApiControllerBase
             _logger.LogError(ex, "Validate GeoPermission failed");
             return StatusCode(500, "Sunucu hatası.");
         }
-}
+    }
+
+    [HttpPut("{id:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> Update(int id, [FromBody] GeoPermissionRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest("Sınır adı boş olamaz.");
+
+        if (string.IsNullOrWhiteSpace(request.WktGeometry))
+            return BadRequest("Geometri boş olamaz.");
+
+        try
+        {
+            var result = await _geoPermissionService.UpdateAsync(id, request);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Update GeoPermission failed for id {Id}", id);
+            return StatusCode(500, "Sunucu hatası.");
+        }
+    }
 }

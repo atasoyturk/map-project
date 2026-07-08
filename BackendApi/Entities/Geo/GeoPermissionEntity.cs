@@ -1,17 +1,15 @@
-using BackendApi.Entities.Auth;
-using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations.Schema;
+using NetTopologySuite.Geometries;
 
 namespace BackendApi.Entities.Geo;
 
 [Table("tbl_geo_permission")]
 public sealed class GeoPermissionEntity : BaseEntity
 {
-    public int?     UserId           { get; set; }  
-    public int?     RoleId           { get; set; }  
+    public string   Name             { get; set; } = string.Empty;
     public Geometry BoundaryGeometry { get; set; } = null!;
 
     // Navigation properties
-    public User? User { get; init; }
-    public Role? Role { get; init; }
+    public ICollection<UserGeoPermission>  UserGeoPermissions { get; init; } = [];
+    public ICollection<RoleGeoPermission>  RoleGeoPermissions { get; init; } = [];
 }

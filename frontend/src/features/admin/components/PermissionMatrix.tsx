@@ -52,7 +52,7 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
         });
         }
         fetchPermissions();
-    } catch { /* sessiz */ }
+    } catch {  }
     finally { setIsSaving(false); }
  }
 

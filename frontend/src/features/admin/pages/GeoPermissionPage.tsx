@@ -13,6 +13,7 @@ export function GeoPermissionPage() {
   const [permissions, setPermissions] = useState<GeoPermissionDto[]>([]);
   const [isLoading,   setIsLoading]   = useState(true);
   const [showMap,     setShowMap]     = useState(false);
+  const [editItem, setEditItem] = useState<GeoPermissionDto | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -95,17 +96,30 @@ export function GeoPermissionPage() {
                         </span>
                       </td>
                       <td style={tdStyle}>
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          style={{
-                            padding: "4px 10px", borderRadius: 6,
-                            border: "1px solid rgba(239,68,68,.3)",
-                            background: "rgba(239,68,68,.05)",
-                            color: "#ef4444", fontSize: 12, cursor: "pointer",
-                          }}
-                        >
-                          Sil
-                        </button>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            onClick={() => setEditItem(p)}
+                            style={{
+                              padding: "4px 10px", borderRadius: 6,
+                              border: "1px solid rgba(59,130,246,.3)",
+                              background: "rgba(59,130,246,.05)",
+                              color: "#3b82f6", fontSize: 12, cursor: "pointer",
+                            }}
+                          >
+                            Değiştir
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            style={{
+                              padding: "4px 10px", borderRadius: 6,
+                              border: "1px solid rgba(239,68,68,.3)",
+                              background: "rgba(239,68,68,.05)",
+                              color: "#ef4444", fontSize: 12, cursor: "pointer",
+                            }}
+                          >
+                            Sil
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -120,6 +134,15 @@ export function GeoPermissionPage() {
         <GeoPermissionMap
           onClose={() => setShowMap(false)}
           onSaved={() => { fetchPermissions(); setShowMap(false); }}
+        />
+      )}
+      {editItem && (
+        <GeoPermissionMap
+          editId={editItem.id}
+          existingWkt={editItem.wktGeometry}
+          existingName={editItem.name}
+          onClose={() => setEditItem(null)}
+          onSaved={() => { fetchPermissions(); setEditItem(null); }}
         />
       )}
     </>

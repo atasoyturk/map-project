@@ -203,6 +203,7 @@ export function UserManagement() {
         <UserGeoPermissionModal
           userId={geoUserId}
           userEmail={geoUserEmail}
+          userRoles={users.find(u => u.id === geoUserId)?.roles ?? []}
           onClose={() => setShowGeoModal(false)}
         />
       )}

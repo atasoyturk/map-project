@@ -22,7 +22,7 @@ export function UserManagement() {
   const [geoUserEmail, setGeoUserEmail] = useState("");
   const [showGeoModal, setShowGeoModal] = useState(false);
 
-  const { apiFetch } = useAuth();
+  const { apiFetch, roles } = useAuth();
 
   async function fetchUsers() {
     setIsLoading(true);

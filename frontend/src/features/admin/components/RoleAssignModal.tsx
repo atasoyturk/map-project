@@ -18,7 +18,7 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving,  setIsSaving]  = useState(false);
 
-  const { apiFetch } = useAuth();
+  const { apiFetch, roles } = useAuth();
 
   useEffect(() => {
     async function fetchRoles() {
@@ -81,7 +81,9 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
           <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {allRoles.map((role) => {
+            {allRoles
+              .filter(role => role.name !== "Admin" || roles.includes("Admin"))
+              .map((role) => {
               const hasRole = currentRoles.includes(role.name);
               return (
                 <div

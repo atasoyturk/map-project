@@ -65,6 +65,13 @@ public sealed class AdminController : ApiControllerBase
     [HttpPost("users/{id:int}/permissions")]
     public async Task<IActionResult> AssignPermission(int id, [FromBody] AssignPermissionDto dto)
     {
+        // prevent self admin assign
+        var currentUserId = GetUserId();
+        if (currentUserId is null) return Unauthorized();
+
+        if (dto.PermissionId == 4 && id == currentUserId.Value)
+            return StatusCode(403, "Kendinize admin yetkisi veremezsiniz.");
+
         try
         {
             await _adminService.AssignPermissionToUserAsync(id, dto.PermissionId);

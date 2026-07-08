@@ -10,9 +10,10 @@ public interface IGeoPermissionService
     Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, string wktGeometry);
 
     // GeoPermission CRUD
-    Task<GeoPermissionResponseDto>             CreateAsync(GeoPermissionRequestDto request);
+    Task<GeoPermissionResponseDto>              CreateAsync(GeoPermissionRequestDto request);
     Task<IEnumerable<GeoPermissionResponseDto>> GetAllAsync();
     Task<bool>                                  DeleteAsync(int id);
+    Task<GeoPermissionResponseDto?>             UpdateAsync(int id, GeoPermissionRequestDto request);
 
     // User assignment
     Task<bool>                                  AssignToUserAsync(int userId, int geoPermissionId);

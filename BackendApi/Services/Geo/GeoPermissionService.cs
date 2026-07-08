@@ -90,6 +90,22 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return true;
     }
 
+    public async Task<GeoPermissionResponseDto?> UpdateAsync(int id, GeoPermissionRequestDto request)
+    {
+        var entity = await _context.GeoPermissions
+            .FirstOrDefaultAsync(gp => gp.Id == id && !gp.IsDeleted);
+
+        if (entity is null) return null;
+
+        entity.Name             = request.Name;
+        entity.BoundaryGeometry = GeometryConverter.FromWkt(request.WktGeometry);
+        entity.ModifiedDate     = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return ToDto(entity);
+    }
+
     //  User assignment 
 
     public async Task<bool> AssignToUserAsync(int userId, int geoPermissionId)

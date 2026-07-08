@@ -18,6 +18,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<LineEntity>     Lines      => Set<LineEntity>();
     public DbSet<PolygonEntity>  Polygons   => Set<PolygonEntity>();
     public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
+    public DbSet<UserGeoPermission> UserGeoPermissions => Set<UserGeoPermission>();
+    public DbSet<RoleGeoPermission> RoleGeoPermissions => Set<RoleGeoPermission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,17 +67,34 @@ public sealed class AppDbContext : DbContext
             .WithMany(p => p.UserPermissions)
             .HasForeignKey(up => up.PermissionId);
         
-        modelBuilder.Entity<GeoPermissionEntity>()
-            .HasOne(gp => gp.User)
-            .WithMany()
-            .HasForeignKey(gp => gp.UserId)
-            .IsRequired(false);
+        
+        // UserGeoPermission
+        modelBuilder.Entity<UserGeoPermission>()
+            .HasKey(ugp => new { ugp.UserId, ugp.GeoPermissionId });
 
-        modelBuilder.Entity<GeoPermissionEntity>()
-            .HasOne(gp => gp.Role)
+        modelBuilder.Entity<UserGeoPermission>()
+            .HasOne(ugp => ugp.User)
             .WithMany()
-            .HasForeignKey(gp => gp.RoleId)
-            .IsRequired(false);
+            .HasForeignKey(ugp => ugp.UserId);
+
+        modelBuilder.Entity<UserGeoPermission>()
+            .HasOne(ugp => ugp.GeoPermission)
+            .WithMany(gp => gp.UserGeoPermissions)
+            .HasForeignKey(ugp => ugp.GeoPermissionId);
+
+        // RoleGeoPermission
+        modelBuilder.Entity<RoleGeoPermission>()
+            .HasKey(rgp => new { rgp.RoleId, rgp.GeoPermissionId });
+
+        modelBuilder.Entity<RoleGeoPermission>()
+            .HasOne(rgp => rgp.Role)
+            .WithMany()
+            .HasForeignKey(rgp => rgp.RoleId);
+
+        modelBuilder.Entity<RoleGeoPermission>()
+            .HasOne(rgp => rgp.GeoPermission)
+            .WithMany(gp => gp.RoleGeoPermissions)
+            .HasForeignKey(rgp => rgp.GeoPermissionId);
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(

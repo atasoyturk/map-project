@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
-import { GeoPermissionMap } from "../components/GeoPermissionMap";
+import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
 
 interface UserDto {
   id:       number;
@@ -18,9 +18,9 @@ export function UserManagement() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [roleUserId, setRoleUserId] = useState<number | null>(null);
   const [roleUserRoles, setRoleUserRoles] = useState<string[]>([]);
-  const [geoUserId,  setGeoUserId]  = useState<number | undefined>();
-  const [geoLabel,   setGeoLabel]   = useState("");
-  const [showGeoMap, setShowGeoMap] = useState(false);
+  const [geoUserId,    setGeoUserId]    = useState<number | undefined>();
+  const [geoUserEmail, setGeoUserEmail] = useState("");
+  const [showGeoModal, setShowGeoModal] = useState(false);
 
   const { apiFetch } = useAuth();
 
@@ -157,8 +157,8 @@ export function UserManagement() {
                         <button
                         onClick={() => {
                           setGeoUserId(user.id);
-                          setGeoLabel(`Kullanıcı: ${user.email}`);
-                          setShowGeoMap(true);
+                          setGeoUserEmail(user.email);
+                          setShowGeoModal(true);
                         }}
                         style={{
                           padding:      "4px 10px",
@@ -170,7 +170,7 @@ export function UserManagement() {
                           cursor:       "pointer",
                         }}
                       >
-                        Coğrafi Yetki
+                        Özel Coğrafi Yetki
                       </button>
                       </div>
                     </td>
@@ -197,12 +197,11 @@ export function UserManagement() {
           onUpdated={() => { fetchUsers(); setRoleUserId(null); }}
         />
       )}
-      {showGeoMap && (
-        <GeoPermissionMap
+      {showGeoModal && geoUserId !== undefined && (
+        <UserGeoPermissionModal
           userId={geoUserId}
-          label={geoLabel}
-          onClose={() => setShowGeoMap(false)}
-          onSaved={() => setShowGeoMap(false)}
+          userEmail={geoUserEmail}
+          onClose={() => setShowGeoModal(false)}
         />
       )}
     </>

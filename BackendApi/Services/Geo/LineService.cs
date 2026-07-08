@@ -22,7 +22,7 @@ public sealed class LineService : ILineService
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
-            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+            throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = new LineEntity
         {
@@ -51,7 +51,7 @@ public sealed class LineService : ILineService
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
-            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+            throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = await _context.Lines
             .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);

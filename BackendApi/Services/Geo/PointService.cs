@@ -21,7 +21,7 @@ public sealed class PointService : IPointService
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
-            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+            throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = new PointEntity
         {
@@ -50,7 +50,7 @@ public sealed class PointService : IPointService
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
-            throw new UnauthorizedAccessException("Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
+            throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
     
         var entity = await _context.Points
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);

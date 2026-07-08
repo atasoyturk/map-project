@@ -22,7 +22,7 @@ export function UserManagement() {
   const [geoUserEmail, setGeoUserEmail] = useState("");
   const [showGeoModal, setShowGeoModal] = useState(false);
 
-  const { apiFetch, roles } = useAuth();
+  const { apiFetch } = useAuth();
 
   async function fetchUsers() {
     setIsLoading(true);
@@ -123,6 +123,7 @@ export function UserManagement() {
                         >
                           {user.isActive ? "Pasif Yap" : "Aktif Yap"}
                         </button>
+                      {!user.roles.includes("Admin") && (
                         <button
                           onClick={() => {
                             setRoleUserId(user.id);
@@ -140,6 +141,7 @@ export function UserManagement() {
                         >
                           Roller
                         </button>
+                      )}
                         <button
                           onClick={() => setSelectedUserId(user.id)}
                           style={{

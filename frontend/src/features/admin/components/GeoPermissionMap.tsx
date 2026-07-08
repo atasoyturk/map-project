@@ -12,34 +12,25 @@ import { Style, Fill, Stroke }         from "ol/style";
 import { useAuth }                     from "../../auth/context/AuthContext";
 
 interface GeoPermissionMapProps {
-  userId?:  number;
-  roleId?:  number;
-  label:    string;   // user or role
-  onClose:  () => void;
-  onSaved:  () => void;
+  onClose: () => void;
+  onSaved: () => void;
 }
 
 const TURKEY_CENTER = fromLonLat([35.2433, 38.9637]);
 
-export function GeoPermissionMap({
-  userId,
-  roleId,
-  label,
-  onClose,
-  onSaved,
-}: GeoPermissionMapProps) {
-  const mapRef     = useRef<HTMLDivElement>(null);
-  const mapObjRef  = useRef<Map | null>(null);
-  const sourceRef  = useRef(new VectorSource());
-  const drawRef    = useRef<Draw | null>(null);
+export function GeoPermissionMap({ onClose, onSaved }: GeoPermissionMapProps) {
+  const mapRef    = useRef<HTMLDivElement>(null);
+  const mapObjRef = useRef<Map | null>(null);
+  const sourceRef = useRef(new VectorSource());
+  const drawRef   = useRef<Draw | null>(null);
 
-  const [isSaving,  setIsSaving]  = useState(false);
-  const [error,     setError]     = useState<string | null>(null);
-  const [hasDrawn,  setHasDrawn]  = useState(false);
+  const [name,     setName]     = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+  const [hasDrawn, setHasDrawn] = useState(false);
 
   const { apiFetch } = useAuth();
 
-  // OL haritasını kur
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -53,24 +44,13 @@ export function GeoPermissionMap({
 
     const map = new Map({
       target: mapRef.current,
-      layers: [
-        new TileLayer({ source: new OSM() }),
-        drawLayer,
-      ],
-      view: new View({
-        center: TURKEY_CENTER,
-        zoom:   6,
-      }),
+      layers: [new TileLayer({ source: new OSM() }), drawLayer],
+      view:   new View({ center: TURKEY_CENTER, zoom: 6 }),
     });
 
     mapObjRef.current = map;
 
-    // Draw interaction
-    const draw = new Draw({
-      source: sourceRef.current,
-      type:   "Polygon",
-    });
-
+    const draw = new Draw({ source: sourceRef.current, type: "Polygon" });
     draw.on("drawend", () => setHasDrawn(true));
     map.addInteraction(draw);
     drawRef.current = draw;
@@ -88,7 +68,6 @@ export function GeoPermissionMap({
     setHasDrawn(false);
     setError(null);
 
-    // Draw interaction restart
     if (mapObjRef.current && drawRef.current) {
       mapObjRef.current.removeInteraction(drawRef.current);
       const draw = new Draw({ source: sourceRef.current, type: "Polygon" });
@@ -99,6 +78,8 @@ export function GeoPermissionMap({
   }
 
   async function handleSave() {
+    if (!name.trim())  { setError("Lütfen sınır adı girin."); return; }
+
     const features = sourceRef.current.getFeatures();
     if (features.length === 0) { setError("Lütfen bir sınır çizin."); return; }
 
@@ -114,11 +95,7 @@ export function GeoPermissionMap({
     try {
       const res = await apiFetch("/api/geo-permission", {
         method: "POST",
-        body:   JSON.stringify({
-          userId:      userId ?? null,
-          roleId:      roleId ?? null,
-          wktGeometry: wkt,
-        }),
+        body:   JSON.stringify({ name: name.trim(), wktGeometry: wkt }),
       });
 
       if (!res.ok) { setError("Kaydedilemedi. Lütfen tekrar deneyin."); return; }
@@ -136,63 +113,63 @@ export function GeoPermissionMap({
     <div
       onClick={onClose}
       style={{
-        position:   "fixed", inset: 0, zIndex: 4000,
+        position: "fixed", inset: 0, zIndex: 4000,
         background: "rgba(0,0,0,0.6)",
-        display:    "flex", alignItems: "center", justifyContent: "center",
+        display: "flex", alignItems: "center", justifyContent: "center",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background:   "#ffffff",
-          borderRadius: 16,
-          padding:      "24px",
-          width:        "min(720px, 92vw)",
-          boxShadow:    "0 20px 60px rgba(0,0,0,0.3)",
-          display:      "flex",
-          flexDirection:"column",
-          gap:          16,
+          background: "#ffffff", borderRadius: 16,
+          padding: "24px", width: "min(720px, 92vw)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          display: "flex", flexDirection: "column", gap: 16,
         }}
       >
-        {/* Header */}
         <div>
           <h2 style={{ fontSize: 17, fontWeight: 600, color: "#0f172a", margin: 0 }}>
-            Coğrafi Yetki Sınırı Tanımla
+            Yeni Coğrafi Sınır Tanımla
           </h2>
           <p style={{ fontSize: 12, color: "#64748b", margin: "4px 0 0" }}>
-            {label}
+            Haritada poligon çizerek sınır oluşturun.
           </p>
         </div>
 
-        {/* Map */}
-        <div
-          ref={mapRef}
+        {/* boundary name */}
+        <input
+          type="text"
+          placeholder="Sınır adı"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           style={{
-            width:        "100%",
-            height:       400,
-            borderRadius: 10,
-            border:       "1px solid #e2e8f0",
-            overflow:     "hidden",
+            padding: "8px 12px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 13,
+            color: "#0f172a", outline: "none",
           }}
         />
 
-        {/* Error */}
+        {/* map */}
+        <div
+          ref={mapRef}
+          style={{
+            width: "100%", height: 400,
+            borderRadius: 10, border: "1px solid #e2e8f0",
+            overflow: "hidden",
+          }}
+        />
+
         {error && (
           <p style={{ fontSize: 12, color: "#dc2626", margin: 0 }}>{error}</p>
         )}
 
-        {/* Buttons */}
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button
             onClick={handleClear}
             style={{
-              padding:      "8px 16px",
-              borderRadius: 8,
-              border:       "1px solid #e2e8f0",
-              background:   "#f8fafc",
-              color:        "#64748b",
-              fontSize:     13,
-              cursor:       "pointer",
+              padding: "8px 16px", borderRadius: 8,
+              border: "1px solid #e2e8f0", background: "#f8fafc",
+              color: "#64748b", fontSize: 13, cursor: "pointer",
             }}
           >
             Temizle
@@ -200,29 +177,21 @@ export function GeoPermissionMap({
           <button
             onClick={onClose}
             style={{
-              padding:      "8px 16px",
-              borderRadius: 8,
-              border:       "1px solid #e2e8f0",
-              background:   "#f8fafc",
-              color:        "#64748b",
-              fontSize:     13,
-              cursor:       "pointer",
+              padding: "8px 16px", borderRadius: 8,
+              border: "1px solid #e2e8f0", background: "#f8fafc",
+              color: "#64748b", fontSize: 13, cursor: "pointer",
             }}
           >
             İptal
           </button>
           <button
             onClick={handleSave}
-            disabled={!hasDrawn || isSaving}
+            disabled={!hasDrawn || isSaving || !name.trim()}
             style={{
-              padding:      "8px 20px",
-              borderRadius: 8,
-              border:       "none",
-              background:   !hasDrawn || isSaving ? "#94a3b8" : "#0f172a",
-              color:        "#ffffff",
-              fontSize:     13,
-              fontWeight:   600,
-              cursor:       !hasDrawn || isSaving ? "not-allowed" : "pointer",
+              padding: "8px 20px", borderRadius: 8, border: "none",
+              background: !hasDrawn || isSaving || !name.trim() ? "#94a3b8" : "#0f172a",
+              color: "#ffffff", fontSize: 13, fontWeight: 600,
+              cursor: !hasDrawn || isSaving || !name.trim() ? "not-allowed" : "pointer",
             }}
           >
             {isSaving ? "Kaydediliyor..." : "Sınırı Kaydet"}

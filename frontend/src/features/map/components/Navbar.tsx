@@ -11,7 +11,6 @@ import { AttributeModal } from "./AttributeModal";
 import { Toast }      from "../../../shared/components/Toast";
 import type { DrawType, PendingGeometry } from "../../../shared/types/drawing";
 
-
 interface NavbarProps {
   map:               Map | null;
   analysisActive:    boolean;
@@ -21,7 +20,7 @@ interface NavbarProps {
   onLayersReady?:    (layers: DrawingLayers) => void;
   queryPanelOpen:    boolean;
   onQueryPanelToggle:() => void;
-  layerControlOpen : boolean;
+  layerControlOpen:  boolean;
   onLayerControlToggle: () => void;
 }
 
@@ -65,7 +64,7 @@ export function Navbar({
   const polygonSourceRef = useRef(new VectorSource());
 
   const { logout, apiFetch, roles } = useAuth();
-  const navigate             = useNavigate();
+  const navigate = useNavigate();
 
   useFeatureLoader({
     map,
@@ -85,7 +84,6 @@ export function Navbar({
     onDrawEnd: async (pending) => {
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
 
-      // Validate
       try {
         const res = await apiFetch("/api/geo-permission/validate", {
           method: "POST",
@@ -93,11 +91,10 @@ export function Navbar({
         });
 
         if (!res.ok) {
-          
           const src =
             pending.type === "Point"      ? pointSourceRef.current   :
             pending.type === "LineString"  ? lineSourceRef.current    :
-                                            polygonSourceRef.current;
+                                             polygonSourceRef.current;
           src.removeFeature(pending.feature);
           const message = await res.text();
           setToast({ message: `Hata: ${message}`, type: "error" });
@@ -105,7 +102,6 @@ export function Navbar({
           return;
         }
 
-        // no problem, open attribute modal
         setPendingGeometry(pending);
         onActiveTypeChange(null);
       } catch {
@@ -153,7 +149,7 @@ export function Navbar({
         const src =
           pendingGeometry.type === "Point"      ? pointSourceRef.current   :
           pendingGeometry.type === "LineString"  ? lineSourceRef.current    :
-                                                  polygonSourceRef.current;
+                                                   polygonSourceRef.current;
         src.removeFeature(pendingGeometry.feature);
         setPendingGeometry(null);
         return;
@@ -209,21 +205,44 @@ export function Navbar({
     <>
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0,
-        height: 50, 
+        height: 50,
         background: "#030c21",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
         padding: "0 20px", zIndex: 1000, gap: 12,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 120 }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
-          <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
-            GisPortal
-          </span>
+
+        {/* Brand + Panel */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 120 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
+            <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
+              GisPortal
+            </span>
+          </div>
+          {roles.includes("Admin") && (
+            <button
+              onClick={() => navigate("/admin")}
+              style={{
+                padding:      "6px 14px",
+                borderRadius: 8,
+                border:       "1px solid rgba(255,255,255,.15)",
+                background:   "transparent",
+                color:        "#94a3b8",
+                fontSize:     13,
+                fontWeight:   500,
+                cursor:       "pointer",
+                transition:   "all .15s",
+              }}
+            >
+              Panel
+            </button>
+          )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Tools */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, left: "50%", position: "absolute", transform: "translateX(-50%)"}}>
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
               key={type}
@@ -258,7 +277,7 @@ export function Navbar({
             </button>
           )}
 
-          <div style={{ width: 1, height: 24, background: "rgba(255, 255, 255, 0.2)" }} />
+          <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.2)" }} />
 
           <button
             onClick={onQueryPanelToggle}
@@ -326,25 +345,7 @@ export function Navbar({
           )}
         </div>
 
-        {roles.includes("Admin") && (
-            <button
-              onClick={() => navigate("/admin")}
-              style={{
-                padding:     "6px 14px",
-                borderRadius: 8,
-                border:      "1px solid rgba(99,102,241,.4)",
-                background:  "rgba(99,102,241,.15)",
-                color:       "#a5b4fc",
-                fontSize:    13,
-                fontWeight:  500,
-                cursor:      "pointer",
-                transition:  "all .15s",
-              }}
-            >
-              Panel
-            </button>
-          )}
-
+        {/* Logout */}
         <button
           onClick={handleLogout}
           style={{

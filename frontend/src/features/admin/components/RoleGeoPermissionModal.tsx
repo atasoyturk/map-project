@@ -41,7 +41,7 @@ export function RoleGeoPermissionModal({
 
       setAllPermissions(all);
       setAssignedPermissions(new Set(assigned.map((p) => p.id)));
-    } catch { /* sessiz */ }
+    } catch {  }
     finally { setIsLoading(false); }
   }
 
@@ -66,7 +66,7 @@ export function RoleGeoPermissionModal({
         });
         setAssignedPermissions((prev) => new Set(prev).add(permissionId));
       }
-    } catch { /* sessiz */ }
+    } catch {  }
     finally { setIsSaving(false); }
   }
 

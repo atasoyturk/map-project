@@ -7,6 +7,7 @@ public interface IGeoPermissionService
 {
     // Boundary validation
     Task<bool> IsWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry);
+    Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, string wktGeometry);
 
     // GeoPermission CRUD
     Task<GeoPermissionResponseDto>             CreateAsync(GeoPermissionRequestDto request);

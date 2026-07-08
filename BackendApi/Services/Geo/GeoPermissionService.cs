@@ -43,6 +43,12 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return allBoundaries.Any(boundary => boundary.Contains(geometry));
     }
 
+    public async Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, string wktGeometry)
+    {
+        var geometry = GeometryConverter.FromWkt(wktGeometry);
+        return await IsWithinBoundaryAsync(userId, roles, geometry);
+    }
+
     //  GeoPermission CRUD 
 
     public async Task<GeoPermissionResponseDto> CreateAsync(GeoPermissionRequestDto request)

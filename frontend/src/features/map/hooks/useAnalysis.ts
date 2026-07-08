@@ -76,11 +76,24 @@ export function useAnalysis({
       const geometry = event.feature.getGeometry();
       if (!geometry) return;
 
-      // EPSG:3857 → EPSG:4326 — not saved in DB
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
       try {
+        // geofencing validate
+        const validateRes = await apiFetch("/api/geo-permission/validate", {
+          method: "POST",
+          body:   JSON.stringify({ wktGeometry: wkt }),
+        });
+
+        if (!validateRes.ok) {
+          sourceRef.current.clear();
+          const message = await validateRes.text();
+          onError(`Hata: ${message}`);
+          return;
+        }
+
+        // analyze
         const response = await apiFetch("/api/analysis/temp-inventory", {
           method: "POST",
           body:   JSON.stringify({ wktGeometry: wkt }),

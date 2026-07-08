@@ -12,6 +12,7 @@ interface GeoPermissionDto {
 interface UserGeoPermissionModalProps {
   userId:    number;
   userEmail: string;
+  userRoles: string[];
   onClose:   () => void;
 }
 
@@ -20,6 +21,7 @@ type Tab = "list" | "new";
 export function UserGeoPermissionModal({
   userId,
   userEmail,
+  userRoles,
   onClose,
 }: UserGeoPermissionModalProps) {
   const [tab,                 setTab]                 = useState<Tab>("list");
@@ -28,15 +30,25 @@ export function UserGeoPermissionModal({
   const [isLoading,           setIsLoading]           = useState(true);
   const [isSaving,            setIsSaving]            = useState(false);
   const [showDrawMap,         setShowDrawMap]         = useState(false);
+  const [roleAssignedPermissions, setRoleAssignedPermissions] = useState<Set<number>>(new Set());
 
   const { apiFetch } = useAuth();
 
   async function fetchData() {
     setIsLoading(true);
     try {
-      const [allRes, assignedRes] = await Promise.all([
+      // pull role id
+      const rolesRes = await apiFetch("/api/admin/roles");
+      const allRoles: { id: number; name: string }[] = rolesRes.ok ? await rolesRes.json() : [];
+      const userRoleIds = allRoles
+        .filter(r => userRoles.includes(r.name))
+        .map(r => r.id);
+
+      
+      const [allRes, assignedRes, ...roleResponses] = await Promise.all([
         apiFetch("/api/geo-permission"),
         apiFetch(`/api/geo-permission/user/${userId}`),
+        ...userRoleIds.map(roleId => apiFetch(`/api/geo-permission/role/${roleId}`)),
       ]);
 
       if (!allRes.ok || !assignedRes.ok) return;
@@ -44,9 +56,19 @@ export function UserGeoPermissionModal({
       const all:      GeoPermissionDto[] = await allRes.json();
       const assigned: GeoPermissionDto[] = await assignedRes.json();
 
+      // add up the boundaries that comes from the role
+      const roleAssigned: GeoPermissionDto[] = [];
+      for (const res of roleResponses) {
+        if (res.ok) {
+          const data: GeoPermissionDto[] = await res.json();
+          roleAssigned.push(...data);
+        }
+      }
+
       setAllPermissions(all);
-      setAssignedPermissions(new Set(assigned.map((p) => p.id)));
-    } catch {  }
+      setAssignedPermissions(new Set(assigned.map(p => p.id)));
+      setRoleAssignedPermissions(new Set(roleAssigned.map(p => p.id)));
+    } catch { /* sessiz */ }
     finally { setIsLoading(false); }
   }
 
@@ -152,7 +174,9 @@ export function UserGeoPermissionModal({
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {allPermissions.map((p) => {
-                  const isAssigned = assignedPermissions.has(p.id);
+                  const isUserAssigned = assignedPermissions.has(p.id);
+                  const isRoleAssigned = roleAssignedPermissions.has(p.id);
+                  const isAssigned     = isUserAssigned || isRoleAssigned;
                   return (
                     <div
                       key={p.id}
@@ -166,21 +190,30 @@ export function UserGeoPermissionModal({
                       <input
                         type="checkbox"
                         checked={isAssigned}
-                        disabled={isSaving}
-                        onChange={() => handleToggle(p.id)}
-                        style={{ cursor: isSaving ? "not-allowed" : "pointer" }}
+                        disabled={isSaving || isRoleAssigned}
+                        onChange={() => !isRoleAssigned && handleToggle(p.id)}
+                        style={{ cursor: isSaving || isRoleAssigned ? "not-allowed" : "pointer" }}
                       />
                       <div style={{ flex: 1 }}>
                         <span style={{ fontSize: 13, fontWeight: 500, color: "#0f172a" }}>
                           {p.name}
                         </span>
-                        {isAssigned && (
+                        {isRoleAssigned && (
                           <span style={{
                             marginLeft: 8, padding: "1px 8px",
                             borderRadius: 20, background: "#eff6ff",
                             color: "#3b82f6", fontSize: 10, fontWeight: 600,
                           }}>
-                            Atanmış
+                            Rolden Geliyor
+                          </span>
+                        )}
+                        {isUserAssigned && !isRoleAssigned && (
+                          <span style={{
+                            marginLeft: 8, padding: "1px 8px",
+                            borderRadius: 20, background: "#f0fdf4",
+                            color: "#16a34a", fontSize: 10, fontWeight: 600,
+                          }}>
+                            Kullanıcıya Özel
                           </span>
                         )}
                       </div>

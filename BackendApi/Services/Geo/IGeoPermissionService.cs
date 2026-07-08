@@ -5,8 +5,21 @@ namespace BackendApi.Services.Geo;
 
 public interface IGeoPermissionService
 {
-    Task<bool>                                  IsWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry);
-    Task<GeoPermissionResponseDto>              CreateAsync(GeoPermissionRequestDto request);
+    // Boundary validation
+    Task<bool> IsWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry);
+
+    // GeoPermission CRUD
+    Task<GeoPermissionResponseDto>             CreateAsync(GeoPermissionRequestDto request);
     Task<IEnumerable<GeoPermissionResponseDto>> GetAllAsync();
     Task<bool>                                  DeleteAsync(int id);
+
+    // User assignment
+    Task<bool>                                  AssignToUserAsync(int userId, int geoPermissionId);
+    Task<bool>                                  RemoveFromUserAsync(int userId, int geoPermissionId);
+    Task<IEnumerable<GeoPermissionResponseDto>> GetByUserAsync(int userId);
+
+    // Role assignment
+    Task<bool>                                  AssignToRoleAsync(int roleId, int geoPermissionId);
+    Task<bool>                                  RemoveFromRoleAsync(int roleId, int geoPermissionId);
+    Task<IEnumerable<GeoPermissionResponseDto>> GetByRoleAsync(int roleId);
 }

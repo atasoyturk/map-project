@@ -13,21 +13,27 @@ public sealed class GeoPermissionService : IGeoPermissionService
 
     public GeoPermissionService(AppDbContext context) => _context = context;
 
+    // ── Boundary validation ───────────────────────────────────────────────────
+
     public async Task<bool> IsWithinBoundaryAsync(
         int                 userId,
         IEnumerable<string> roles,
         Geometry            geometry)
     {
-        var userBoundaries = await _context.GeoPermissions
-            .Where(gp => gp.UserId == userId && !gp.IsDeleted && gp.IsActive)
-            .Select(gp => gp.BoundaryGeometry)
+        var userBoundaries = await _context.UserGeoPermissions
+            .Where(ugp => ugp.UserId == userId)
+            .Include(ugp => ugp.GeoPermission)
+            .Where(ugp => ugp.GeoPermission.IsActive && !ugp.GeoPermission.IsDeleted)
+            .Select(ugp => ugp.GeoPermission.BoundaryGeometry)
             .ToListAsync();
 
-        var roleBoundaries = await _context.GeoPermissions
-            .Where(gp => gp.RoleId != null && !gp.IsDeleted && gp.IsActive)
-            .Include(gp => gp.Role)
-            .Where(gp => roles.Contains(gp.Role!.Name))
-            .Select(gp => gp.BoundaryGeometry)
+        var roleBoundaries = await _context.RoleGeoPermissions
+            .Include(rgp => rgp.Role)
+            .Include(rgp => rgp.GeoPermission)
+            .Where(rgp => roles.Contains(rgp.Role.Name)
+                       && rgp.GeoPermission.IsActive
+                       && !rgp.GeoPermission.IsDeleted)
+            .Select(rgp => rgp.GeoPermission.BoundaryGeometry)
             .ToListAsync();
 
         var allBoundaries = userBoundaries.Concat(roleBoundaries).ToList();
@@ -37,14 +43,15 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return allBoundaries.Any(boundary => boundary.Contains(geometry));
     }
 
+    // ── GeoPermission CRUD ────────────────────────────────────────────────────
+
     public async Task<GeoPermissionResponseDto> CreateAsync(GeoPermissionRequestDto request)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         var entity = new GeoPermissionEntity
         {
-            UserId           = request.UserId,
-            RoleId           = request.RoleId,
+            Name             = request.Name,
             BoundaryGeometry = geometry,
             IsActive         = true,
         };
@@ -52,21 +59,14 @@ public sealed class GeoPermissionService : IGeoPermissionService
         _context.GeoPermissions.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new GeoPermissionResponseDto(
-            entity.Id,
-            entity.UserId,
-            entity.RoleId,
-            GeometryConverter.ToWkt(entity.BoundaryGeometry),
-            entity.IsActive);
+        return ToDto(entity);
     }
 
     public async Task<IEnumerable<GeoPermissionResponseDto>> GetAllAsync() =>
         await _context.GeoPermissions
             .Where(gp => !gp.IsDeleted)
             .Select(gp => new GeoPermissionResponseDto(
-                gp.Id,
-                gp.UserId,
-                gp.RoleId,
+                gp.Id, gp.Name,
                 GeometryConverter.ToWkt(gp.BoundaryGeometry),
                 gp.IsActive))
             .ToListAsync();
@@ -83,4 +83,93 @@ public sealed class GeoPermissionService : IGeoPermissionService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    // ── User assignment ───────────────────────────────────────────────────────
+
+    public async Task<bool> AssignToUserAsync(int userId, int geoPermissionId)
+    {
+        var exists = await _context.UserGeoPermissions
+            .AnyAsync(ugp => ugp.UserId == userId && ugp.GeoPermissionId == geoPermissionId);
+
+        if (exists) return true; // idempotent
+
+        _context.UserGeoPermissions.Add(new UserGeoPermission
+        {
+            UserId          = userId,
+            GeoPermissionId = geoPermissionId,
+        });
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RemoveFromUserAsync(int userId, int geoPermissionId)
+    {
+        var entity = await _context.UserGeoPermissions
+            .FirstOrDefaultAsync(ugp => ugp.UserId == userId && ugp.GeoPermissionId == geoPermissionId);
+
+        if (entity is null) return false;
+
+        _context.UserGeoPermissions.Remove(entity);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<GeoPermissionResponseDto>> GetByUserAsync(int userId) =>
+        await _context.UserGeoPermissions
+            .Where(ugp => ugp.UserId == userId)
+            .Include(ugp => ugp.GeoPermission)
+            .Where(ugp => !ugp.GeoPermission.IsDeleted)
+            .Select(ugp => new GeoPermissionResponseDto(
+                ugp.GeoPermission.Id,
+                ugp.GeoPermission.Name,
+                GeometryConverter.ToWkt(ugp.GeoPermission.BoundaryGeometry),
+                ugp.GeoPermission.IsActive))
+            .ToListAsync();
+
+    // ── Role assignment ───────────────────────────────────────────────────────
+
+    public async Task<bool> AssignToRoleAsync(int roleId, int geoPermissionId)
+    {
+        var exists = await _context.RoleGeoPermissions
+            .AnyAsync(rgp => rgp.RoleId == roleId && rgp.GeoPermissionId == geoPermissionId);
+
+        if (exists) return true; // idempotent
+
+        _context.RoleGeoPermissions.Add(new RoleGeoPermission
+        {
+            RoleId          = roleId,
+            GeoPermissionId = geoPermissionId,
+        });
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RemoveFromRoleAsync(int roleId, int geoPermissionId)
+    {
+        var entity = await _context.RoleGeoPermissions
+            .FirstOrDefaultAsync(rgp => rgp.RoleId == roleId && rgp.GeoPermissionId == geoPermissionId);
+
+        if (entity is null) return false;
+
+        _context.RoleGeoPermissions.Remove(entity);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<GeoPermissionResponseDto>> GetByRoleAsync(int roleId) =>
+        await _context.RoleGeoPermissions
+            .Where(rgp => rgp.RoleId == roleId)
+            .Include(rgp => rgp.GeoPermission)
+            .Where(rgp => !rgp.GeoPermission.IsDeleted)
+            .Select(rgp => new GeoPermissionResponseDto(
+                rgp.GeoPermission.Id,
+                rgp.GeoPermission.Name,
+                GeometryConverter.ToWkt(rgp.GeoPermission.BoundaryGeometry),
+                rgp.GeoPermission.IsActive))
+            .ToListAsync();
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+
+    private static GeoPermissionResponseDto ToDto(GeoPermissionEntity e) =>
+        new(e.Id, e.Name, GeometryConverter.ToWkt(e.BoundaryGeometry), e.IsActive);
 }

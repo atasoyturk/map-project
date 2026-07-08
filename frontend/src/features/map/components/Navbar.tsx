@@ -116,12 +116,27 @@ export function Navbar({
         method: "POST",
         body:   JSON.stringify({ wktGeometry: pendingGeometry.wkt, name, color }),
       });
-      if (!response.ok) { setToast({ message: "Kaydetme başarısız.", type: "error" }); return; }
+
+      if (!response.ok) {
+        // 403 — geofencing 
+        if (response.status === 403) {
+          const message = await response.text();
+          setToast({ message: `Hata: ${message}`, type: "error" });
+        } else {
+          setToast({ message: "Kaydetme başarısız.", type: "error" });
+        }
+        // incorrect drawing cleaning
+        const src =
+          pendingGeometry.type === "Point"      ? pointSourceRef.current   :
+          pendingGeometry.type === "LineString"  ? lineSourceRef.current    :
+                                                  polygonSourceRef.current;
+        src.removeFeature(pendingGeometry.feature);
+        setPendingGeometry(null);
+        return;
+      }
 
       pendingGeometry.feature.setStyle(buildStyle(color, name));
-      
       setToast({ message: "Başarıyla kaydedildi.", type: "success" });
-
       setPendingGeometry(null);
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });

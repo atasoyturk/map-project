@@ -42,7 +42,10 @@ public sealed class AdminController : ApiControllerBase
 
     [HttpPost("users/{id:int}/roles")]
     public async Task<IActionResult> AssignRole(int id, [FromBody] AssignRoleDto dto)
-    {
+    {   
+        if (dto.RoleId == 1)
+            return StatusCode(403, "Admin rolü bu arayüzden atanamaz.");
+        
         try
         {
             await _adminService.AssignRoleToUserAsync(id, dto.RoleId);

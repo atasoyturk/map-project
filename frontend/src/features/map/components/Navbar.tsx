@@ -82,10 +82,36 @@ export function Navbar({
     lineSource:    lineSourceRef.current,
     polygonSource: polygonSourceRef.current,
     activeType,
-    onDrawEnd: (pending) => {
+    onDrawEnd: async (pending) => {
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
-      setPendingGeometry(pending);
-      onActiveTypeChange(null);
+
+      // Validate
+      try {
+        const res = await apiFetch("/api/geo-permission/validate", {
+          method: "POST",
+          body:   JSON.stringify({ wktGeometry: pending.wkt }),
+        });
+
+        if (!res.ok) {
+          
+          const src =
+            pending.type === "Point"      ? pointSourceRef.current   :
+            pending.type === "LineString"  ? lineSourceRef.current    :
+                                            polygonSourceRef.current;
+          src.removeFeature(pending.feature);
+          const message = await res.text();
+          setToast({ message: `Hata: ${message}`, type: "error" });
+          onActiveTypeChange(null);
+          return;
+        }
+
+        // no problem, open attribute modal
+        setPendingGeometry(pending);
+        onActiveTypeChange(null);
+      } catch {
+        setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+        onActiveTypeChange(null);
+      }
     },
   });
 
@@ -118,14 +144,12 @@ export function Navbar({
       });
 
       if (!response.ok) {
-        // 403 — geofencing 
         if (response.status === 403) {
           const message = await response.text();
           setToast({ message: `Hata: ${message}`, type: "error" });
         } else {
           setToast({ message: "Kaydetme başarısız.", type: "error" });
         }
-        // incorrect drawing cleaning
         const src =
           pendingGeometry.type === "Point"      ? pointSourceRef.current   :
           pendingGeometry.type === "LineString"  ? lineSourceRef.current    :

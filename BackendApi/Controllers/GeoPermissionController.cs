@@ -19,6 +19,8 @@ public sealed class GeoPermissionController : ApiControllerBase
         _logger               = logger;
     }
 
+    //  GeoPermission CRUD 
+
     [HttpGet]
     [RequirePermission("admin_access")]
     public async Task<IActionResult> GetAll()
@@ -31,8 +33,11 @@ public sealed class GeoPermissionController : ApiControllerBase
     [RequirePermission("admin_access")]
     public async Task<IActionResult> Create([FromBody] GeoPermissionRequestDto request)
     {
-        if (request.UserId is null && request.RoleId is null)
-            return BadRequest("UserId veya RoleId belirtilmelidir.");
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest("Sınır adı boş olamaz.");
+
+        if (string.IsNullOrWhiteSpace(request.WktGeometry))
+            return BadRequest("Geometri boş olamaz.");
 
         try
         {
@@ -52,5 +57,73 @@ public sealed class GeoPermissionController : ApiControllerBase
             return result ? NoContent() : NotFound();
         }
         catch (Exception ex) { _logger.LogError(ex, "Delete GeoPermission failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    //  User assignment 
+
+    [HttpGet("user/{userId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> GetByUser(int userId)
+    {
+        try { return Ok(await _geoPermissionService.GetByUserAsync(userId)); }
+        catch (Exception ex) { _logger.LogError(ex, "GetByUser GeoPermission failed for userId {UserId}", userId); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpPost("user/{userId:int}/{geoPermissionId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> AssignToUser(int userId, int geoPermissionId)
+    {
+        try
+        {
+            await _geoPermissionService.AssignToUserAsync(userId, geoPermissionId);
+            return NoContent();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "AssignToUser GeoPermission failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpDelete("user/{userId:int}/{geoPermissionId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> RemoveFromUser(int userId, int geoPermissionId)
+    {
+        try
+        {
+            var result = await _geoPermissionService.RemoveFromUserAsync(userId, geoPermissionId);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "RemoveFromUser GeoPermission failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    //  Role assignment 
+
+    [HttpGet("role/{roleId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> GetByRole(int roleId)
+    {
+        try { return Ok(await _geoPermissionService.GetByRoleAsync(roleId)); }
+        catch (Exception ex) { _logger.LogError(ex, "GetByRole GeoPermission failed for roleId {RoleId}", roleId); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpPost("role/{roleId:int}/{geoPermissionId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> AssignToRole(int roleId, int geoPermissionId)
+    {
+        try
+        {
+            await _geoPermissionService.AssignToRoleAsync(roleId, geoPermissionId);
+            return NoContent();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "AssignToRole GeoPermission failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpDelete("role/{roleId:int}/{geoPermissionId:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> RemoveFromRole(int roleId, int geoPermissionId)
+    {
+        try
+        {
+            var result = await _geoPermissionService.RemoveFromRoleAsync(roleId, geoPermissionId);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "RemoveFromRole GeoPermission failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 }

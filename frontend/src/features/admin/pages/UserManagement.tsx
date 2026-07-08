@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
+import { GeoPermissionMap } from "../components/GeoPermissionMap";
 
 interface UserDto {
   id:       number;
@@ -17,6 +18,9 @@ export function UserManagement() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [roleUserId, setRoleUserId] = useState<number | null>(null);
   const [roleUserRoles, setRoleUserRoles] = useState<string[]>([]);
+  const [geoUserId,  setGeoUserId]  = useState<number | undefined>();
+  const [geoLabel,   setGeoLabel]   = useState("");
+  const [showGeoMap, setShowGeoMap] = useState(false);
 
   const { apiFetch } = useAuth();
 
@@ -150,6 +154,24 @@ export function UserManagement() {
                         >
                           Yetkiler
                         </button>
+                        <button
+                        onClick={() => {
+                          setGeoUserId(user.id);
+                          setGeoLabel(`Kullanıcı: ${user.email}`);
+                          setShowGeoMap(true);
+                        }}
+                        style={{
+                          padding:      "4px 10px",
+                          borderRadius: 6,
+                          border:       "1px solid rgba(16,185,129,.3)",
+                          background:   "rgba(16,185,129,.05)",
+                          color:        "#10b981",
+                          fontSize:     12,
+                          cursor:       "pointer",
+                        }}
+                      >
+                        Coğrafi Yetki
+                      </button>
                       </div>
                     </td>
                   </tr>
@@ -173,6 +195,14 @@ export function UserManagement() {
           currentRoles={roleUserRoles}
           onClose={() => setRoleUserId(null)}
           onUpdated={() => { fetchUsers(); setRoleUserId(null); }}
+        />
+      )}
+      {showGeoMap && (
+        <GeoPermissionMap
+          userId={geoUserId}
+          label={geoLabel}
+          onClose={() => setShowGeoMap(false)}
+          onSaved={() => setShowGeoMap(false)}
         />
       )}
     </>

@@ -1,9 +1,8 @@
 namespace BackendApi.DTOs.Geo;
 
 public sealed record GeoPermissionResponseDto(
-    int     Id,
-    int?    UserId,
-    int?    RoleId,
-    string  WktGeometry,
-    bool    IsActive
+    int    Id,
+    string Name,
+    string WktGeometry,
+    bool   IsActive
 );

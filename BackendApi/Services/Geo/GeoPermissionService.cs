@@ -13,7 +13,7 @@ public sealed class GeoPermissionService : IGeoPermissionService
 
     public GeoPermissionService(AppDbContext context) => _context = context;
 
-    // ── Boundary validation ───────────────────────────────────────────────────
+    //  Boundary validation 
 
     public async Task<bool> IsWithinBoundaryAsync(
         int                 userId,
@@ -43,7 +43,7 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return allBoundaries.Any(boundary => boundary.Contains(geometry));
     }
 
-    // ── GeoPermission CRUD ────────────────────────────────────────────────────
+    //  GeoPermission CRUD 
 
     public async Task<GeoPermissionResponseDto> CreateAsync(GeoPermissionRequestDto request)
     {
@@ -84,7 +84,7 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return true;
     }
 
-    // ── User assignment ───────────────────────────────────────────────────────
+    //  User assignment 
 
     public async Task<bool> AssignToUserAsync(int userId, int geoPermissionId)
     {
@@ -126,7 +126,7 @@ public sealed class GeoPermissionService : IGeoPermissionService
                 ugp.GeoPermission.IsActive))
             .ToListAsync();
 
-    // ── Role assignment ───────────────────────────────────────────────────────
+    //  Role assignment 
 
     public async Task<bool> AssignToRoleAsync(int roleId, int geoPermissionId)
     {

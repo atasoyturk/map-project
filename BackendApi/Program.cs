@@ -17,6 +17,8 @@ using BackendApi.Services.Analysis;
 using BackendApi.Services.Permission;
 using BackendApi.Services.Search;
 
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Settings
@@ -83,6 +85,25 @@ builder.Services.AddScoped<IPermissionService,    PermissionService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IUserService,  UserService>();
 builder.Services.AddScoped<IGeoPermissionService, GeoPermissionService>();
+
+// GeoServer Settings
+builder.Services.Configure<GeoServerSettings>(
+    builder.Configuration.GetSection("GeoServerSettings"));
+
+// HttpClient — GeoServer proxy 
+builder.Services.AddHttpClient("GeoServer", (serviceProvider, client) =>
+{
+    var settings = serviceProvider
+        .GetRequiredService<IOptions<GeoServerSettings>>()
+        .Value;
+
+    client.BaseAddress = new Uri(settings.BaseUrl);
+
+    var credentials = Convert.ToBase64String(
+        Encoding.UTF8.GetBytes($"{settings.Username}:{settings.Password}"));
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+});
 
 builder.Services.AddControllers();
 

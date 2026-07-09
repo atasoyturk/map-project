@@ -37,7 +37,11 @@ async function loadLayer(
     const props = f.getProperties();
 
     // GeoServer columns check
-    const id    = props["Id"]    ?? props["id"];
+    // GeoServer "tbl_point.8" → 8
+    const rawId = props["Id"] ?? props["id"] ?? f.getId();
+    const id    = typeof rawId === "string" && rawId.includes(".")
+      ? parseInt(rawId.split(".")[1])
+      : rawId;
     const name  = props["Name"]  ?? props["name"]  ?? "";
     const color = props["Color"] ?? props["color"] ?? "#3b82f6";
 

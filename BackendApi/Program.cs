@@ -97,8 +97,6 @@ builder.Services.AddHttpClient("GeoServer", (serviceProvider, client) =>
         .GetRequiredService<IOptions<GeoServerSettings>>()
         .Value;
 
-    client.BaseAddress = new Uri(settings.BaseUrl);
-
     var credentials = Convert.ToBase64String(
         Encoding.UTF8.GetBytes($"{settings.Username}:{settings.Password}"));
     client.DefaultRequestHeaders.Authorization =

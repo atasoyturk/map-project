@@ -58,7 +58,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
             query["outputFormat"] = "application/json";
             query["CQL_FILTER"]   = cqlFilter;
 
-            var url      = $"/{_settings.Workspace}/wfs?{query}";
+            var url = $"{_settings.BaseUrl}/{_settings.Workspace}/wfs?{query}";
             var response = await client.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)

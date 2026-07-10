@@ -22,6 +22,8 @@ interface NavbarProps {
   onQueryPanelToggle:() => void;
   layerControlOpen:  boolean;
   onLayerControlToggle: () => void;
+  heatmapActive:    boolean;
+  onHeatmapToggle:  () => void;
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -52,6 +54,8 @@ export function Navbar({
   onQueryPanelToggle,
   layerControlOpen,
   onLayerControlToggle,
+  heatmapActive,
+  onHeatmapToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -343,8 +347,25 @@ export function Navbar({
               Temizle
             </button>
           )}
-        </div>
 
+          <button
+            onClick={onHeatmapToggle}
+            disabled={!!pendingGeometry}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
+              background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
+              color:       heatmapActive ? "#fca5a5" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   pendingGeometry ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Isı Haritası
+          </button>
+        </div>
+        
         {/* Logout */}
         <button
           onClick={handleLogout}

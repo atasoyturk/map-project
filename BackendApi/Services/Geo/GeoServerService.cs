@@ -34,7 +34,7 @@ public sealed class GeoServerService : IGeoServerService
         try
         {
             var client    = _httpClientFactory.CreateClient("GeoServer");
-            var cqlFilter = $"\"UserId\"={userId}";
+            var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
 
             var query = HttpUtility.ParseQueryString(string.Empty);
             query["service"]      = "WFS";

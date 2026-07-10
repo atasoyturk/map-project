@@ -85,6 +85,7 @@ builder.Services.AddScoped<IPermissionService,    PermissionService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IUserService,  UserService>();
 builder.Services.AddScoped<IGeoPermissionService, GeoPermissionService>();
+builder.Services.AddScoped<IGeoServerService, GeoServerService>();
 
 // GeoServer Settings
 builder.Services.Configure<GeoServerSettings>(

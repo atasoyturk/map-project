@@ -15,6 +15,8 @@ import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
 import { buildStyle }              from "../../../utils/mapStyle";
 import type { DrawType }           from "../../../shared/types/drawing";
+import { HeatmapLegend } from "../components/HeatmapLegend";
+
 
 export function DashboardPage() {
   const [map,             setMap]            = useState<Map | null>(null);
@@ -40,6 +42,11 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!map) return;
+    
+    // hide point layer
+    if (layers?.pointLayer) {
+      layers.pointLayer.setVisible(!heatmapActive);
+    }
 
     if (!heatmapActive) return;
 
@@ -70,8 +77,12 @@ export function DashboardPage() {
 
   return () => {
     map.removeLayer(heatmapLayer);
+     // reopen point layer 
+    if (layers?.pointLayer) {
+      layers.pointLayer.setVisible(true);
+    }
   };
-}, [map, heatmapActive, token]);
+}, [map, heatmapActive, token, layers]);
 
   // feature choice effect
   useEffect(() => {
@@ -101,6 +112,7 @@ export function DashboardPage() {
       />
       <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
+        <HeatmapLegend visible={heatmapActive} />
         <LayerControl layers={layers} visible={layerControlOpen} />
       </div>
 

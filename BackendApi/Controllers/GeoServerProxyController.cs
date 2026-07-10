@@ -36,4 +36,35 @@ public sealed class GeoServerProxyController : ApiControllerBase
 
         return Content(content!, contentType!);
     }
+
+    [HttpGet("wms")]
+    public async Task<IActionResult> GetWms(
+        [FromQuery] string typeName,
+        [FromQuery] string bbox,
+        [FromQuery] int    width,
+        [FromQuery] int    height,
+        [FromQuery] string? styles = null)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(typeName))
+            return BadRequest("typeName parametresi zorunludur.");
+
+        if (string.IsNullOrWhiteSpace(bbox))
+            return BadRequest("bbox parametresi zorunludur.");
+
+        if (width <= 0 || height <= 0)
+            return BadRequest("Geçersiz boyut.");
+
+        var (success, content, contentType, error) =
+            await _geoServerService.GetWmsMapAsync(typeName, userId.Value, bbox, width, height, styles);
+
+        if (!success)
+            return error == "Geçersiz katman adı."
+                ? BadRequest(error)
+                : StatusCode(502, error);
+
+        return File(content!, contentType!);
+    }
 }

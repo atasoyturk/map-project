@@ -27,42 +27,91 @@ public sealed class GeoServerService : IGeoServerService
 
     public async Task<(bool Success, string? Content, string? ContentType, string? Error)>
         GetFeaturesAsync(string typeName, int userId)
-    {
-        if (!AllowedLayers.Contains(typeName))
-            return (false, null, null, "Geçersiz katman adı.");
-
-        try
         {
-            var client    = _httpClientFactory.CreateClient("GeoServer");
-            var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
+            if (!AllowedLayers.Contains(typeName))
+                return (false, null, null, "Geçersiz katman adı.");
 
-            var query = HttpUtility.ParseQueryString(string.Empty);
-            query["service"]      = "WFS";
-            query["version"]      = "2.0.0";
-            query["request"]      = "GetFeature";
-            query["typeNames"]    = $"{_settings.Workspace}:{typeName}";
-            query["outputFormat"] = "application/json";
-            query["CQL_FILTER"]   = cqlFilter;
-
-            var url      = $"{_settings.BaseUrl}/{_settings.Workspace}/wfs?{query}";
-            var response = await client.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                _logger.LogError("GeoServer WFS failed: {StatusCode}", response.StatusCode);
-                return (false, null, null, "GeoServer'dan veri alınamadı.");
+                var client    = _httpClientFactory.CreateClient("GeoServer");
+                var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
+
+                var query = HttpUtility.ParseQueryString(string.Empty);
+                query["service"]      = "WFS";
+                query["version"]      = "2.0.0";
+                query["request"]      = "GetFeature";
+                query["typeNames"]    = $"{_settings.Workspace}:{typeName}";
+                query["outputFormat"] = "application/json";
+                query["CQL_FILTER"]   = cqlFilter;
+
+                var url      = $"{_settings.BaseUrl}/{_settings.Workspace}/wfs?{query}";
+                var response = await client.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("GeoServer WFS failed: {StatusCode}", response.StatusCode);
+                    return (false, null, null, "GeoServer'dan veri alınamadı.");
+                }
+
+                var content     = await response.Content.ReadAsStringAsync();
+                var contentType = response.Content.Headers.ContentType?.ToString()
+                                ?? "application/json";
+
+                return (true, content, contentType, null);
             }
-
-            var content     = await response.Content.ReadAsStringAsync();
-            var contentType = response.Content.Headers.ContentType?.ToString()
-                              ?? "application/json";
-
-            return (true, content, contentType, null);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GeoServer proxy failed for {TypeName}", typeName);
+                return (false, null, null, "Sunucu hatası.");
+            }
         }
-        catch (Exception ex)
+
+    public async Task<(bool Success, byte[]? Content, string? ContentType, string? Error)>
+        GetWmsMapAsync(string typeName, int userId, string bbox, int width, int height, string? styles)
         {
-            _logger.LogError(ex, "GeoServer proxy failed for {TypeName}", typeName);
-            return (false, null, null, "Sunucu hatası.");
+            if (!AllowedLayers.Contains(typeName))
+                return (false, null, null, "Geçersiz katman adı.");
+
+            try
+            {
+                var client    = _httpClientFactory.CreateClient("GeoServer");
+                var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
+
+                var query = HttpUtility.ParseQueryString(string.Empty);
+                query["service"]     = "WMS";
+                query["version"]     = "1.1.1";
+                query["request"]     = "GetMap";
+                query["layers"]      = $"{_settings.Workspace}:{typeName}";
+                query["bbox"]        = bbox;
+                query["width"]       = width.ToString();
+                query["height"]      = height.ToString();
+                query["srs"]         = "EPSG:3857";
+                query["format"]      = "image/png";
+                query["transparent"] = "true";
+                query["CQL_FILTER"]  = cqlFilter;
+
+                if (!string.IsNullOrWhiteSpace(styles))
+                    query["styles"] = styles;
+
+                var url      = $"{_settings.BaseUrl}/{_settings.Workspace}/wms?{query}";
+                var response = await client.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("GeoServer WMS failed: {StatusCode}", response.StatusCode);
+                    return (false, null, null, "GeoServer'dan görüntü alınamadı.");
+                }
+
+                var content     = await response.Content.ReadAsByteArrayAsync();
+                var contentType = response.Content.Headers.ContentType?.ToString()
+                                ?? "image/png";
+
+                return (true, content, contentType, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GeoServer WMS proxy failed for {TypeName}", typeName);
+                return (false, null, null, "Sunucu hatası.");
+            }
         }
-    }
 }

@@ -251,15 +251,15 @@ export function Navbar({
             <button
               key={type}
               onClick={() => handleSelect(type)}
-              disabled={!!pendingGeometry}
+              disabled={!!pendingGeometry || heatmapActive}
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
                 background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
                 color:       activeType === type ? "#93c5fd" : "#94a3b8",
                 fontSize: 13, fontWeight: 500,
-                cursor:   pendingGeometry ? "not-allowed" : "pointer",
-                opacity:  pendingGeometry ? 0.5 : 1,
+                cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
+                opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
                 transition: "all .15s",
               }}
             >
@@ -285,15 +285,15 @@ export function Navbar({
 
           <button
             onClick={onQueryPanelToggle}
-            disabled={!!pendingGeometry}
+            disabled={!!pendingGeometry || heatmapActive}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: queryPanelOpen ? "#6366f1" : "rgba(255,255,255,.15)",
               background:  queryPanelOpen ? "rgba(99,102,241,.2)" : "transparent",
               color:       queryPanelOpen ? "#a5b4fc" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry ? 0.5 : 1,
+              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -302,15 +302,15 @@ export function Navbar({
 
           <button
             onClick={handleAnalysisToggle}
-            disabled={!!pendingGeometry}
+            disabled={!!pendingGeometry || heatmapActive}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
               background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
               color:       analysisActive ? "#fde047" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry ? 0.5 : 1,
+              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -319,15 +319,15 @@ export function Navbar({
 
           <button
             onClick={onLayerControlToggle}
-            disabled={!!pendingGeometry}
+            disabled={!!pendingGeometry || heatmapActive}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: layerControlOpen ? "#3b82f6" : "rgba(255,255,255,.15)",
               background:  layerControlOpen ? "rgba(59,130,246,.2)" : "transparent",
               color:       layerControlOpen ? "#93c5fd" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry ? 0.5 : 1,
+              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
+              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -365,7 +365,7 @@ export function Navbar({
             Isı Haritası
           </button>
         </div>
-        
+
         {/* Logout */}
         <button
           onClick={handleLogout}

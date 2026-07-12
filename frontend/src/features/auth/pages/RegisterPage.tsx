@@ -68,7 +68,7 @@ export function RegisterPage() {
         >
           <div className="flex items-center gap-2 mb-8">
             <div className="w-2 h-2 rounded-full" style={{ background: "#3b82f6" }} />
-            <span style={{ fontWeight: 600, color: "#0f172a", fontSize: 14, letterSpacing: ".3px" }}>GisPortal</span>
+            <span style={{ fontWeight: 600, color: "#0f172a", fontSize: 14, letterSpacing: ".3px" }}>AtaGIS</span>
           </div>
 
           <h1 style={{ fontSize: 24, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Kayıt Ol</h1>

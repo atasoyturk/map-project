@@ -42,7 +42,7 @@ export function AdminPage() {
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
-            <span style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>GisPortal</span>
+            <span style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>AtaGIS</span>
           </div>
           <span style={{ color: "#475569", fontSize: 11, marginTop: 4, display: "block" }}>
             Yönetim Paneli

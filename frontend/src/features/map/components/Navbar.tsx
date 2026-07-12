@@ -222,7 +222,7 @@ export function Navbar({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
             <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
-              GisPortal
+              AtaGIS
             </span>
           </div>
           {roles.includes("Admin") && (

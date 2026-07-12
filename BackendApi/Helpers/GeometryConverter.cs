@@ -8,7 +8,7 @@ public static class GeometryConverter
     private static readonly WKTReader Reader = new();
     private static readonly WKTWriter Writer = new();
 
-    private const int MaxCoordinateCount = 1_000; // Spatial DoS guard
+    private const int MaxCoordinateCount = 10_000; // Spatial DoS guard
 
     public static string ToWkt(Geometry geometry) =>
         Writer.Write(geometry);

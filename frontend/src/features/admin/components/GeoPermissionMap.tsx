@@ -13,7 +13,7 @@ import { Feature }                     from "ol";
 import { useAuth }                     from "../../auth/context/AuthContext";
 import { RegionSearch }                from "./RegionSearch";
 import type { NominatimResult }        from "../api/nominatim";
-import type Geometry from "ol/geom/Geometry";
+import { simplifyToLimit } from "../helpers/simplifyGeometry";
 
 interface GeoPermissionMapProps {
   onClose:      () => void;
@@ -116,24 +116,6 @@ export function GeoPermissionMap({
       mapObjRef.current.addInteraction(draw);
       drawRef.current = draw;
     }
-  }
-
-
-  const MAX_GEOMETRY_POINTS = 10_000;
-
-  function countPoints(geometry: Geometry): number {
-    return new WKT().writeGeometry(geometry).split(",").length;
-  }
-
-  /** Douglas-Peucker, reduce the num of points*/
-  function simplifyToLimit(geometry: Geometry): Geometry {
-    let tolerance = 100; 
-    let simplified = geometry;
-    while (countPoints(simplified) > MAX_GEOMETRY_POINTS && tolerance < 50_000) {
-      simplified = geometry.simplify(tolerance * tolerance);
-      tolerance *= 2;
-    }
-    return simplified;
   }
 
   function handleRegionSelect(

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth }             from "../../auth/context/AuthContext";
 import { GeoPermissionMap }    from "../components/GeoPermissionMap";
+import { ConfirmModal } from "../../../shared/components/ConfirmModal";
 
 interface GeoPermissionDto {
   id:          number;
@@ -14,6 +15,7 @@ export function GeoPermissionPage() {
   const [isLoading,   setIsLoading]   = useState(true);
   const [showMap,     setShowMap]     = useState(false);
   const [editItem, setEditItem] = useState<GeoPermissionDto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<GeoPermissionDto | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -29,12 +31,13 @@ export function GeoPermissionPage() {
 
   useEffect(() => { fetchPermissions(); }, []);
 
-  async function handleDelete(id: number) {
-    if (!confirm("Bu coğrafi sınırı silmek istediğinize emin misiniz?")) return;
+  async function handleDeleteConfirmed() {
+    if (!deleteTarget) return;
     try {
-      await apiFetch(`/api/geo-permission/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/geo-permission/${deleteTarget.id}`, { method: "DELETE" });
       fetchPermissions();
     } catch {  }
+    finally { setDeleteTarget(null); }
   }
 
   return (
@@ -109,7 +112,7 @@ export function GeoPermissionPage() {
                             Değiştir
                           </button>
                           <button
-                            onClick={() => handleDelete(p.id)}
+                            onClick={() => setDeleteTarget(p)}
                             style={{
                               padding: "4px 10px", borderRadius: 6,
                               border: "1px solid rgba(239,68,68,.3)",
@@ -143,6 +146,14 @@ export function GeoPermissionPage() {
           existingName={editItem.name}
           onClose={() => setEditItem(null)}
           onSaved={() => { fetchPermissions(); setEditItem(null); }}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          message={`"${deleteTarget.name}" sınırı silinecek. Bu işlem geri alınamaz.`}
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </>

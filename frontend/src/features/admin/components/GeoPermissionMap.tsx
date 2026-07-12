@@ -7,20 +7,24 @@ import VectorLayer                     from "ol/layer/Vector";
 import VectorSource                    from "ol/source/Vector";
 import Draw                            from "ol/interaction/Draw";
 import { fromLonLat }                  from "ol/proj";
-import { WKT }                         from "ol/format";
+import { WKT, GeoJSON }                from "ol/format";
 import { Style, Fill, Stroke }         from "ol/style";
 import { Feature }                     from "ol";
 import { useAuth }                     from "../../auth/context/AuthContext";
+import { RegionSearch }                from "./RegionSearch";
+import type { NominatimResult }        from "../api/nominatim";
 
 interface GeoPermissionMapProps {
   onClose:      () => void;
   onSaved:      () => void;
-  editId?:      number;      
-  existingWkt?: string;      
-  existingName?:string;      
+  editId?:      number;
+  existingWkt?: string;
+  existingName?:string;
 }
 
 const TURKEY_CENTER = fromLonLat([35.2433, 38.9637]);
+
+type DrawMode = "manual" | "search";
 
 export function GeoPermissionMap({
   onClose,
@@ -36,11 +40,12 @@ export function GeoPermissionMap({
 
   const isEditMode = editId !== undefined;
 
-  const [name,          setName]          = useState(existingName ?? "");
-  const [isSaving,      setIsSaving]      = useState(false);
-  const [error,         setError]         = useState<string | null>(null);
-  const [hasDrawn,      setHasDrawn]      = useState(isEditMode); 
-  const [showConfirm,   setShowConfirm]   = useState(false);
+  const [name,        setName]        = useState(existingName ?? "");
+  const [isSaving,    setIsSaving]    = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [hasDrawn,    setHasDrawn]    = useState(isEditMode);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [drawMode,    setDrawMode]    = useState<DrawMode>("manual");
 
   const { apiFetch } = useAuth();
 
@@ -92,6 +97,11 @@ export function GeoPermissionMap({
     };
   }, []);
 
+  // in search mode manual drawing is disabled
+  useEffect(() => {
+    drawRef.current?.setActive(drawMode === "manual");
+  }, [drawMode]);
+
   function handleClear() {
     sourceRef.current.clear();
     setHasDrawn(false);
@@ -101,9 +111,32 @@ export function GeoPermissionMap({
       mapObjRef.current.removeInteraction(drawRef.current);
       const draw = new Draw({ source: sourceRef.current, type: "Polygon" });
       draw.on("drawend", () => setHasDrawn(true));
+      draw.setActive(drawMode === "manual");
       mapObjRef.current.addInteraction(draw);
       drawRef.current = draw;
     }
+  }
+
+  function handleRegionSelect(
+    geojson: NominatimResult["geojson"],
+    displayName: string,
+  ) {
+    const geometry = new GeoJSON().readGeometry(geojson, {
+      dataProjection:    "EPSG:4326",
+      featureProjection: "EPSG:3857",
+    });
+
+    sourceRef.current.clear();
+    sourceRef.current.addFeature(new Feature({ geometry }));
+
+    mapObjRef.current?.getView().fit(geometry.getExtent(), {
+      padding: [40, 40, 40, 40],
+      maxZoom: 12,
+    });
+
+    setHasDrawn(true);
+    setError(null);
+    if (!name.trim()) setName(displayName.split(",")[0].trim());
   }
 
   async function handleSaveConfirmed() {
@@ -176,8 +209,8 @@ export function GeoPermissionMap({
             </h2>
             <p style={{ fontSize: 12, color: "#64748b", margin: "4px 0 0" }}>
               {isEditMode
-                ? "Mevcut sınırı temizleyip yeni sınır çizin."
-                : "Haritada poligon çizerek sınır oluşturun."}
+                ? "Mevcut sınırı temizleyip yeni sınır çizin veya bölge arayın."
+                : "Haritada poligon çizin veya gerçek bölge sınırı arayın."}
             </p>
           </div>
 
@@ -192,6 +225,31 @@ export function GeoPermissionMap({
               color: "#0f172a", outline: "none",
             }}
           />
+
+          {/* mode selection */}
+          <div style={{ display: "flex", gap: 8 }}>
+            {([["manual", "Manuel Çiz"], ["search", "Bölge Ara"]] as [DrawMode, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => { setDrawMode(key); setError(null); }}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, fontSize: 12,
+                  border: drawMode === key ? "1px solid #0f172a" : "1px solid #e2e8f0",
+                  background: drawMode === key ? "#0f172a" : "#f8fafc",
+                  color:      drawMode === key ? "#ffffff" : "#64748b",
+                  fontWeight: drawMode === key ? 600 : 400,
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* region search */}
+          {drawMode === "search" && (
+            <RegionSearch onSelect={handleRegionSelect} />
+          )}
 
           <div
             ref={mapRef}

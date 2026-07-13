@@ -36,7 +36,6 @@ async function loadLayer(
   for (const f of features as Feature[]) {
     const props = f.getProperties();
 
-    // GeoServer columns check
     // GeoServer "tbl_point.8" → 8
     const rawId = props["Id"] ?? props["id"] ?? f.getId();
     const id    = typeof rawId === "string" && rawId.includes(".")
@@ -45,11 +44,18 @@ async function loadLayer(
     const name  = props["Name"]  ?? props["name"]  ?? "";
     const color = props["Color"] ?? props["color"] ?? "#3b82f6";
 
-    f.set("id",     id);
-    f.set("type",   type);
-    f.set("name",   name);
-    f.set("color",  color);
-    f.set("source", source);
+    const userId      = props["UserId"]      ?? props["userId"]      ?? null;
+    const teamId      = props["TeamId"]      ?? props["teamId"]      ?? null;
+    const createdDate = props["CreatedDate"] ?? props["createdDate"] ?? null;
+
+    f.set("id",          id);
+    f.set("type",        type);
+    f.set("name",        name);
+    f.set("color",       color);
+    f.set("source",      source);
+    f.set("userId",      userId);
+    f.set("teamId",      teamId);
+    f.set("createdDate", createdDate);
     f.setStyle(buildStyle(color, name));
 
     source.addFeature(f);

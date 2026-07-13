@@ -10,7 +10,10 @@ import { InfoPopup }               from "../components/InfoPopup";
 import { LayerControl }            from "../components/LayerControl";
 import { FeaturePickerModal }      from "../components/FeaturePickerModal";
 import { QueryPanel }              from "../components/QueryPanel";
+import { FeatureTooltip }          from "../components/FeatureTooltip";
 import { useMapClick }             from "../hooks/useMapClick";
+import { useUserLookup }           from "../hooks/useUserLookup";
+import { useFeatureTooltip }       from "../hooks/useFeatureTooltip";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
 import { buildStyle }              from "../../../utils/mapStyle";
@@ -28,7 +31,15 @@ export function DashboardPage() {
   const [queryPanelOpen,  setQueryPanelOpen] = useState(false);
   const [layerControlOpen,setLayerControlOpen] = useState(false);
   const [heatmapActive, setHeatmapActive] = useState(false);
-  const { token } = useAuth();
+  const { token, apiFetch } = useAuth();
+
+  const userLookup = useUserLookup(apiFetch);
+  const tooltip = useFeatureTooltip({
+    map,
+    layers,
+    userLookup,
+    enabled: !analysisActive && activeType === null && !heatmapActive,
+  });
 
   useMapClick({
     map,
@@ -114,6 +125,7 @@ export function DashboardPage() {
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
         <HeatmapLegend visible={heatmapActive} />
         <LayerControl layers={layers} visible={layerControlOpen} />
+        <FeatureTooltip info={tooltip} />
       </div>
 
       {selected && (

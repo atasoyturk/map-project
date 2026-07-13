@@ -30,7 +30,6 @@ public sealed class UserService : IUserService
 
         await _userRepository.AddAsync(user);
 
-        // Varsayılan "User" rolü ata (seed data Id=2)
         _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 2 });
         await _context.SaveChangesAsync();
 

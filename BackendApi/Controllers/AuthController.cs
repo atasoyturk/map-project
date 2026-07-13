@@ -51,7 +51,7 @@ public sealed class AuthController : ControllerBase
                 return Unauthorized();
 
             var roles = await _userService.GetUserRolesAsync(user.Id);
-            var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles);
+            var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles, user.TeamId);
             return Ok(new LoginResponseDto(token));
         }
         catch (Exception ex)

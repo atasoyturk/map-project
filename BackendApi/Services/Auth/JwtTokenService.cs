@@ -14,7 +14,7 @@ public sealed class JwtTokenService : ITokenService
     public JwtTokenService(IOptions<JwtSettings> options)
         => _settings = options.Value;
 
-    public string GenerateToken(string userId, string email, IEnumerable<string> roles)
+    public string GenerateToken(string userId, string email, IEnumerable<string> roles, int? teamId)
     {
         var key         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -28,6 +28,9 @@ public sealed class JwtTokenService : ITokenService
 
         // role claims 
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+        if (teamId is not null)
+            claims.Add(new Claim("team_id", teamId.Value.ToString()));
 
         var token = new JwtSecurityToken(
             issuer:             _settings.Issuer,

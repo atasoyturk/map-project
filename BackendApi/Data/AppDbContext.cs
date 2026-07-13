@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using BackendApi.Entities.Auth;
 using BackendApi.Entities.Geo;
+using BackendApi.Entities.Team;
+using BackendApi.Entities.Annotation;
 
 namespace BackendApi.Data;
 
@@ -17,6 +19,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<PointEntity>    Points     => Set<PointEntity>();
     public DbSet<LineEntity>     Lines      => Set<LineEntity>();
     public DbSet<PolygonEntity>  Polygons   => Set<PolygonEntity>();
+    public DbSet<Team>       Teams       => Set<Team>();
+    public DbSet<Annotation> Annotations => Set<Annotation>();
     public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
     public DbSet<UserGeoPermission> UserGeoPermissions => Set<UserGeoPermission>();
     public DbSet<RoleGeoPermission> RoleGeoPermissions => Set<RoleGeoPermission>();
@@ -96,10 +100,33 @@ public sealed class AppDbContext : DbContext
             .WithMany(gp => gp.RoleGeoPermissions)
             .HasForeignKey(rgp => rgp.GeoPermissionId);
 
+        // User → Team 
+        modelBuilder.Entity<User>()
+            .HasOne<Team>()
+            .WithMany()
+            .HasForeignKey(u => u.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Annotation → User
+        modelBuilder.Entity<Annotation>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Annotation → Team 
+        modelBuilder.Entity<Annotation>()
+            .HasOne<Team>()
+            .WithMany()
+            .HasForeignKey(a => a.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Seed Data
         modelBuilder.Entity<Role>().HasData(
             new Role { Id = 1, Name = "Admin" },
-            new Role { Id = 2, Name = "User"  }
+            new Role { Id = 2, Name = "Çalışan"  },
+            new Role { Id = 3, Name = "Stajyer" },
+            new Role { Id = 4, Name = "Takım Lideri"   }
         );
 
         modelBuilder.Entity<Permission>().HasData(
@@ -117,7 +144,7 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 1, PermissionId = 4 }
         );
 
-        // User
+        // Worker
         modelBuilder.Entity<RolePermission>().HasData(
             new RolePermission { RoleId = 2, PermissionId = 1 },
             new RolePermission { RoleId = 2, PermissionId = 2 },

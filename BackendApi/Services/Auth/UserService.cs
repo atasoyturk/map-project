@@ -42,4 +42,13 @@ public sealed class UserService : IUserService
             .Include(ur => ur.Role)
             .Select(ur => ur.Role.Name)
             .ToListAsync();
+    
+    public async Task<IList<UserLookupDto>> GetLookupAsync() =>
+    await (from u in _context.Users
+           join t in _context.Teams on u.TeamId equals t.Id into teamJoin
+           from t in teamJoin.DefaultIfEmpty()
+           where !u.IsDeleted
+           select new UserLookupDto(u.Id, u.Email, t != null ? t.Name : null))
+          .ToListAsync();
+
 }

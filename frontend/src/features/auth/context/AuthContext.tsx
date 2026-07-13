@@ -12,11 +12,13 @@ interface TokenPayload {
   sub:   string;
   email: string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
+  team_id?: string;
 }
 
 interface AuthContextValue {
   token:    string | null;
   roles:    string[];
+  teamId:   number | null;
   login:    (token: string) => void;
   logout:   () => void;
   apiFetch: ReturnType<typeof createApiFetch>;
@@ -36,12 +38,25 @@ function getRoles(token: string | null): string[] {
   }
 }
 
+function getTeamId(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const payload = jwtDecode<TokenPayload>(token);
+    if (!payload.team_id) return null;
+    const parsed = parseInt(payload.team_id, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
 
-  const roles = getRoles(token);
+  const roles  = getRoles(token);
+  const teamId = getTeamId(token);
 
   function login(newToken: string) {
     localStorage.setItem("token", newToken);
@@ -56,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const apiFetch = useMemo(() => createApiFetch(logout), []);
 
   return (
-    <AuthContext.Provider value={{ token, roles, login, logout, apiFetch }}>
+    <AuthContext.Provider value={{ token, roles, teamId, login, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

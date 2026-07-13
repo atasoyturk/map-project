@@ -16,7 +16,7 @@ public sealed class PointService : IPointService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
@@ -28,7 +28,8 @@ public sealed class PointService : IPointService
             Geometry = geometry,
             Name     = request.Name,
             Color    = request.Color,
-            UserId   = userId
+            UserId   = userId,
+            TeamId   = teamId   
         };
 
         _context.Points.Add(entity);
@@ -38,12 +39,22 @@ public sealed class PointService : IPointService
             GeometryConverter.ToWkt(geometry), entity.CreatedDate);
     }
 
-    public async Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId) =>
-        await _context.Points
-            .Where(p => p.UserId == userId && !p.IsDeleted)  
+    public async Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
+    {
+        IQueryable<PointEntity> query = _context.Points.Where(p => !p.IsDeleted);
+
+        query = viewMode switch
+        {
+            GeoViewMode.All  => query,
+            GeoViewMode.Team => query.Where(p => p.TeamId == teamId),
+            _                => query.Where(p => p.UserId == userId)   // Own
+        };
+
+        return await query
             .Select(p => new PointResponseDto(p.Id, p.Name, p.Color,
                 GeometryConverter.ToWkt(p.Geometry), p.CreatedDate))
             .ToListAsync();
+    }
 
     public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {

@@ -120,6 +120,25 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.TeamId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        // Point/Line/Polygon → Team 
+        modelBuilder.Entity<PointEntity>()
+            .HasOne<Team>()
+            .WithMany()
+            .HasForeignKey(p => p.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<LineEntity>()
+            .HasOne<Team>()
+            .WithMany()
+            .HasForeignKey(l => l.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<PolygonEntity>()
+            .HasOne<Team>()
+            .WithMany()
+            .HasForeignKey(pg => pg.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(
@@ -133,7 +152,9 @@ public sealed class AppDbContext : DbContext
             new Permission { Id = 1, Name = "point_create",   Description = "Nokta oluşturma yetkisi"   },
             new Permission { Id = 2, Name = "line_create",    Description = "Çizgi oluşturma yetkisi"   },
             new Permission { Id = 3, Name = "polygon_create", Description = "Poligon oluşturma yetkisi" },
-            new Permission { Id = 4, Name = "admin_access",   Description = "Admin paneli erişim yetkisi" }
+            new Permission { Id = 4, Name = "admin_access",   Description = "Admin paneli erişim yetkisi" },
+            new Permission { Id = 5, Name = "annotation_create",Description = "Not/işaret ekleme yetkisi"    }, 
+            new Permission { Id = 6, Name = "annotation_read",  Description = "Not geçmişini görüntüleme yetkisi" }  
         );
 
         // Admin
@@ -141,14 +162,34 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 1, PermissionId = 1 },
             new RolePermission { RoleId = 1, PermissionId = 2 },
             new RolePermission { RoleId = 1, PermissionId = 3 },
-            new RolePermission { RoleId = 1, PermissionId = 4 }
+            new RolePermission { RoleId = 1, PermissionId = 4 },
+            new RolePermission { RoleId = 1, PermissionId = 5 },   
+            new RolePermission { RoleId = 1, PermissionId = 6 }   
         );
 
         // Worker
         modelBuilder.Entity<RolePermission>().HasData(
             new RolePermission { RoleId = 2, PermissionId = 1 },
             new RolePermission { RoleId = 2, PermissionId = 2 },
-            new RolePermission { RoleId = 2, PermissionId = 3 }
+            new RolePermission { RoleId = 2, PermissionId = 3 },
+            new RolePermission { RoleId = 2, PermissionId = 5 },   
+            new RolePermission { RoleId = 2, PermissionId = 6 }   
+        );
+        // Stajyer 
+        modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 3, PermissionId = 1 },    
+            new RolePermission { RoleId = 3, PermissionId = 2 },   
+            new RolePermission { RoleId = 3, PermissionId = 3 },   
+            new RolePermission { RoleId = 3, PermissionId = 5 }    
+        );
+
+        // Takım Lideri 
+        modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 4, PermissionId = 1 },   
+            new RolePermission { RoleId = 4, PermissionId = 2 },   
+            new RolePermission { RoleId = 4, PermissionId = 3 },   
+            new RolePermission { RoleId = 4, PermissionId = 5 },   
+            new RolePermission { RoleId = 4, PermissionId = 6 }    
         );
     }
 }

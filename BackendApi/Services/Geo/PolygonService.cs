@@ -17,7 +17,7 @@ public sealed class PolygonService : IPolygonService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
@@ -29,7 +29,8 @@ public sealed class PolygonService : IPolygonService
             Geometry = geometry,
             Name     = request.Name,
             Color    = request.Color,
-            UserId   = userId
+            UserId   = userId,
+            TeamId   = teamId
         };
 
         _context.Polygons.Add(entity);
@@ -39,12 +40,22 @@ public sealed class PolygonService : IPolygonService
             GeometryConverter.ToWkt(geometry), 0, entity.CreatedDate);
     }
 
-    public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId) =>
-        await _context.Polygons
-            .Where(p => p.UserId == userId && !p.IsDeleted)
+    public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
+    {
+        IQueryable<PolygonEntity> query = _context.Polygons.Where(p => !p.IsDeleted);
+
+        query = viewMode switch
+        {
+            GeoViewMode.All  => query,
+            GeoViewMode.Team => query.Where(p => p.TeamId == teamId),
+            _                => query.Where(p => p.UserId == userId)   // Own
+        };
+
+        return await query
             .Select(p => new PolygonResponseDto(p.Id, p.Name, p.Color,
                 GeometryConverter.ToWkt(p.Geometry), 0, p.CreatedDate))
             .ToListAsync();
+    }
 
     public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {

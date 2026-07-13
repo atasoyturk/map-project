@@ -29,11 +29,16 @@ public sealed class GeoController : ApiControllerBase
     //  Point 
 
     [HttpGet("point")]
-    public async Task<IActionResult> GetPoints()
+    public async Task<IActionResult> GetPoints([FromQuery] string? viewMode = null)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try { return Ok(await _pointService.GetAllAsync(userId.Value)); }
+        try
+        {
+            var teamId       = GetTeamId();
+            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            return Ok(await _pointService.GetAllAsync(userId.Value, teamId, resolvedMode));
+        }
         catch (Exception ex) { _logger.LogError(ex, "GetPoints failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
@@ -58,7 +63,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var roles = GetUserRoles();
-            return Created(string.Empty, await _pointService.SaveAsync(request, userId.Value, roles));
+            return Created(string.Empty, await _pointService.SaveAsync(request, userId.Value, GetTeamId(), roles));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -105,11 +110,16 @@ public sealed class GeoController : ApiControllerBase
     //  Line 
 
     [HttpGet("line")]
-    public async Task<IActionResult> GetLines()
+    public async Task<IActionResult> GetLines([FromQuery] string? viewMode = null)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try { return Ok(await _lineService.GetAllAsync(userId.Value)); }
+        try
+        {
+            var teamId       = GetTeamId();
+            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            return Ok(await _lineService.GetAllAsync(userId.Value, teamId, resolvedMode));
+        }
         catch (Exception ex) { _logger.LogError(ex, "GetLines failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
@@ -134,7 +144,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var roles = GetUserRoles();
-            return Created(string.Empty, await _lineService.SaveAsync(request, userId.Value, roles));
+            return Created(string.Empty, await _lineService.SaveAsync(request, userId.Value, GetTeamId(), roles));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -181,11 +191,16 @@ public sealed class GeoController : ApiControllerBase
     //  Polygon 
 
     [HttpGet("polygon")]
-    public async Task<IActionResult> GetPolygons()
+    public async Task<IActionResult> GetPolygons([FromQuery] string? viewMode = null)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try { return Ok(await _polygonService.GetAllAsync(userId.Value)); }
+        try
+        {
+            var teamId       = GetTeamId();
+            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            return Ok(await _polygonService.GetAllAsync(userId.Value, teamId, resolvedMode));
+        }
         catch (Exception ex) { _logger.LogError(ex, "GetPolygons failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
@@ -210,7 +225,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var roles = GetUserRoles();
-            return Created(string.Empty, await _polygonService.SaveAsync(request, userId.Value, roles));
+            return Created(string.Empty, await _polygonService.SaveAsync(request, userId.Value, GetTeamId(), roles));
         }
         catch (UnauthorizedAccessException ex)
         {

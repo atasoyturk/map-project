@@ -25,8 +25,16 @@ public sealed class GeoServerService : IGeoServerService
         _logger            = logger;
     }
 
+    private static string BuildCqlFilter(int userId, int? teamId, GeoViewMode viewMode) =>
+        viewMode switch
+        {
+            GeoViewMode.All  => "\"IsDeleted\"=false",
+            GeoViewMode.Team => $"\"TeamId\"={teamId} AND \"IsDeleted\"=false",
+            _                => $"\"UserId\"={userId} AND \"IsDeleted\"=false"
+        };
+
     public async Task<(bool Success, string? Content, string? ContentType, string? Error)>
-        GetFeaturesAsync(string typeName, int userId)
+        GetFeaturesAsync(string typeName, int userId, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
                 return (false, null, null, "Geçersiz katman adı.");
@@ -34,7 +42,7 @@ public sealed class GeoServerService : IGeoServerService
             try
             {
                 var client    = _httpClientFactory.CreateClient("GeoServer");
-                var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
+                var cqlFilter = BuildCqlFilter(userId, teamId, viewMode);
 
                 var query = HttpUtility.ParseQueryString(string.Empty);
                 query["service"]      = "WFS";
@@ -67,7 +75,7 @@ public sealed class GeoServerService : IGeoServerService
         }
 
     public async Task<(bool Success, byte[]? Content, string? ContentType, string? Error)>
-        GetWmsMapAsync(string typeName, int userId, string bbox, int width, int height, string? styles)
+        GetWmsMapAsync(string typeName, int userId, string bbox, int width, int height, string? styles, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
                 return (false, null, null, "Geçersiz katman adı.");
@@ -75,7 +83,7 @@ public sealed class GeoServerService : IGeoServerService
             try
             {
                 var client    = _httpClientFactory.CreateClient("GeoServer");
-                var cqlFilter = $"\"UserId\"={userId} AND \"IsDeleted\"=false";
+                var cqlFilter = BuildCqlFilter(userId, teamId, viewMode);   // ← FIX: artık viewMode'u gerçekten kullanıyor
 
                 var query = HttpUtility.ParseQueryString(string.Empty);
                 query["service"]     = "WMS";

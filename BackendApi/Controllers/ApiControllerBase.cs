@@ -14,6 +14,12 @@ public abstract class ApiControllerBase : ControllerBase
         return int.TryParse(value, out var id) ? id : null;
     }
 
+    protected int? GetTeamId()
+    {
+        var value = User.FindFirstValue("team_id");
+        return int.TryParse(value, out var teamId) ? teamId : null;
+    }
+
     protected IEnumerable<string> GetUserRoles() =>
     User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 }

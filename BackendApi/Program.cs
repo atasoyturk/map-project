@@ -16,6 +16,7 @@ using BackendApi.Services.Admin;
 using BackendApi.Services.Analysis;
 using BackendApi.Services.Permission;
 using BackendApi.Services.Search;
+using BackendApi.Services.Annotation;
 
 using Microsoft.Extensions.Options;
 
@@ -40,6 +41,7 @@ builder.Services.AddCors(options =>
               .WithMethods("GET", "POST", "PUT", "DELETE")
               .WithHeaders("Authorization", "Content-Type")
               .SetPreflightMaxAge(TimeSpan.FromHours(1))));
+
 
 // Authentication
 builder.Services
@@ -71,6 +73,10 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("line_create")));
     options.AddPolicy("polygon_create", policy =>
         policy.Requirements.Add(new PermissionRequirement("polygon_create")));
+    options.AddPolicy("annotation_create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("annotation_create")));
+    options.AddPolicy("annotation_read",   policy =>
+        policy.Requirements.Add(new PermissionRequirement("annotation_read")));
 });
 
 // Application Services 
@@ -86,6 +92,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IUserService,  UserService>();
 builder.Services.AddScoped<IGeoPermissionService, GeoPermissionService>();
 builder.Services.AddScoped<IGeoServerService, GeoServerService>();
+builder.Services.AddScoped<IAnnotationService, AnnotationService>();
 
 // GeoServer Settings
 builder.Services.Configure<GeoServerSettings>(

@@ -17,7 +17,7 @@ public sealed class LineService : ILineService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
@@ -29,7 +29,8 @@ public sealed class LineService : ILineService
             Geometry = geometry,
             Name     = request.Name,
             Color    = request.Color,
-            UserId   = userId
+            UserId   = userId,
+            TeamId   = teamId
         };
 
         _context.Lines.Add(entity);
@@ -39,12 +40,22 @@ public sealed class LineService : ILineService
             GeometryConverter.ToWkt(geometry), entity.CreatedDate);
     }
 
-    public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId) =>
-        await _context.Lines
-            .Where(l => l.UserId == userId && !l.IsDeleted)
+    public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
+    {
+        IQueryable<LineEntity> query = _context.Lines.Where(l => !l.IsDeleted);
+
+        query = viewMode switch
+        {
+            GeoViewMode.All  => query,
+            GeoViewMode.Team => query.Where(l => l.TeamId == teamId),
+            _                => query.Where(l => l.UserId == userId)   // Own
+        };
+
+        return await query
             .Select(l => new LineResponseDto(l.Id, l.Name, l.Color,
                 GeometryConverter.ToWkt(l.Geometry), l.CreatedDate))
             .ToListAsync();
+    }
 
     public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
@@ -58,11 +69,11 @@ public sealed class LineService : ILineService
 
         if (entity is null) return null;
 
-        entity.Geometry     = GeometryConverter.FromWkt(request.WktGeometry);
-        entity.Name         = request.Name;
-        entity.Color        = request.Color;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId; 
+        entity.Geometry       = geometry;
+        entity.Name           = request.Name;
+        entity.Color          = request.Color;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
 
         await _context.SaveChangesAsync();
 
@@ -77,12 +88,13 @@ public sealed class LineService : ILineService
 
         if (entity is null) return false;
 
-        entity.IsDeleted    = true;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId; 
+        entity.IsDeleted      = true;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
         await _context.SaveChangesAsync();
         return true;
     }
+
     public async Task<LineResponseDto?> GetByIdAsync(int id, int userId)
     {
         var entity = await _context.Lines

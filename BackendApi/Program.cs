@@ -17,6 +17,7 @@ using BackendApi.Services.Analysis;
 using BackendApi.Services.Permission;
 using BackendApi.Services.Search;
 using BackendApi.Services.Annotation;
+using BackendApi.Services.Poi;
 
 using Microsoft.Extensions.Options;
 
@@ -77,6 +78,12 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("annotation_create")));
     options.AddPolicy("annotation_read",   policy =>
         policy.Requirements.Add(new PermissionRequirement("annotation_read")));
+    options.AddPolicy("poi_create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("poi_create")));
+    options.AddPolicy("poi_read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("poi_read")));
+    options.AddPolicy("poi_category_manage", policy =>
+        policy.Requirements.Add(new PermissionRequirement("poi_category_manage")));
 });
 
 // Application Services 
@@ -93,6 +100,8 @@ builder.Services.AddScoped<IUserService,  UserService>();
 builder.Services.AddScoped<IGeoPermissionService, GeoPermissionService>();
 builder.Services.AddScoped<IGeoServerService, GeoServerService>();
 builder.Services.AddScoped<IAnnotationService, AnnotationService>();
+builder.Services.AddScoped<IPoiCategoryService, PoiCategoryService>();
+builder.Services.AddScoped<IPoiService,         PoiService>();
 
 // GeoServer Settings
 builder.Services.Configure<GeoServerSettings>(

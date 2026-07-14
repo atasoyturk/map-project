@@ -124,6 +124,9 @@ public sealed class AdminController : ApiControllerBase
     [HttpDelete("roles/{id:int}")]
     public async Task<IActionResult> DeleteRole(int id)
     {
+        if (id is >= 1 and <= 4)
+            return StatusCode(403, "Çekirdek roller (Admin, Çalışan, Stajyer, Takım Lideri) silinemez.");
+
         try
         {
             var result = await _adminService.DeleteRoleAsync(id);

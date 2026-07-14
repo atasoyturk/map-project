@@ -9,6 +9,7 @@ using BackendApi.Settings;
 using BackendApi.Data;
 using BackendApi.Repositories;
 using BackendApi.Authorization;
+using BackendApi.Middleware;
 
 using BackendApi.Services.Auth;
 using BackendApi.Services.Geo;
@@ -86,6 +87,10 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("poi_category_manage")));
 });
 
+// Exception Handling
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // Application Services 
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IPointService,   PointService>();
@@ -133,6 +138,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Pipeline 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseCors("ReactPolicy");      
 app.UseAuthentication();
 app.UseAuthorization();

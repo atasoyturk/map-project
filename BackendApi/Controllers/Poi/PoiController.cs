@@ -9,32 +9,19 @@ namespace BackendApi.Controllers.Poi;
 public sealed class PoiController : ApiControllerBase
 {
     private readonly IPoiService _service;
-    private readonly ILogger<PoiController> _logger;
 
-    public PoiController(IPoiService service, ILogger<PoiController> logger)
-    {
-        _service = service;
-        _logger  = logger;
-    }
+    public PoiController(IPoiService service) => _service = service;
 
     [HttpGet]
     [RequirePermission("poi_read")]
-    public async Task<IActionResult> GetAll()
-    {
-        try { return Ok(await _service.GetAllAsync()); }
-        catch (Exception ex) { _logger.LogError(ex, "GetAllPois failed"); return StatusCode(500, "Sunucu hatası."); }
-    }
+    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
     [HttpGet("{id:int}")]
     [RequirePermission("poi_read")]
     public async Task<IActionResult> GetById(int id)
     {
-        try
-        {
-            var result = await _service.GetByIdAsync(id);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetPoi failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+        var result = await _service.GetByIdAsync(id);
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost]
@@ -44,18 +31,8 @@ public sealed class PoiController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        try
-        {
-            var result = await _service.CreateAsync(request, userId.Value, GetUserRoles());
-            return Created(string.Empty, result);
-        }
-        catch (UnauthorizedAccessException ex) { return StatusCode(403, ex.Message); }
-        catch (ArgumentException ex)            { return BadRequest(ex.Message); }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "CreatePoi failed");
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+        var result = await _service.CreateAsync(request, userId.Value, GetUserRoles());
+        return Created(string.Empty, result);
     }
 
     [HttpPut("{id:int}")]
@@ -65,14 +42,8 @@ public sealed class PoiController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        try
-        {
-            var result = await _service.UpdateAsync(id, request, userId.Value, GetUserRoles());
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (UnauthorizedAccessException ex) { return StatusCode(403, ex.Message); }
-        catch (ArgumentException ex)            { return BadRequest(ex.Message); }
-        catch (Exception ex) { _logger.LogError(ex, "UpdatePoi failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+        var result = await _service.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpDelete("{id:int}")]
@@ -82,11 +53,7 @@ public sealed class PoiController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        try
-        {
-            var result = await _service.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeletePoi failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+        var result = await _service.DeleteAsync(id, userId.Value);
+        return result ? NoContent() : NotFound();
     }
 }

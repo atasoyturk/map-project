@@ -9,21 +9,18 @@ namespace BackendApi.Controllers.Geo;
 [Route("api")]
 public sealed class GeoController : ApiControllerBase
 {
-    private readonly IPointService          _pointService;
-    private readonly ILineService           _lineService;
-    private readonly IPolygonService        _polygonService;
-    private readonly ILogger<GeoController> _logger;
+    private readonly IPointService   _pointService;
+    private readonly ILineService    _lineService;
+    private readonly IPolygonService _polygonService;
 
     public GeoController(
-        IPointService          pointService,
-        ILineService           lineService,
-        IPolygonService        polygonService,
-        ILogger<GeoController> logger)
+        IPointService   pointService,
+        ILineService    lineService,
+        IPolygonService polygonService)
     {
         _pointService   = pointService;
         _lineService    = lineService;
         _polygonService = polygonService;
-        _logger         = logger;
     }
 
     //  Point 
@@ -33,13 +30,10 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
-            return Ok(await _pointService.GetAllAsync(userId.Value, teamId, resolvedMode));
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetPoints failed"); return StatusCode(500, "Sunucu hatası."); }
+
+        var teamId       = GetTeamId();
+        var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
+        return Ok(await _pointService.GetAllAsync(userId.Value, teamId, resolvedMode));
     }
 
     [HttpGet("point/{id:int}")]
@@ -47,12 +41,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _pointService.GetByIdAsync(id, userId.Value);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetPoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _pointService.GetByIdAsync(id, userId.Value);
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("point")]
@@ -60,20 +51,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles = GetUserRoles();
-            return Created(string.Empty, await _pointService.SaveAsync(request, userId.Value, GetTeamId(), roles));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "SavePoint failed");
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+
+        var result = await _pointService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        return Created(string.Empty, result);
     }
 
     [HttpPut("point/{id:int}")]
@@ -81,17 +61,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles  = GetUserRoles();
-            var result = await _pointService.UpdateAsync(id, request, userId.Value, roles);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "UpdatePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _pointService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpDelete("point/{id:int}")]
@@ -99,12 +71,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _pointService.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeletePoint failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _pointService.DeleteAsync(id, userId.Value);
+        return result ? NoContent() : NotFound();
     }
 
     //  Line 
@@ -114,13 +83,10 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
-            return Ok(await _lineService.GetAllAsync(userId.Value, teamId, resolvedMode));
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetLines failed"); return StatusCode(500, "Sunucu hatası."); }
+
+        var teamId       = GetTeamId();
+        var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
+        return Ok(await _lineService.GetAllAsync(userId.Value, teamId, resolvedMode));
     }
 
     [HttpGet("line/{id:int}")]
@@ -128,12 +94,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _lineService.GetByIdAsync(id, userId.Value);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _lineService.GetByIdAsync(id, userId.Value);
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("line")]
@@ -141,20 +104,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles = GetUserRoles();
-            return Created(string.Empty, await _lineService.SaveAsync(request, userId.Value, GetTeamId(), roles));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "SaveLine failed");
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+
+        var result = await _lineService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        return Created(string.Empty, result);
     }
 
     [HttpPut("line/{id:int}")]
@@ -162,17 +114,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles  = GetUserRoles();
-            var result = await _lineService.UpdateAsync(id, request, userId.Value, roles);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "UpdateLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _lineService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpDelete("line/{id:int}")]
@@ -180,12 +124,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _lineService.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeleteLine failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _lineService.DeleteAsync(id, userId.Value);
+        return result ? NoContent() : NotFound();
     }
 
     //  Polygon 
@@ -195,13 +136,10 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
-            return Ok(await _polygonService.GetAllAsync(userId.Value, teamId, resolvedMode));
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetPolygons failed"); return StatusCode(500, "Sunucu hatası."); }
+
+        var teamId       = GetTeamId();
+        var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
+        return Ok(await _polygonService.GetAllAsync(userId.Value, teamId, resolvedMode));
     }
 
     [HttpGet("polygon/{id:int}")]
@@ -209,12 +147,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _polygonService.GetByIdAsync(id, userId.Value);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "GetPolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _polygonService.GetByIdAsync(id, userId.Value);
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("polygon")]
@@ -222,20 +157,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles = GetUserRoles();
-            return Created(string.Empty, await _polygonService.SaveAsync(request, userId.Value, GetTeamId(), roles));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "SavePolygon failed");
-            return BadRequest("Geçersiz WKT formatı.");
-        }
+
+        var result = await _polygonService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        return Created(string.Empty, result);
     }
 
     [HttpPut("polygon/{id:int}")]
@@ -243,17 +167,9 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var roles  = GetUserRoles();
-            var result = await _polygonService.UpdateAsync(id, request, userId.Value, roles);
-            return result is null ? NotFound() : Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (Exception ex) { _logger.LogError(ex, "UpdatePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _polygonService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpDelete("polygon/{id:int}")]
@@ -261,11 +177,8 @@ public sealed class GeoController : ApiControllerBase
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
-        try
-        {
-            var result = await _polygonService.DeleteAsync(id, userId.Value);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex) { _logger.LogError(ex, "DeletePolygon failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+
+        var result = await _polygonService.DeleteAsync(id, userId.Value);
+        return result ? NoContent() : NotFound();
     }
 }

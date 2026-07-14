@@ -34,7 +34,7 @@ import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
 import { useAuth }                  from "../../../features/auth/context/AuthContext";
 import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
-import type { DrawType }            from "../../../shared/types/drawing";
+import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../../../shared/types/annotation";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
 

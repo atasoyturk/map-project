@@ -9,7 +9,7 @@ import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
 import { Toast }      from "../../../../shared/components/Toast";
-import type { DrawType, PendingGeometry } from "../../../../shared/types/drawing";
+import type { DrawType, PendingGeometry } from "../types";
 
 interface NavbarProps {
   map:               Map | null;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { flattenCategories, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
+import { flattenCategories, type CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 
 interface PoiFormModalProps {
   categories: CategoryTreeNode[];

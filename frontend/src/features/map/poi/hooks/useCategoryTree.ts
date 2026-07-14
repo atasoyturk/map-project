@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CategoryTreeNode } from "../../../shared/utils/categoryTree";
+import type { CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 

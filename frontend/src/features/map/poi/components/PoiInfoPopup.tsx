@@ -1,6 +1,6 @@
 import type { Feature } from "ol";
-import { findCategoryPath, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
-import type { UserLookupEntry } from "../hooks/useUserLookup";
+import { findCategoryPath, type CategoryTreeNode } from "../../../../shared/utils/categoryTree";
+import type { UserLookupEntry } from "../../hooks/useUserLookup";
 
 interface PoiInfoPopupProps {
   feature:    Feature;

@@ -9,11 +9,11 @@ const TURKEY_CENTER = fromLonLat([35.2433, 38.9637]);
 const INITIAL_ZOOM  = 6;
 
 interface MapViewProps {
-  onMapReady?: (map: Map) => void;   
+  onMapReady?: (map: Map) => void;
   height?: string;
 }
 
-export function MapView({ onMapReady }: MapViewProps, height = "100vh") {
+export function MapView({ onMapReady, height = "100vh" }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function MapView({ onMapReady }: MapViewProps, height = "100vh") {
       view: new View({ center: TURKEY_CENTER, zoom: INITIAL_ZOOM }),
     });
 
-    onMapReady?.(map);   
+    onMapReady?.(map);
 
     return () => { map.setTarget(undefined); };
   }, []);

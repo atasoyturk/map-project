@@ -24,6 +24,9 @@ interface NavbarProps {
   onLayerControlToggle: () => void;
   heatmapActive:    boolean;
   onHeatmapToggle:  () => void;
+  poiDrawActive:    boolean;
+  onPoiDrawChange:  (active: boolean) => void;
+  poiFormOpen:      boolean;
 }
 
 const ENDPOINT_MAP: Record<DrawType, string> = {
@@ -56,6 +59,9 @@ export function Navbar({
   onLayerControlToggle,
   heatmapActive,
   onHeatmapToggle,
+  poiDrawActive,
+  onPoiDrawChange,
+  poiFormOpen,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -70,6 +76,12 @@ export function Navbar({
 
   const { logout, apiFetch, roles, teamId } = useAuth();
   const navigate = useNavigate();
+
+  const canManagePoi  = roles.includes("Operator") || roles.includes("Admin");
+  const otherToolActive = !!activeType || analysisActive;
+  // pendingGeometry/heatmapActive/poiDrawActive/poiFormOpen: herhangi biri
+  // sürüyorsa diğer araçlar kilitlenir — tek seferde tek etkileşim (POLA).
+  const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen;
 
   useFeatureLoader({
     map,
@@ -176,6 +188,7 @@ export function Navbar({
     onAnalysisChange(false);
     setAnalysisResult(null);
     clearAnalysis();
+    onPoiDrawChange(false);   // ← YENİ: başka araç seçilince POI çizimi iptal
     onActiveTypeChange(activeType === type ? null : type);
   }
 
@@ -183,8 +196,18 @@ export function Navbar({
     const next = !analysisActive;
     onAnalysisChange(next);
     onActiveTypeChange(null);
+    onPoiDrawChange(false);   // ← YENİ
     if (!next) { clearAnalysis(); setAnalysisResult(null); }
     setToast(null);
+  }
+
+  function handlePoiButtonClick() {
+    setToast(null);
+    onAnalysisChange(false);
+    setAnalysisResult(null);
+    clearAnalysis();
+    onActiveTypeChange(null);
+    onPoiDrawChange(!poiDrawActive);
   }
 
   function handleModalCancel() {
@@ -255,15 +278,15 @@ export function Navbar({
             <button
               key={type}
               onClick={() => handleSelect(type)}
-              disabled={!!pendingGeometry || heatmapActive}
+              disabled={toolsLocked}
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
                 background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
                 color:       activeType === type ? "#93c5fd" : "#94a3b8",
                 fontSize: 13, fontWeight: 500,
-                cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
-                opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+                cursor:   toolsLocked ? "not-allowed" : "pointer",
+                opacity:  toolsLocked ? 0.5 : 1,
                 transition: "all .15s",
               }}
             >
@@ -289,15 +312,15 @@ export function Navbar({
 
           <button
             onClick={onQueryPanelToggle}
-            disabled={!!pendingGeometry || heatmapActive}
+            disabled={toolsLocked}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: queryPanelOpen ? "#6366f1" : "rgba(255,255,255,.15)",
               background:  queryPanelOpen ? "rgba(99,102,241,.2)" : "transparent",
               color:       queryPanelOpen ? "#a5b4fc" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+              cursor:   toolsLocked ? "not-allowed" : "pointer",
+              opacity:  toolsLocked ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -306,15 +329,15 @@ export function Navbar({
 
           <button
             onClick={handleAnalysisToggle}
-            disabled={!!pendingGeometry || heatmapActive}
+            disabled={toolsLocked}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
               background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
               color:       analysisActive ? "#fde047" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+              cursor:   toolsLocked ? "not-allowed" : "pointer",
+              opacity:  toolsLocked ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -323,15 +346,15 @@ export function Navbar({
 
           <button
             onClick={onLayerControlToggle}
-            disabled={!!pendingGeometry || heatmapActive}
+            disabled={toolsLocked}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: layerControlOpen ? "#3b82f6" : "rgba(255,255,255,.15)",
               background:  layerControlOpen ? "rgba(59,130,246,.2)" : "transparent",
               color:       layerControlOpen ? "#93c5fd" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+              cursor:   toolsLocked ? "not-allowed" : "pointer",
+              opacity:  toolsLocked ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -354,15 +377,15 @@ export function Navbar({
 
           <button
             onClick={onHeatmapToggle}
-            disabled={!!pendingGeometry}
+            disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
             style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid",
               borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
               background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
               color:       heatmapActive ? "#fca5a5" : "#94a3b8",
               fontSize: 13, fontWeight: 500,
-              cursor:   pendingGeometry ? "not-allowed" : "pointer",
-              opacity:  pendingGeometry ? 0.5 : 1,
+              cursor:   (pendingGeometry || poiDrawActive || poiFormOpen) ? "not-allowed" : "pointer",
+              opacity:  (pendingGeometry || poiDrawActive || poiFormOpen) ? 0.5 : 1,
               transition: "all .15s",
             }}
           >
@@ -372,19 +395,38 @@ export function Navbar({
           {!isAdmin && teamId !== null && (
             <button
               onClick={() => setTeamModeActive((p) => !p)}
-              disabled={!!pendingGeometry || heatmapActive}
+              disabled={toolsLocked}
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 borderColor: teamModeActive ? "#10b981" : "rgba(255,255,255,.15)",
                 background:  teamModeActive ? "rgba(16,185,129,.2)" : "transparent",
                 color:       teamModeActive ? "#6ee7b7" : "#94a3b8",
                 fontSize: 13, fontWeight: 500,
-                cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
-                opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+                cursor:   toolsLocked ? "not-allowed" : "pointer",
+                opacity:  toolsLocked ? 0.5 : 1,
                 transition: "all .15s",
               }}
             >
-              Takım
+              Takım Haritası
+            </button>
+          )}
+
+          {canManagePoi && (
+            <button
+              onClick={handlePoiButtonClick}
+              disabled={!!pendingGeometry || heatmapActive || otherToolActive || poiFormOpen}
+              style={{
+                padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                borderColor: poiDrawActive ? "#0d9488" : "rgba(255,255,255,.15)",
+                background:  poiDrawActive ? "rgba(13,148,136,.2)" : "transparent",
+                color:       poiDrawActive ? "#5eead4" : "#94a3b8",
+                fontSize: 13, fontWeight: 500,
+                cursor:   (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen) ? "not-allowed" : "pointer",
+                opacity:  (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen) ? 0.5 : 1,
+                transition: "all .15s",
+              }}
+            >
+              POI
             </button>
           )}
         </div>

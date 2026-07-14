@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { CategoryFormModal } from "./CategoryFormModal";
-import { flattenCategories, type CategoryTreeNode, type FlatCategoryRow } from "../utils/categoryTree";
-
+import { flattenCategories, type CategoryTreeNode, type FlatCategoryRow } from "../../../shared/utils/categoryTree";
 
 interface CategoryTreeManagerProps {
   categories: CategoryTreeNode[];

@@ -14,14 +14,22 @@ import { QueryPanel }              from "../components/QueryPanel";
 import { FeatureTooltip }          from "../components/FeatureTooltip";
 import { AnnotationContextMenu }   from "../components/AnnotationContextMenu";
 import { AnnotationModal }         from "../components/AnnotationModal";
+import { PoiFormModal }            from "../components/PoiFormModal";
+import { PoiInfoPopup }            from "../components/PoiInfoPopup";
+import { Toast }                   from "../../../shared/components/Toast";
 import { useMapClick }             from "../hooks/useMapClick";
 import { useUserLookup }           from "../hooks/useUserLookup";
 import { useFeatureTooltip }       from "../hooks/useFeatureTooltip";
-import { useAnnotationContextMenu }from "../hooks/useAnnotationContextMenu";
+import { useAnnotationContextMenu}from "../hooks/useAnnotationContextMenu";
 import { useAnnotationLoader, annotationToFeature } from "../hooks/useAnnotationLoader";
+import { usePoiLoader, poiToFeature } from "../hooks/usePoiLoader";
+import { usePoiDraw }              from "../hooks/usePoiDraw";
+import { usePoiClick }             from "../hooks/usePoiClick";
+import { useCategoryTree }         from "../hooks/useCategoryTree";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import type { DrawingLayers }       from "../hooks/useDrawing";
 import type { AnnotationResponseDto } from "../../../shared/types/annotation";
+import type { PoiResponseDto, PendingPoi } from "../../../shared/types/poi";
 import { buildStyle }              from "../../../utils/mapStyle";
 import type { DrawType }           from "../../../shared/types/drawing";
 import { HeatmapLegend } from "../components/HeatmapLegend";
@@ -36,6 +44,11 @@ const annotationStyle = new Style({
   }),
 });
 
+interface ToastState {
+  message: string;
+  type:    "success" | "error";
+}
+
 export function DashboardPage() {
   const [map,             setMap]            = useState<Map | null>(null);
   const [selected,        setSelected]       = useState<SelectedFeatureInfo | null>(null);
@@ -49,10 +62,21 @@ export function DashboardPage() {
   const [isSavingNote,  setIsSavingNote]  = useState(false);
   const [noteError,     setNoteError]     = useState<string | null>(null);
   const [showNoteModal, setShowNoteModal] = useState(false);
+
+  const [poiDrawActive, setPoiDrawActive] = useState(false);
+  const [pendingPoi,    setPendingPoi]    = useState<PendingPoi | null>(null);
+  const [isSavingPoi,   setIsSavingPoi]   = useState(false);
+  const [poiFormError,  setPoiFormError]  = useState<string | null>(null);
+  const [toast,         setToast]         = useState<ToastState | null>(null);
+
   const { token, apiFetch } = useAuth();
 
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
+  const poiSourceRef        = useRef(new VectorSource());
+  const poiLayerRef         = useRef<VectorLayer<VectorSource> | null>(null);
+
+  const categories = useCategoryTree(apiFetch);
 
   useEffect(() => {
     if (!map) return;
@@ -69,9 +93,27 @@ export function DashboardPage() {
     };
   }, [map]);
 
-  useAnnotationLoader(map, annotationSourceRef.current, apiFetch);
+  useEffect(() => {
+    if (!map) return;
+    const layer = new VectorLayer({
+      source: poiSourceRef.current,
+      zIndex: 3,
+    });
+    map.addLayer(layer);
+    poiLayerRef.current = layer;
+    return () => {
+      map.removeLayer(layer);
+      poiLayerRef.current = null;
+    };
+  }, [map]);
 
-  const interactionsIdle = !analysisActive && activeType === null && !heatmapActive;
+  useAnnotationLoader(map, annotationSourceRef.current, apiFetch);
+  usePoiLoader(map, poiSourceRef.current, apiFetch);
+
+  // Herhangi bir çizim/analiz/heatmap/POI akışı sürerken diğer etkileşimler
+  // (tooltip, sağ-tık not menüsü) bilerek devre dışı — tek seferde tek etkileşim.
+  const poiFlowActive  = poiDrawActive || pendingPoi !== null;
+  const interactionsIdle = !analysisActive && activeType === null && !heatmapActive && !poiFlowActive;
 
   const userLookup = useUserLookup(apiFetch);
   const tooltip = useFeatureTooltip({
@@ -86,9 +128,43 @@ export function DashboardPage() {
     enabled: interactionsIdle,
   });
 
+  usePoiDraw({
+    map,
+    source: poiSourceRef.current,
+    active: poiDrawActive,
+    onDrawEnd: async (wkt, feature) => {
+      setPoiDrawActive(false);
+
+      try {
+        const res = await apiFetch("/api/geo-permission/validate", {
+          method: "POST",
+          body:   JSON.stringify({ wktGeometry: wkt }),
+        });
+
+        if (!res.ok) {
+          poiSourceRef.current.removeFeature(feature);
+          const message = await res.text();
+          setToast({ message: `Hata: ${message}`, type: "error" });
+          return;
+        }
+
+        setPendingPoi({ wkt, feature });
+      } catch {
+        poiSourceRef.current.removeFeature(feature);
+        setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+      }
+    },
+  });
+
+  const { selected: poiSelected, clear: clearPoiSelected } = usePoiClick({
+    map,
+    poiLayer: poiLayerRef.current,
+    enabled:  interactionsIdle,
+  });
+
   useMapClick({
     map,
-    enabled: !analysisActive && activeType === null,
+    enabled: !analysisActive && activeType === null && !poiFlowActive,
     onFeaturesFound: (found) => {
       if (found.length === 0) { setSelected(null); setCandidates([]); return; }
       if (found.length === 1) { setSelected(found[0]); setCandidates([]); return; }
@@ -183,6 +259,47 @@ export function DashboardPage() {
     clearPendingNote();
   }
 
+  async function handleSavePoi(data: { name: string; workingHours: string; categoryId: number }) {
+    if (!pendingPoi) return;
+    setIsSavingPoi(true);
+    setPoiFormError(null);
+
+    try {
+      const res = await apiFetch("/api/poi", {
+        method: "POST",
+        body: JSON.stringify({
+          name:         data.name,
+          workingHours: data.workingHours,
+          categoryId:   data.categoryId,
+          wktGeometry:  pendingPoi.wkt,
+        }),
+      });
+
+      if (!res.ok) {
+        const message = res.status === 403 ? await res.text() : "POI kaydedilemedi.";
+        setPoiFormError(message);
+        setToast({ message, type: "error" });
+        return;
+      }
+
+      const dto: PoiResponseDto = await res.json();
+      poiSourceRef.current.removeFeature(pendingPoi.feature);
+      poiSourceRef.current.addFeature(poiToFeature(dto));
+      setPendingPoi(null);
+    } catch {
+      setPoiFormError("Sunucuya bağlanılamadı.");
+      setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+    } finally {
+      setIsSavingPoi(false);
+    }
+  }
+
+  function handleCancelPoi() {
+    if (pendingPoi) poiSourceRef.current.removeFeature(pendingPoi.feature);
+    setPendingPoi(null);
+    setPoiFormError(null);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <Navbar
@@ -198,6 +315,9 @@ export function DashboardPage() {
         onLayerControlToggle={() => setLayerControlOpen((p) => !p)}
         heatmapActive={heatmapActive}
         onHeatmapToggle={() => setHeatmapActive((p) => !p)}
+        poiDrawActive={poiDrawActive}
+        onPoiDrawChange={setPoiDrawActive}
+        poiFormOpen={pendingPoi !== null}
       />
       <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
@@ -221,6 +341,25 @@ export function DashboardPage() {
           onCancel={handleCancelNote}
           isSaving={isSavingNote}
           error={noteError}
+        />
+      )}
+
+      {pendingPoi && (
+        <PoiFormModal
+          categories={categories}
+          onSave={handleSavePoi}
+          onCancel={handleCancelPoi}
+          isSaving={isSavingPoi}
+          error={poiFormError}
+        />
+      )}
+
+      {poiSelected && (
+        <PoiInfoPopup
+          feature={poiSelected.feature}
+          categories={categories}
+          userLookup={userLookup}
+          onClose={clearPoiSelected}
         />
       )}
 
@@ -251,6 +390,14 @@ export function DashboardPage() {
         <QueryPanel
           map={map}
           onClose={() => setQueryPanelOpen(false)}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </div>

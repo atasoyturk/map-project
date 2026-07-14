@@ -21,3 +21,12 @@ export function flattenCategories(
     ...flattenCategories(n.children, depth + 1, n.id),
   ]);
 }
+
+export function findCategoryPath(nodes: CategoryTreeNode[], targetId: number): string[] | null {
+  for (const node of nodes) {
+    if (node.id === targetId) return [node.name];
+    const childPath = findCategoryPath(node.children, targetId);
+    if (childPath) return [node.name, ...childPath];
+  }
+  return null;
+}

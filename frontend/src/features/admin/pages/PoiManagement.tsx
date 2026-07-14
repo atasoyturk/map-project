@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { CategoryTreeManager } from "../components/CategoryTreeManager";
-import { flattenCategories, type CategoryTreeNode } from "../utils/categoryTree";
+import { flattenCategories, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
 
 interface PoiDto {
   id:           number;

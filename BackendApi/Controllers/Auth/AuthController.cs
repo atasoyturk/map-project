@@ -3,7 +3,7 @@ using BackendApi.DTOs.Auth;
 using BackendApi.Repositories;
 using BackendApi.Services.Auth;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Auth;
 
 [ApiController]
 [Route("api/auth")]

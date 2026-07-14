@@ -1,7 +1,7 @@
 using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Geo;
 
 [Route("api/proxy/geoserver")]
 public sealed class GeoServerProxyController : ApiControllerBase

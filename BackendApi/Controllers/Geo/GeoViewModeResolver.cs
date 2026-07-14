@@ -1,4 +1,4 @@
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Geo;
 
 internal static class GeoViewModeResolver
 {

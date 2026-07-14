@@ -3,7 +3,7 @@ using BackendApi.DTOs.Annotation;
 using BackendApi.Services.Annotation;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Annotation;
 
 [Route("api/annotation")]
 public sealed class AnnotationController : ApiControllerBase

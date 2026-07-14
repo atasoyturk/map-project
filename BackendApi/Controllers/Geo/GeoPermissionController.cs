@@ -3,7 +3,8 @@ using BackendApi.DTOs.Geo;
 using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers;
+
+namespace BackendApi.Controllers.Geo;
 
 [Route("api/geo-permission")]
 public sealed class GeoPermissionController : ApiControllerBase

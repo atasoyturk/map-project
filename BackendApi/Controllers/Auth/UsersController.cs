@@ -1,7 +1,7 @@
 using BackendApi.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Auth;
 
 [Route("api/users")]
 public sealed class UsersController : ApiControllerBase

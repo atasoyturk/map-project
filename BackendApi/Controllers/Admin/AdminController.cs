@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Admin;
 
 [Route("api/admin")]
 [RequirePermission("admin_access")]

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Search;
 
 [Route("api/drawings")]
 public sealed class SearchController : ApiControllerBase

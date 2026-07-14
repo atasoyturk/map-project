@@ -3,7 +3,7 @@ using BackendApi.DTOs.Poi;
 using BackendApi.Services.Poi;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Poi;
 
 [Route("api/poi-category")]
 public sealed class PoiCategoryController : ApiControllerBase

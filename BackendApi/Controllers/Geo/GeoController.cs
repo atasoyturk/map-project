@@ -4,7 +4,7 @@ using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
 
 
-namespace BackendApi.Controllers;
+namespace BackendApi.Controllers.Geo;
 
 [Route("api")]
 public sealed class GeoController : ApiControllerBase

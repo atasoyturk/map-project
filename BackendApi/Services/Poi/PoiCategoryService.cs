@@ -31,9 +31,9 @@ public sealed class PoiCategoryService : IPoiCategoryService
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (category is null) return null;
 
-        // Kendisini kendi ebeveyni yapmasını engelle (döngüsel hiyerarşi, fail-fast).
-        if (request.ParentCategoryId == id)
-            throw new ArgumentException("Bir kategori kendi ebeveyni olamaz.");
+        if (request.ParentCategoryId is not null &&
+            await CreatesCycleAsync(id, request.ParentCategoryId.Value))
+            throw new ArgumentException("Bu ebeveyn ataması döngüsel bir hiyerarşi oluşturur.");
 
         category.Name             = request.Name;
         category.ParentCategoryId = request.ParentCategoryId;
@@ -41,6 +41,26 @@ public sealed class PoiCategoryService : IPoiCategoryService
 
         await _context.SaveChangesAsync();
         return new PoiCategoryResponseDto(category.Id, category.Name, category.ParentCategoryId);
+    }
+
+    private async Task<bool> CreatesCycleAsync(int categoryId, int candidateParentId)
+    {
+        var currentId = (int?)candidateParentId;
+        var visited    = new HashSet<int>();
+
+        while (currentId is not null)
+        {
+            if (currentId == categoryId) return true;
+
+            if (!visited.Add(currentId.Value)) return true;
+
+            currentId = await _context.PoiCategories
+                .Where(c => c.Id == currentId)
+                .Select(c => c.ParentCategoryId)
+                .FirstOrDefaultAsync();
+        }
+
+        return false;
     }
 
     public async Task<bool> DeleteAsync(int id)

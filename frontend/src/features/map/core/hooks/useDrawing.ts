@@ -5,8 +5,7 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import Cluster from "ol/source/Cluster";
 import { WKT } from "ol/format";
-import type { DrawType, PendingGeometry } from "../../../shared/types/drawing";
-
+import type { DrawType, PendingGeometry } from "../../../../shared/types/drawing";
 
 import { Style, Fill, Stroke, Circle, Text } from "ol/style";
 import type { Feature } from "ol";

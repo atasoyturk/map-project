@@ -2,8 +2,8 @@ import { useState, useRef }  from "react";
 import { WKT }               from "ol/format";
 import type { Geometry }     from "ol/geom";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
-import { useAuth }      from "../../auth/context/AuthContext";
-import { ConfirmModal } from "../../../shared/components/ConfirmModal";
+import { useAuth }      from "../../../auth/context/AuthContext";
+import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 
 
 interface InfoPopupProps {

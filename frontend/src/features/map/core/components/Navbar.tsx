@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth }    from "../../auth/context/AuthContext";
+import { useAuth }    from "../../../auth/context/AuthContext";
 import Map from "ol/Map";
 import VectorSource from "ol/source/Vector";
-import { buildStyle } from "../../../utils/mapStyle";
+import { buildStyle } from "../../../../utils/mapStyle";
 import { useDrawing, type DrawingLayers } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
-import { Toast }      from "../../../shared/components/Toast";
-import type { DrawType, PendingGeometry } from "../../../shared/types/drawing";
+import { Toast }      from "../../../../shared/components/Toast";
+import type { DrawType, PendingGeometry } from "../../../../shared/types/drawing";
 
 interface NavbarProps {
   map:               Map | null;

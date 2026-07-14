@@ -3,6 +3,7 @@ using BackendApi.Entities.Auth;
 using BackendApi.Entities.Geo;
 using BackendApi.Entities.Team;
 using BackendApi.Entities.Annotation;
+using BackendApi.Entities.Poi;
 
 namespace BackendApi.Data;
 
@@ -21,6 +22,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<PolygonEntity>  Polygons   => Set<PolygonEntity>();
     public DbSet<Team>       Teams       => Set<Team>();
     public DbSet<Annotation> Annotations => Set<Annotation>();
+    public DbSet<PoiCategory> PoiCategories => Set<PoiCategory>();
+    public DbSet<Poi>         Pois          => Set<Poi>();
     public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
     public DbSet<UserGeoPermission> UserGeoPermissions => Set<UserGeoPermission>();
     public DbSet<RoleGeoPermission> RoleGeoPermissions => Set<RoleGeoPermission>();
@@ -139,13 +142,35 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(pg => pg.TeamId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        // PoiCategory self-referencing (Parent-Child)
+        modelBuilder.Entity<PoiCategory>()
+            .HasOne<PoiCategory>()
+            .WithMany()
+            .HasForeignKey(pc => pc.ParentCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Poi → PoiCategory
+        modelBuilder.Entity<Poi>()
+            .HasOne<PoiCategory>()
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Poi → User
+        modelBuilder.Entity<Poi>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(
-            new Role { Id = 1, Name = "Admin" },
-            new Role { Id = 2, Name = "Çalışan"  },
-            new Role { Id = 3, Name = "Stajyer" },
-            new Role { Id = 4, Name = "Takım Lideri"   }
+            new Role { Id = 1, Name = "Admin"},
+            new Role { Id = 2, Name = "Çalışan"},
+            new Role { Id = 3, Name = "Stajyer"},
+            new Role { Id = 4, Name = "Takım Lideri"},
+            new Role { Id = 5, Name = "Operator" }
         );
 
         modelBuilder.Entity<Permission>().HasData(
@@ -154,7 +179,10 @@ public sealed class AppDbContext : DbContext
             new Permission { Id = 3, Name = "polygon_create", Description = "Poligon oluşturma yetkisi" },
             new Permission { Id = 4, Name = "admin_access",   Description = "Admin paneli erişim yetkisi" },
             new Permission { Id = 5, Name = "annotation_create",Description = "Not/işaret ekleme yetkisi"    }, 
-            new Permission { Id = 6, Name = "annotation_read",  Description = "Not geçmişini görüntüleme yetkisi" }  
+            new Permission { Id = 6, Name = "annotation_read",  Description = "Not geçmişini görüntüleme yetkisi" },
+            new Permission { Id = 7, Name = "poi_create",           Description = "POI oluşturma/güncelleme yetkisi" },  
+            new Permission { Id = 8, Name = "poi_read",             Description = "POI görüntüleme yetkisi" },            
+            new Permission { Id = 9, Name = "poi_category_manage",  Description = "POI kategori ağacını yönetme yetkisi" } 
         );
 
         // Admin
@@ -164,7 +192,10 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 1, PermissionId = 3 },
             new RolePermission { RoleId = 1, PermissionId = 4 },
             new RolePermission { RoleId = 1, PermissionId = 5 },   
-            new RolePermission { RoleId = 1, PermissionId = 6 }   
+            new RolePermission { RoleId = 1, PermissionId = 6 },
+            new RolePermission { RoleId = 1, PermissionId = 7 },   
+            new RolePermission { RoleId = 1, PermissionId = 8 },   
+            new RolePermission { RoleId = 1, PermissionId = 9 }    
         );
 
         // Worker
@@ -190,6 +221,19 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 4, PermissionId = 3 },   
             new RolePermission { RoleId = 4, PermissionId = 5 },   
             new RolePermission { RoleId = 4, PermissionId = 6 }    
+        );
+        // Operator
+        modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 5, PermissionId = 7 },   // poi_create
+            new RolePermission { RoleId = 5, PermissionId = 8 }    // poi_read — category_manage nto exist
+        );
+
+        modelBuilder.Entity<PoiCategory>().HasData(
+            new PoiCategory { Id = 1, Name = "Yeme İçme", ParentCategoryId = null },
+            new PoiCategory { Id = 2, Name = "Restoran",  ParentCategoryId = 1    },
+            new PoiCategory { Id = 3, Name = "Kafe",      ParentCategoryId = 1    },
+            new PoiCategory { Id = 4, Name = "Turizm",    ParentCategoryId = null },
+            new PoiCategory { Id = 5, Name = "Müze",      ParentCategoryId = 4    }
         );
     }
 }

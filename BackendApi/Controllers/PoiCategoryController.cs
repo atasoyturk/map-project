@@ -55,6 +55,8 @@ public sealed class PoiCategoryController : ApiControllerBase
             var result = await _service.DeleteAsync(id);
             return result ? NoContent() : NotFound();
         }
+        
+        catch (InvalidOperationException ex) { return Conflict(ex.Message); } 
         catch (Exception ex) { _logger.LogError(ex, "DeleteCategory failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 }

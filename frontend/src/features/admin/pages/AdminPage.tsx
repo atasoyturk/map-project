@@ -5,6 +5,8 @@ import { UserManagement } from "./UserManagement";
 import { RoleManagement } from "./RoleManagement";
 import { GeoPermissionPage } from "./GeoPermissionPage";
 import { TeamManagement } from "./TeamManagement";
+import { PoiManagement } from "./PoiManagement";
+
 
 
 export function AdminPage() {
@@ -21,6 +23,7 @@ export function AdminPage() {
     { to: "/admin/roles", label: "Rol Yönetimi"      },
     { to: "/admin/teams", label: "Takım Yönetimi"    },
     { to: "/admin/geo",   label: "Coğrafi Yetkiler"   },
+    { to: "/admin/poi",   label: "POI Yönetimi"       },
   ];
 
   return (
@@ -121,6 +124,7 @@ export function AdminPage() {
           <Route path="roles" element={<RoleManagement />} />
           <Route path="teams" element={<TeamManagement />} />
           <Route path="geo"   element={<GeoPermissionPage />} />
+          <Route path="poi" element={<PoiManagement />} />
         </Routes>
       </main>
     </div>

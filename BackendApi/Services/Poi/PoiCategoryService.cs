@@ -49,6 +49,16 @@ public sealed class PoiCategoryService : IPoiCategoryService
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (category is null) return false;
 
+        var hasActiveChildren = await _context.PoiCategories
+            .AnyAsync(c => c.ParentCategoryId == id && !c.IsDeleted);
+        if (hasActiveChildren)
+            throw new InvalidOperationException("Alt kategorisi olan bir kategori silinemez. Önce alt kategorileri silin veya taşıyın.");
+
+        var hasActivePois = await _context.Pois
+            .AnyAsync(p => p.CategoryId == id && !p.IsDeleted);
+        if (hasActivePois)
+            throw new InvalidOperationException("Bu kategoriye bağlı POI'ler var. Önce onları başka bir kategoriye taşıyın veya silin.");
+
         category.IsDeleted    = true;
         category.ModifiedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();

@@ -3,12 +3,15 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
+import { TeamAssignModal }  from "../components/TeamAssignModal";
 
 interface UserDto {
   id:       number;
   email:    string;
   isActive: boolean;
   roles:    string[];
+  teamId:   number | null;
+  teamName: string | null;
 }
 
 export function UserManagement() {
@@ -21,6 +24,7 @@ export function UserManagement() {
   const [geoUserId,    setGeoUserId]    = useState<number | undefined>();
   const [geoUserEmail, setGeoUserEmail] = useState("");
   const [showGeoModal, setShowGeoModal] = useState(false);
+  const [teamUser, setTeamUser] = useState<UserDto | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -70,6 +74,7 @@ export function UserManagement() {
                   <th style={thStyle}>ID</th>
                   <th style={thStyle}>E-posta</th>
                   <th style={thStyle}>Roller</th>
+                  <th style={thStyle}>Takım</th>
                   <th style={thStyle}>Durum</th>
                   <th style={thStyle}>İşlem</th>
                 </tr>
@@ -96,6 +101,9 @@ export function UserManagement() {
                       </div>
                     </td>
                     <td style={tdStyle}>
+                      {user.teamName ?? <span style={{ color: "#94a3b8" }}>—</span>}
+                    </td>
+                    <td style={tdStyle}>
                       <span style={{
                         padding:      "2px 8px",
                         borderRadius: 20,
@@ -108,7 +116,7 @@ export function UserManagement() {
                       </span>
                     </td>
                     <td style={tdStyle}>
-                      <div style={{ display: "flex", gap: 6 }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <button
                           onClick={() => toggleActive(user)}
                           style={{
@@ -155,6 +163,20 @@ export function UserManagement() {
                           }}
                         >
                           Yetkiler
+                        </button>
+                        <button
+                          onClick={() => setTeamUser(user)}
+                          style={{
+                            padding:      "4px 10px",
+                            borderRadius: 6,
+                            border:       "1px solid rgba(245,158,11,.3)",
+                            background:   "rgba(245,158,11,.05)",
+                            color:        "#d97706",
+                            fontSize:     12,
+                            cursor:       "pointer",
+                          }}
+                        >
+                          Takım
                         </button>
                         <button
                         onClick={() => {
@@ -205,6 +227,15 @@ export function UserManagement() {
           userEmail={geoUserEmail}
           userRoles={users.find(u => u.id === geoUserId)?.roles ?? []}
           onClose={() => setShowGeoModal(false)}
+        />
+      )}
+      {teamUser && (
+        <TeamAssignModal
+          userId={teamUser.id}
+          userEmail={teamUser.email}
+          currentTeamId={teamUser.teamId}
+          onClose={() => setTeamUser(null)}
+          onUpdated={() => { fetchUsers(); setTeamUser(null); }}
         />
       )}
     </>

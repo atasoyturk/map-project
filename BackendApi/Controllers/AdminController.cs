@@ -29,6 +29,13 @@ public sealed class AdminController : ApiControllerBase
         catch (Exception ex) { _logger.LogError(ex, "GetUsers failed"); return StatusCode(500, "Sunucu hatası."); }
     }
 
+    [HttpGet("teams")]
+    public async Task<IActionResult> GetTeams()
+    {
+        try { return Ok(await _adminService.GetAllTeamsAsync()); }
+        catch (Exception ex) { _logger.LogError(ex, "GetTeams failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
     [HttpPut("users/{id:int}/active")]
     public async Task<IActionResult> SetUserActive(int id, [FromBody] UpdateUserDto dto)
     {
@@ -52,6 +59,17 @@ public sealed class AdminController : ApiControllerBase
             return NoContent();
         }
         catch (Exception ex) { _logger.LogError(ex, "AssignRole failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpPut("users/{id:int}/team")]
+    public async Task<IActionResult> AssignTeam(int id, [FromBody] AssignTeamDto dto)
+    {
+        try
+        {
+            var result = await _adminService.AssignTeamToUserAsync(id, dto.TeamId);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "AssignTeam failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
     [HttpDelete("users/{id:int}/roles/{roleId:int}")]

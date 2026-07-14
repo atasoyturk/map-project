@@ -7,8 +7,10 @@ namespace BackendApi.Services.Admin;
 public interface IAdminService
 {
     Task<IList<UserListDto>>            GetAllUsersAsync();
+    Task<IList<TeamDto>>                GetAllTeamsAsync();
     Task<bool>                          SetUserActiveAsync(int userId, bool isActive);
     Task<bool>                          AssignRoleToUserAsync(int userId, int roleId);
+    Task<bool>                          AssignTeamToUserAsync(int userId, int? teamId);
     Task<bool>                          RemoveRoleFromUserAsync(int userId, int roleId);
     Task<IList<RoleDto>>                GetAllRolesAsync();
     Task<bool>                          AssignPermissionToUserAsync(int userId, int permissionId);

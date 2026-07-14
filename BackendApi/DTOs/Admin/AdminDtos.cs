@@ -6,7 +6,9 @@ public sealed record UserListDto(
     int    Id,
     string Email,
     bool   IsActive,
-    IEnumerable<string> Roles);
+    IEnumerable<string> Roles,
+    int?   TeamId,
+    string? TeamName);
 
 public sealed record AssignRoleDto(
     [Required] int RoleId);
@@ -19,3 +21,6 @@ public sealed record CreateRoleDto(
 
 public sealed record UpdateUserDto(
     bool IsActive);
+
+public sealed record TeamDto(int Id, string Name);
+public sealed record AssignTeamDto(int? TeamId);   

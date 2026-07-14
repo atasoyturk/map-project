@@ -18,13 +18,23 @@ public sealed class AdminService : IAdminService
     }
 
     public async Task<IList<UserListDto>> GetAllUsersAsync() =>
-        await _context.Users
-            .Where(u => !u.IsDeleted)
-            .Select(u => new UserListDto(
+        await (from u in _context.Users
+            join t in _context.Teams on u.TeamId equals t.Id into teamJoin
+            from t in teamJoin.DefaultIfEmpty()
+            where !u.IsDeleted
+            select new UserListDto(
                 u.Id,
                 u.Email,
                 u.IsActive,
-                u.UserRoles.Select(ur => ur.Role.Name)))
+                u.UserRoles.Select(ur => ur.Role.Name),
+                u.TeamId,
+                t != null ? t.Name : null))
+            .ToListAsync();
+    
+    public async Task<IList<TeamDto>> GetAllTeamsAsync() =>
+        await _context.Teams
+            .Where(t => !t.IsDeleted)
+            .Select(t => new TeamDto(t.Id, t.Name))
             .ToListAsync();
 
     public async Task<bool> SetUserActiveAsync(int userId, bool isActive)
@@ -44,6 +54,17 @@ public sealed class AdminService : IAdminService
         if (exists) return true;  // idempotent
 
         _context.UserRoles.Add(new UserRole { UserId = userId, RoleId = roleId });
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AssignTeamToUserAsync(int userId, int? teamId)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+        if (user is null) return false;
+
+        user.TeamId       = teamId;
+        user.ModifiedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

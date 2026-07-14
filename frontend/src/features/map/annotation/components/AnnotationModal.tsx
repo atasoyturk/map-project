@@ -4,7 +4,7 @@ interface AnnotationModalProps {
   onSave:   (noteText: string) => void;
   onCancel: () => void;
   isSaving: boolean;
-  error?:   string | null;   // ← YENİ
+  error?:   string | null;
 }
 
 export function AnnotationModal({ onSave, onCancel, isSaving, error }: AnnotationModalProps) {

@@ -1,39 +1,45 @@
-import { useState, useEffect, useRef }     from "react";
 import Map                         from "ol/Map";
 import VectorSource                from "ol/source/Vector";
 import VectorLayer                 from "ol/layer/Vector";
 import TileLayer   from "ol/layer/Tile";
 import TileWMS     from "ol/source/TileWMS";
-import { useAuth } from "../../../features/auth/context/AuthContext";
-import { MapView }                 from "../components/MapView";
-import { Navbar }                  from "../components/Navbar";
-import { InfoPopup }               from "../components/InfoPopup";
-import { LayerControl }            from "../components/LayerControl";
-import { FeaturePickerModal }      from "../components/FeaturePickerModal";
-import { QueryPanel }              from "../components/QueryPanel";
-import { FeatureTooltip }          from "../components/FeatureTooltip";
-import { AnnotationContextMenu }   from "../components/AnnotationContextMenu";
-import { AnnotationModal }         from "../components/AnnotationModal";
-import { PoiFormModal }            from "../poi/components/PoiFormModal";
-import { PoiInfoPopup }            from "../poi/components/PoiInfoPopup";
-import { Toast }                   from "../../../shared/components/Toast";
-import { useMapClick }             from "../hooks/useMapClick";
-import { useUserLookup }           from "../hooks/useUserLookup";
-import { useFeatureTooltip }       from "../hooks/useFeatureTooltip";
-import { useAnnotationContextMenu}from "../hooks/useAnnotationContextMenu";
-import { useAnnotationLoader, annotationToFeature } from "../hooks/useAnnotationLoader";
-import { usePoiLoader, poiToFeature } from "../poi/hooks/usePoiLoader";
-import { usePoiDraw }              from "../poi/hooks/usePoiDraw";
-import { usePoiClick }             from "../poi/hooks/usePoiClick";
-import { useCategoryTree }         from "../poi/hooks/useCategoryTree";
-import type { SelectedFeatureInfo } from "../hooks/useSelect";
-import type { DrawingLayers }       from "../hooks/useDrawing";
-import type { AnnotationResponseDto } from "../../../shared/types/annotation";
-import type { PoiResponseDto, PendingPoi } from "../../../shared/types/poi";
-import { buildStyle }              from "../../../utils/mapStyle";
-import type { DrawType }           from "../../../shared/types/drawing";
-import { HeatmapLegend } from "../components/HeatmapLegend";
+import { useState, useEffect, useRef }     from "react";
 import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
+
+import { MapView }              from "../core/components/MapView";
+import { Navbar }               from "../core/components/Navbar";
+import { InfoPopup }            from "../core/components/InfoPopup";
+import { LayerControl }         from "../core/components/LayerControl";
+import { FeaturePickerModal }   from "../core/components/FeaturePickerModal";
+import { QueryPanel }           from "../core/components/QueryPanel";
+import { FeatureTooltip }       from "../core/components/FeatureTooltip";
+import { HeatmapLegend }        from "../core/components/HeatmapLegend";
+import { AnnotationContextMenu} from "../annotation/components/AnnotationContextMenu";
+import { AnnotationModal }      from "../annotation/components/AnnotationModal";
+import { PoiFormModal }         from "../poi/components/PoiFormModal";
+import { PoiInfoPopup }         from "../poi/components/PoiInfoPopup";
+
+import { useMapClick }          from "../core/hooks/useMapClick";
+import { useUserLookup }        from "../core/hooks/useUserLookup";
+import { useFeatureTooltip }    from "../core/hooks/useFeatureTooltip";
+import type { SelectedFeatureInfo } from "../core/hooks/useSelect";
+import type { DrawingLayers }       from "../core/hooks/useDrawing";
+import { useAnnotationContextMenu } from "../annotation/hooks/useAnnotationContextMenu";
+import { useAnnotationLoader, annotationToFeature } from "../annotation/hooks/useAnnotationLoader";
+import { usePoiLoader, poiToFeature } from "../poi/hooks/usePoiLoader";
+import { usePoiDraw }           from "../poi/hooks/usePoiDraw";
+import { usePoiClick }          from "../poi/hooks/usePoiClick";
+import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
+
+import { useAuth }                  from "../../../features/auth/context/AuthContext";
+import { Toast }                    from "../../../shared/components/Toast";
+import { buildStyle }               from "../../../utils/mapStyle";
+import type { DrawType }            from "../../../shared/types/drawing";
+import type { AnnotationResponseDto} from "../../../shared/types/annotation";
+import type { PoiResponseDto, PendingPoi } from "../../../shared/types/poi";
+
+
+
 
 
 const annotationStyle = new Style({

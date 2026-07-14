@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import OlMap  from "ol/Map";
 import Point  from "ol/geom/Point";
 import { WKT } from "ol/format";
-import type { PendingAnnotation } from "../../../shared/types/annotation";
+import type { PendingAnnotation } from "../../../../shared/types/annotation";
 
 interface UseAnnotationContextMenuOptions {
   map:     OlMap | null;

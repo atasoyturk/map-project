@@ -20,6 +20,9 @@ public abstract class ApiControllerBase : ControllerBase
         return int.TryParse(value, out var teamId) ? teamId : null;
     }
 
+    protected bool HasAdminAccess() =>
+        User.FindFirstValue("admin_access") == "true";
+
     protected IEnumerable<string> GetUserRoles() =>
     User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 }

@@ -29,7 +29,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
             return BadRequest("typeName parametresi zorunludur.");
 
         var teamId       = GetTeamId();
-        var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+        var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
 
         var (success, content, contentType, error) =
             await _geoServerService.GetFeaturesAsync(typeName, userId.Value, teamId, resolvedMode);
@@ -64,7 +64,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
             return BadRequest("Geçersiz boyut.");
 
         var teamId       = GetTeamId();
-        var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+        var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
 
         var (success, content, contentType, error) =
             await _geoServerService.GetWmsMapAsync(typeName, userId.Value, bbox, width, height, styles, teamId, resolvedMode);

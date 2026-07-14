@@ -36,7 +36,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
             return Ok(await _pointService.GetAllAsync(userId.Value, teamId, resolvedMode));
         }
         catch (Exception ex) { _logger.LogError(ex, "GetPoints failed"); return StatusCode(500, "Sunucu hatası."); }
@@ -117,7 +117,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
             return Ok(await _lineService.GetAllAsync(userId.Value, teamId, resolvedMode));
         }
         catch (Exception ex) { _logger.LogError(ex, "GetLines failed"); return StatusCode(500, "Sunucu hatası."); }
@@ -198,7 +198,7 @@ public sealed class GeoController : ApiControllerBase
         try
         {
             var teamId       = GetTeamId();
-            var resolvedMode = GeoViewModeResolver.Resolve(GetUserRoles(), teamId, viewMode);
+            var resolvedMode = GeoViewModeResolver.Resolve(HasAdminAccess(), teamId, viewMode);
             return Ok(await _polygonService.GetAllAsync(userId.Value, teamId, resolvedMode));
         }
         catch (Exception ex) { _logger.LogError(ex, "GetPolygons failed"); return StatusCode(500, "Sunucu hatası."); }

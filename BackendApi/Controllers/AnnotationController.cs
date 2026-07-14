@@ -48,7 +48,7 @@ public sealed class AnnotationController : ApiControllerBase
         if (userId is null) return Unauthorized();
 
         var isAdmin = GetUserRoles().Contains("Admin");
-        var result  = await _annotationService.GetAllAsync(userId.Value, GetTeamId(), isAdmin);
+        var result  = await _annotationService.GetAllAsync(userId.Value, GetTeamId(), HasAdminAccess());
         return Ok(result);
     }
 }

@@ -13,16 +13,20 @@ public sealed class AuthController : ControllerBase
     private readonly IUserService            _userService;
     private readonly ITokenService           _tokenService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IPermissionService      _permissionService;  
+
 
     public AuthController(
         IUserRepository         userRepository,
         IUserService            userService,
         ITokenService           tokenService,
+        IPermissionService      permissionService,
         ILogger<AuthController> logger)
     {
         _userRepository = userRepository;
         _userService    = userService;
         _tokenService   = tokenService;
+        _permissionService = permissionService;
         _logger         = logger;
     }
 
@@ -51,7 +55,8 @@ public sealed class AuthController : ControllerBase
                 return Unauthorized();
 
             var roles = await _userService.GetUserRolesAsync(user.Id);
-            var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles, user.TeamId);
+            var hasAdminAccess  = await _permissionService.HasPermissionAsync(user.Id, "admin_access"); 
+            var token = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles, user.TeamId, hasAdminAccess);
             return Ok(new LoginResponseDto(token));
         }
         catch (Exception ex)

@@ -1,21 +1,15 @@
-using BackendApi.Services.Geo;
-
 namespace BackendApi.Controllers;
 
 internal static class GeoViewModeResolver
 {
-    /// <summary>
-    /// Admin her zaman All. Diğerleri, ?viewMode=team istenmişse VE bir takıma bağlıysa Team,
-    /// aksi halde Own (varsayılan, mevcut davranış).
-    /// </summary>
-    public static GeoViewMode Resolve(IEnumerable<string> roles, int? teamId, string? requestedMode)
+    public static Services.Geo.GeoViewMode Resolve(bool hasAdminAccess, int? teamId, string? requestedMode)
     {
-        if (roles.Contains("Admin"))
-            return GeoViewMode.All;
+        if (hasAdminAccess)
+            return Services.Geo.GeoViewMode.All;
 
         if (string.Equals(requestedMode, "team", StringComparison.OrdinalIgnoreCase) && teamId is not null)
-            return GeoViewMode.Team;
+            return Services.Geo.GeoViewMode.Team;
 
-        return GeoViewMode.Own;
+        return Services.Geo.GeoViewMode.Own;
     }
 }

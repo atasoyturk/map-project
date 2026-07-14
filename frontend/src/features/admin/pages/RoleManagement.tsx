@@ -51,10 +51,18 @@ export function RoleManagement() {
 
   async function handleDelete(id: number) {
     if (!confirm("Bu rolü silmek istediğinize emin misiniz?")) return;
+    setError(null);
     try {
-      await apiFetch(`/api/admin/roles/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/admin/roles/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const message = await res.text();
+        setError(message || "Rol silinemedi.");
+        return;
+      }
       fetchRoles();
-    } catch {  }
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    }
   }
 
   return (

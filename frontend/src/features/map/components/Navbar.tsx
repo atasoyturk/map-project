@@ -62,12 +62,13 @@ export function Navbar({
   const [isSaving,        setIsSaving]        = useState(false);
   const [toast,           setToast]           = useState<ToastState | null>(null);
   const [analysisResult,  setAnalysisResult]  = useState<number | null>(null);
+  const [teamModeActive,  setTeamModeActive]  = useState(false);
 
   const pointSourceRef   = useRef(new VectorSource());
   const lineSourceRef    = useRef(new VectorSource());
   const polygonSourceRef = useRef(new VectorSource());
 
-  const { logout, apiFetch, roles } = useAuth();
+  const { logout, apiFetch, roles, teamId } = useAuth();
   const navigate = useNavigate();
 
   useFeatureLoader({
@@ -77,6 +78,7 @@ export function Navbar({
     polygonSource: polygonSourceRef.current,
     apiFetch,
     buildStyle,
+    viewMode: teamModeActive ? "team" : "own",
   });
 
   const { layers } = useDrawing({
@@ -205,6 +207,8 @@ export function Navbar({
     navigate("/login");
   }
 
+  const isAdmin = roles.includes("Admin");
+
   return (
     <>
       <nav style={{
@@ -225,7 +229,7 @@ export function Navbar({
               AtaGIS
             </span>
           </div>
-          {roles.includes("Admin") && (
+          {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
               style={{
@@ -364,6 +368,25 @@ export function Navbar({
           >
             Isı Haritası
           </button>
+
+          {!isAdmin && teamId !== null && (
+            <button
+              onClick={() => setTeamModeActive((p) => !p)}
+              disabled={!!pendingGeometry || heatmapActive}
+              style={{
+                padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                borderColor: teamModeActive ? "#10b981" : "rgba(255,255,255,.15)",
+                background:  teamModeActive ? "rgba(16,185,129,.2)" : "transparent",
+                color:       teamModeActive ? "#6ee7b7" : "#94a3b8",
+                fontSize: 13, fontWeight: 500,
+                cursor:   pendingGeometry || heatmapActive ? "not-allowed" : "pointer",
+                opacity:  pendingGeometry || heatmapActive ? 0.5 : 1,
+                transition: "all .15s",
+              }}
+            >
+              Takım
+            </button>
+          )}
         </div>
 
         {/* Logout */}

@@ -12,6 +12,7 @@ interface FeatureLoaderOptions {
   polygonSource:VectorSource;
   apiFetch:     (path: string, options?: RequestInit) => Promise<Response>;
   buildStyle:   (color: string, name: string) => Style;
+  viewMode:     "own" | "team";  
 }
 
 const geoJsonFormat = new GeoJSON();
@@ -22,8 +23,10 @@ async function loadLayer(
   source:      VectorSource,
   type:        "point" | "line" | "polygon",
   buildStyle:  (color: string, name: string) => Style,
+  viewMode:    "own" | "team",
 ): Promise<void> {
-  const res = await apiFetch(`/api/proxy/geoserver/wfs?typeName=${typeName}`);
+  const query = viewMode === "team" ? `&viewMode=team` : "";
+  const res = await apiFetch(`/api/proxy/geoserver/wfs?typeName=${typeName}${query}`);
   if (!res.ok) return;
 
   const geojson = await res.json();
@@ -36,6 +39,7 @@ async function loadLayer(
   for (const f of features as Feature[]) {
     const props = f.getProperties();
 
+    // GeoServer columns check
     // GeoServer "tbl_point.8" → 8
     const rawId = props["Id"] ?? props["id"] ?? f.getId();
     const id    = typeof rawId === "string" && rawId.includes(".")
@@ -69,20 +73,26 @@ export function useFeatureLoader({
   polygonSource,
   apiFetch,
   buildStyle,
+  viewMode,
 }: FeatureLoaderOptions) {
   useEffect(() => {
     if (!map) return;
 
+    
+    pointSource.clear();
+    lineSource.clear();
+    polygonSource.clear();
+
     async function load() {
       try {
         await Promise.all([
-          loadLayer(apiFetch, "tbl_point",   pointSource,   "point",   buildStyle),
-          loadLayer(apiFetch, "tbl_line",    lineSource,    "line",    buildStyle),
-          loadLayer(apiFetch, "tbl_polygon", polygonSource, "polygon", buildStyle),
+          loadLayer(apiFetch, "tbl_point",   pointSource,   "point",   buildStyle, viewMode),
+          loadLayer(apiFetch, "tbl_line",    lineSource,    "line",    buildStyle, viewMode),
+          loadLayer(apiFetch, "tbl_polygon", polygonSource, "polygon", buildStyle, viewMode),
         ]);
       } catch { }
     }
 
     load();
-  }, [map]);
+  }, [map, viewMode]);
 }

@@ -72,6 +72,28 @@ public sealed class AdminController : ApiControllerBase
         catch (Exception ex) { _logger.LogError(ex, "AssignTeam failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
     }
 
+    [HttpPost("teams")]
+    public async Task<IActionResult> CreateTeam([FromBody] CreateTeamDto dto)
+    {
+        try
+        {
+            var team = await _adminService.CreateTeamAsync(dto.Name);
+            return Created(string.Empty, team);
+        }
+        catch (Exception ex) { _logger.LogError(ex, "CreateTeam failed"); return StatusCode(500, "Sunucu hatası."); }
+    }
+
+    [HttpDelete("teams/{id:int}")]
+    public async Task<IActionResult> DeleteTeam(int id)
+    {
+        try
+        {
+            var result = await _adminService.DeleteTeamAsync(id);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex) { _logger.LogError(ex, "DeleteTeam failed for id {Id}", id); return StatusCode(500, "Sunucu hatası."); }
+    }
+
     [HttpDelete("users/{id:int}/roles/{roleId:int}")]
     public async Task<IActionResult> RemoveRole(int id, int roleId)
     {

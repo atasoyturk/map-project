@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { UserManagement } from "./UserManagement";
 import { RoleManagement } from "./RoleManagement";
 import { GeoPermissionPage } from "./GeoPermissionPage";
+import { TeamManagement } from "./TeamManagement";
 
 
 export function AdminPage() {
@@ -18,6 +19,7 @@ export function AdminPage() {
   const navItems = [
     { to: "/admin/users", label: "Kullanıcı Yönetimi"},
     { to: "/admin/roles", label: "Rol Yönetimi"      },
+    { to: "/admin/teams", label: "Takım Yönetimi"    },
     { to: "/admin/geo",   label: "Coğrafi Yetkiler"   },
   ];
 
@@ -117,7 +119,8 @@ export function AdminPage() {
           <Route index element={<Navigate to="users" replace />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="roles" element={<RoleManagement />} />
-          <Route path="geo" element={<GeoPermissionPage />} />
+          <Route path="teams" element={<TeamManagement />} />
+          <Route path="geo"   element={<GeoPermissionPage />} />
         </Routes>
       </main>
     </div>

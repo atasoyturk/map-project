@@ -2,6 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs.Admin;
 using BackendApi.DTOs.Permission;
 using BackendApi.Entities.Auth;
+using BackendApi.Entities.Team;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services.Admin;
@@ -116,11 +117,30 @@ public sealed class AdminService : IAdminService
         return new RoleDto(role.Id, role.Name);
     }
 
+    public async Task<TeamDto> CreateTeamAsync(string name)
+    {
+        var team = new Team { Name = name };
+        _context.Teams.Add(team);
+        await _context.SaveChangesAsync();
+        return new TeamDto(team.Id, team.Name);
+    }
+
     public async Task<bool> DeleteRoleAsync(int roleId)
     {
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId);
         if (role is null) return false;
         _context.Roles.Remove(role);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteTeamAsync(int teamId)
+    {
+        var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == teamId && !t.IsDeleted);
+        if (team is null) return false;
+
+        team.IsDeleted    = true;   
+        team.ModifiedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

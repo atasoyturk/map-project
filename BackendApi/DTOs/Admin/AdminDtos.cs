@@ -24,3 +24,5 @@ public sealed record UpdateUserDto(
 
 public sealed record TeamDto(int Id, string Name);
 public sealed record AssignTeamDto(int? TeamId);   
+public sealed record CreateTeamDto(
+    [Required, MaxLength(100)] string Name);

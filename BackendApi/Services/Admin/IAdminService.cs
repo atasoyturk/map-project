@@ -17,7 +17,10 @@ public interface IAdminService
     Task<bool>                          RemovePermissionFromUserAsync(int userId, int permissionId);
     Task<IList<EffectivePermissionDto>> GetUserPermissionsAsync(int userId);
     Task<RoleDto>                       CreateRoleAsync(string name);
+    Task<TeamDto>                       CreateTeamAsync(string name);
     Task<bool>                          DeleteRoleAsync(int roleId);
+    Task<bool>                          DeleteTeamAsync(int teamId);
+
 }
 
 public sealed record RoleDto(int Id, string Name);

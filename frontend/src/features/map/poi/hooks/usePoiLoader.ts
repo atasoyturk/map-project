@@ -4,7 +4,7 @@ import Point         from "ol/geom/Point";
 import VectorSource  from "ol/source/Vector";
 import { WKT }       from "ol/format";
 import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
-import type { PoiResponseDto } from "../../../../shared/types/poi";
+import type { PoiResponseDto } from "../types";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 

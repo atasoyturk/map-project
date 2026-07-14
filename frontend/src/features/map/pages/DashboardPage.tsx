@@ -36,11 +36,7 @@ import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../../../shared/types/drawing";
 import type { AnnotationResponseDto} from "../../../shared/types/annotation";
-import type { PoiResponseDto, PendingPoi } from "../../../shared/types/poi";
-
-
-
-
+import type { PoiResponseDto, PendingPoi } from "../poi/types";
 
 const annotationStyle = new Style({
   image: new CircleStyle({

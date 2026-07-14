@@ -1,6 +1,6 @@
 export interface PendingAnnotation {
   wkt: string;
-  x:   number;   // context menü konumu (px, tooltip ile aynı desende)
+  x:   number;   
   y:   number;
 }
 

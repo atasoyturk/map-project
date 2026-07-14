@@ -3,7 +3,7 @@ import { Feature }   from "ol";
 import Point         from "ol/geom/Point";
 import VectorSource  from "ol/source/Vector";
 import { WKT }       from "ol/format";
-import type { AnnotationResponseDto } from "../../../../shared/types/annotation";
+import type { AnnotationResponseDto } from "../types";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 

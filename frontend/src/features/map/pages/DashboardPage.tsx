@@ -35,7 +35,7 @@ import { useAuth }                  from "../../../features/auth/context/AuthCon
 import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
-import type { AnnotationResponseDto} from "../../../shared/types/annotation";
+import type { AnnotationResponseDto} from "../annotation/types";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
 
 const annotationStyle = new Style({

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { flattenCategories, type CategoryTreeNode, type FlatCategoryRow } from "../../../shared/utils/categoryTree";
+import { createCategory, updateCategory } from "../api/categoryService";
 
 interface CategoryFormModalProps {
   categories: CategoryTreeNode[];
@@ -36,15 +37,15 @@ export function CategoryFormModal({ categories, editTarget, onClose, onSaved }: 
     setIsSaving(true);
     setError(null);
 
-    const body = JSON.stringify({
+    const payload = {
       name:             name.trim(),
       parentCategoryId: parentId === "" ? null : parentId,
-    });
+    };
 
     try {
       const res = editTarget
-        ? await apiFetch(`/api/poi-category/${editTarget.id}`, { method: "PUT", body })
-        : await apiFetch("/api/poi-category", { method: "POST", body });
+        ? await updateCategory(apiFetch, editTarget.id, payload)
+        : await createCategory(apiFetch, payload);
 
       if (!res.ok) {
         const message = await res.text();

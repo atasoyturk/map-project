@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { CategoryTreeManager } from "../components/CategoryTreeManager";
 import { flattenCategories, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
+import { getAllPois, getCategoryTree } from "../api/poiService";
+import { getUserLookup } from "../../../shared/api/userLookupService";
 
 interface PoiDto {
   id:           number;
@@ -32,9 +34,9 @@ export function PoiManagement() {
     setError(null);
     try {
       const [poiRes, catRes, userRes] = await Promise.all([
-        apiFetch("/api/poi"),
-        apiFetch("/api/poi-category/tree"),
-        apiFetch("/api/users/lookup"),
+        getAllPois(apiFetch),
+        getCategoryTree(apiFetch),
+        getUserLookup(apiFetch),
       ]);
 
       if (!poiRes.ok || !catRes.ok || !userRes.ok) {

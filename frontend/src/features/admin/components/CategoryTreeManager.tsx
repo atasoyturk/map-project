@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { CategoryFormModal } from "./CategoryFormModal";
 import { flattenCategories, type CategoryTreeNode, type FlatCategoryRow } from "../../../shared/utils/categoryTree";
+import { deleteCategory } from "../api/categoryService";
 
 interface CategoryTreeManagerProps {
   categories: CategoryTreeNode[];
@@ -20,7 +21,7 @@ export function CategoryTreeManager({ categories, onChanged }: CategoryTreeManag
     if (!confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) return;
     setError(null);
     try {
-      const res = await apiFetch(`/api/poi-category/${id}`, { method: "DELETE" });
+      const res = await deleteCategory(apiFetch, id);
       if (!res.ok) {
         const message = await res.text();
         setError(message || "Kategori silinemedi.");

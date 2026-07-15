@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getUserLookup } from "../../../../shared/api/userLookupService";
 
 export interface UserLookupEntry {
   email:    string;
@@ -15,7 +16,7 @@ export function useUserLookup(apiFetch: ApiFetch): Map<number, UserLookupEntry> 
 
     async function load() {
       try {
-        const res = await apiFetch("/api/users/lookup");
+        const res = await getUserLookup(apiFetch);
         if (!res.ok) return;
 
         const data: { id: number; email: string; teamName: string | null }[] = await res.json();

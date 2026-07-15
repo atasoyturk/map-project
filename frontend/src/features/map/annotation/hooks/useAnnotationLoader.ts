@@ -4,6 +4,7 @@ import Point         from "ol/geom/Point";
 import VectorSource  from "ol/source/Vector";
 import { WKT }       from "ol/format";
 import type { AnnotationResponseDto } from "../types";
+import { getAllAnnotations } from "../api/annotationService";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
@@ -31,15 +32,14 @@ export function useAnnotationLoader(map: unknown, source: VectorSource, apiFetch
 
     async function load() {
       try {
-        const res = await apiFetch("/api/annotation");
-        // Stajyer için annotation_read yok → 403 beklenen bir durum, sessizce boş bırak.
+        const res = await getAllAnnotations(apiFetch);
         if (!res.ok) return;
 
         const data: AnnotationResponseDto[] = await res.json();
         for (const dto of data) {
           source.addFeature(annotationToFeature(dto));
         }
-      } catch { /* sessiz — harita çalışmaya devam eder */ }
+      } catch { }
     }
 
     load();

@@ -37,6 +37,8 @@ import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
+import { createPoi } from "../../../shared/api/poiService";
+import { createAnnotation } from "../annotation/api/annotationService";
 
 const annotationStyle = new Style({
   image: new CircleStyle({
@@ -234,10 +236,8 @@ export function DashboardPage() {
     setNoteError(null);
 
     try {
-      const res = await apiFetch("/api/annotation", {
-        method: "POST",
-        body:   JSON.stringify({ noteText, wktGeometry: pendingNote.wkt }),
-      });
+      
+      const res = await createAnnotation(apiFetch, { noteText, wktGeometry: pendingNote.wkt });
 
       if (!res.ok) {
         setNoteError(res.status === 403 ? "Not ekleme yetkiniz bulunmuyor." : "Not kaydedilemedi.");
@@ -267,14 +267,12 @@ export function DashboardPage() {
     setPoiFormError(null);
 
     try {
-      const res = await apiFetch("/api/poi", {
-        method: "POST",
-        body: JSON.stringify({
-          name:         data.name,
-          workingHours: data.workingHours,
-          categoryId:   data.categoryId,
-          wktGeometry:  pendingPoi.wkt,
-        }),
+      
+      const res = await createPoi(apiFetch, {
+        name:         data.name,
+        workingHours: data.workingHours,
+        categoryId:   data.categoryId,
+        wktGeometry:  pendingPoi.wkt,
       });
 
       if (!res.ok) {

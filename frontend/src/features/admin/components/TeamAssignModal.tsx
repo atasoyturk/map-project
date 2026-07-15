@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
+import { getTeams } from "../api/teamService";
+import { assignTeamToUser } from "../api/userService";
 
 interface TeamDto {
   id:   number;
@@ -33,7 +35,7 @@ export function TeamAssignModal({
     async function fetchTeams() {
       setIsLoading(true);
       try {
-        const res = await apiFetch("/api/admin/teams");
+        const res = await getTeams(apiFetch);
         if (!res.ok) { setError("Takımlar yüklenemedi."); return; }
         setTeams(await res.json());
       } catch {
@@ -49,10 +51,7 @@ export function TeamAssignModal({
     setIsSaving(true);
     setError(null);
     try {
-      const res = await apiFetch(`/api/admin/users/${userId}/team`, {
-        method: "PUT",
-        body:   JSON.stringify({ teamId: selectedId }),
-      });
+      const res = await assignTeamToUser(apiFetch, userId, selectedId);
       if (!res.ok) { setError("Kaydedilemedi."); return; }
       onUpdated();
     } catch {

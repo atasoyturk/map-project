@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
+import { getTeams, createTeam, deleteTeam } from "../api/teamService";
 
 interface TeamDto {
   id:   number;
@@ -18,7 +19,7 @@ export function TeamManagement() {
   async function fetchTeams() {
     setIsLoading(true);
     try {
-      const res = await apiFetch("/api/admin/teams");
+      const res = await getTeams(apiFetch);
       if (!res.ok) { setError("Takımlar yüklenemedi."); return; }
       setTeams(await res.json());
     } catch {
@@ -34,10 +35,7 @@ export function TeamManagement() {
     if (!newTeam.trim()) return;
     setIsSaving(true);
     try {
-      const res = await apiFetch("/api/admin/teams", {
-        method: "POST",
-        body:   JSON.stringify({ name: newTeam.trim() }),
-      });
+      const res = await createTeam(apiFetch, newTeam.trim());
       if (!res.ok) return;
       setNewTeam("");
       fetchTeams();
@@ -48,7 +46,7 @@ export function TeamManagement() {
   async function handleDelete(id: number) {
     if (!confirm("Bu takımı silmek istediğinize emin misiniz?")) return;
     try {
-      const res = await apiFetch(`/api/admin/teams/${id}`, { method: "DELETE" });
+      const res = await deleteTeam(apiFetch, id);
       if (!res.ok) { setError("Takım silinemedi."); return; }
       fetchTeams();
     } catch { }

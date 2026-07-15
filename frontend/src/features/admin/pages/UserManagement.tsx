@@ -4,6 +4,7 @@ import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
 import { TeamAssignModal }  from "../components/TeamAssignModal";
+import { getUsers, setUserActive } from "../api/userService";
 
 interface UserDto {
   id:       number;
@@ -31,7 +32,7 @@ export function UserManagement() {
   async function fetchUsers() {
     setIsLoading(true);
     try {
-      const res = await apiFetch("/api/admin/users");
+      const res = await getUsers(apiFetch);
       if (!res.ok) { setError("Kullanıcılar yüklenemedi."); return; }
       setUsers(await res.json());
     } catch {
@@ -45,10 +46,7 @@ export function UserManagement() {
 
   async function toggleActive(user: UserDto) {
     try {
-      await apiFetch(`/api/admin/users/${user.id}/active`, {
-        method: "PUT",
-        body:   JSON.stringify({ isActive: !user.isActive }),
-      });
+      await setUserActive(apiFetch, user.id, !user.isActive);
       fetchUsers();
     } catch { }
   }

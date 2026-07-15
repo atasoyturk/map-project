@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
+import { getRoles, assignRoleToUser, removeRoleFromUser } from "../api/roleService";
 
 interface RoleDto {
   id:   number;
@@ -24,7 +25,7 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
     async function fetchRoles() {
       setIsLoading(true);
       try {
-        const res = await apiFetch("/api/admin/roles");
+        const res = await getRoles(apiFetch);
         if (!res.ok) return;
         setAllRoles(await res.json());
       } catch {  }
@@ -38,14 +39,9 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
     setIsSaving(true);
     try {
       if (hasRole) {
-        await apiFetch(`/api/admin/users/${userId}/roles/${role.id}`, {
-          method: "DELETE",
-        });
+        await removeRoleFromUser(apiFetch, userId, role.id);
       } else {
-        await apiFetch(`/api/admin/users/${userId}/roles`, {
-          method: "POST",
-          body:   JSON.stringify({ roleId: role.id }),
-        });
+        await assignRoleToUser(apiFetch, userId, role.id);
       }
       onUpdated();
     } catch {  }

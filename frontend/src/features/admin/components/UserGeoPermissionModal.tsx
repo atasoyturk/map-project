@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth }             from "../../auth/context/AuthContext";
 import { GeoPermissionMap }    from "./GeoPermissionMap";
+import { getRoles }            from "../api/roleService";
+import {
+  getAllGeoPermissions,
+  getGeoPermissionsByUser,
+  getGeoPermissionsByRole,
+  assignGeoPermissionToUser,
+  removeGeoPermissionFromUser,
+} from "../api/geoPermissionService";
 
 interface GeoPermissionDto {
   id:          number;
@@ -37,18 +45,16 @@ export function UserGeoPermissionModal({
   async function fetchData() {
     setIsLoading(true);
     try {
-      // pull role id
-      const rolesRes = await apiFetch("/api/admin/roles");
+      const rolesRes = await getRoles(apiFetch);
       const allRoles: { id: number; name: string }[] = rolesRes.ok ? await rolesRes.json() : [];
       const userRoleIds = allRoles
         .filter(r => userRoles.includes(r.name))
         .map(r => r.id);
 
-      
       const [allRes, assignedRes, ...roleResponses] = await Promise.all([
-        apiFetch("/api/geo-permission"),
-        apiFetch(`/api/geo-permission/user/${userId}`),
-        ...userRoleIds.map(roleId => apiFetch(`/api/geo-permission/role/${roleId}`)),
+        getAllGeoPermissions(apiFetch),
+        getGeoPermissionsByUser(apiFetch, userId),
+        ...userRoleIds.map(roleId => getGeoPermissionsByRole(apiFetch, roleId)),
       ]);
 
       if (!allRes.ok || !assignedRes.ok) return;
@@ -56,7 +62,6 @@ export function UserGeoPermissionModal({
       const all:      GeoPermissionDto[] = await allRes.json();
       const assigned: GeoPermissionDto[] = await assignedRes.json();
 
-      // add up the boundaries that comes from the role
       const roleAssigned: GeoPermissionDto[] = [];
       for (const res of roleResponses) {
         if (res.ok) {
@@ -79,37 +84,29 @@ export function UserGeoPermissionModal({
     setIsSaving(true);
     try {
       if (isAssigned) {
-        await apiFetch(`/api/geo-permission/user/${userId}/${permissionId}`, {
-          method: "DELETE",
-        });
+        await removeGeoPermissionFromUser(apiFetch, userId, permissionId);
         setAssignedPermissions((prev) => {
           const next = new Set(prev);
           next.delete(permissionId);
           return next;
         });
       } else {
-        await apiFetch(`/api/geo-permission/user/${userId}/${permissionId}`, {
-          method: "POST",
-        });
+        await assignGeoPermissionToUser(apiFetch, userId, permissionId);
         setAssignedPermissions((prev) => new Set(prev).add(permissionId));
       }
     } catch {  }
     finally { setIsSaving(false); }
   }
 
-  // when a new boundary saved, refresh library and assign to the user
   async function handleNewSaved() {
-    // Kütüphaneyi yenile
-    const allRes = await apiFetch("/api/geo-permission");
+    const allRes = await getAllGeoPermissions(apiFetch);
     if (!allRes.ok) return;
     const all: GeoPermissionDto[] = await allRes.json();
     setAllPermissions(all);
 
     const latest = all[all.length - 1];
     if (latest) {
-      await apiFetch(`/api/geo-permission/user/${userId}/${latest.id}`, {
-        method: "POST",
-      });
+      await assignGeoPermissionToUser(apiFetch, userId, latest.id);
       setAssignedPermissions((prev) => new Set(prev).add(latest.id));
     }
 
@@ -143,7 +140,6 @@ export function UserGeoPermissionModal({
             Kullanıcı: <strong>{userEmail}</strong>
           </p>
 
-          {/* Section*/}
           <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid #e2e8f0" }}>
             {([["list", "Kütüphaneden Seç"], ["new", "Yeni Sınır Ekle"]] as [Tab, string][]).map(([key, label]) => (
               <button
@@ -163,7 +159,6 @@ export function UserGeoPermissionModal({
             ))}
           </div>
 
-          {/* choose from lib */}
           {tab === "list" && (
             isLoading ? (
               <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>
@@ -224,7 +219,6 @@ export function UserGeoPermissionModal({
             )
           )}
 
-          {/* Add new boundary */}
           {tab === "new" && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <p style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
@@ -258,7 +252,6 @@ export function UserGeoPermissionModal({
         </div>
       </div>
 
-      {/* map */}
       {showDrawMap && (
         <GeoPermissionMap
           onClose={() => setShowDrawMap(false)}

@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
 import { useAuth }             from "../../auth/context/AuthContext";
+import {
+  getAllGeoPermissions,
+  getGeoPermissionsByRole,
+  assignGeoPermissionToRole,
+  removeGeoPermissionFromRole,
+} from "../api/geoPermissionService";
 
 interface GeoPermissionDto {
   id:          number;
@@ -30,8 +36,8 @@ export function RoleGeoPermissionModal({
     setIsLoading(true);
     try {
       const [allRes, assignedRes] = await Promise.all([
-        apiFetch("/api/geo-permission"),
-        apiFetch(`/api/geo-permission/role/${roleId}`),
+        getAllGeoPermissions(apiFetch),
+        getGeoPermissionsByRole(apiFetch, roleId),
       ]);
 
       if (!allRes.ok || !assignedRes.ok) return;
@@ -52,18 +58,14 @@ export function RoleGeoPermissionModal({
     setIsSaving(true);
     try {
       if (isAssigned) {
-        await apiFetch(`/api/geo-permission/role/${roleId}/${permissionId}`, {
-          method: "DELETE",
-        });
+        await removeGeoPermissionFromRole(apiFetch, roleId, permissionId);
         setAssignedPermissions((prev) => {
           const next = new Set(prev);
           next.delete(permissionId);
           return next;
         });
       } else {
-        await apiFetch(`/api/geo-permission/role/${roleId}/${permissionId}`, {
-          method: "POST",
-        });
+        await assignGeoPermissionToRole(apiFetch, roleId, permissionId);
         setAssignedPermissions((prev) => new Set(prev).add(permissionId));
       }
     } catch {  }

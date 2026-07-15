@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
+import { getUserPermissions, grantPermissionToUser, revokePermissionFromUser } from "../api/permissionService";
 
 interface EffectivePermission {
   name:        string;
   description: string;
   isGranted:   boolean;
-  origin:      string;      // "Role" | "User" | "None"
+  origin:      string;
   roleName:    string | null;
 }
 
@@ -24,7 +25,7 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
   async function fetchPermissions() {
     setIsLoading(true);
     try {
-      const res = await apiFetch(`/api/admin/users/${userId}/permissions`);
+      const res = await getUserPermissions(apiFetch, userId);
       if (!res.ok) return;
       setPermissions(await res.json());
     } catch {  }
@@ -42,14 +43,9 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
     setIsSaving(true);
     try {
         if (permission.isGranted) {
-        await apiFetch(`/api/admin/users/${userId}/permissions/${permissionId}`, {
-            method: "DELETE",
-        });
+        await revokePermissionFromUser(apiFetch, userId, permissionId);
         } else {
-        await apiFetch(`/api/admin/users/${userId}/permissions`, {
-            method: "POST",
-            body:   JSON.stringify({ permissionId }),
-        });
+        await grantPermissionToUser(apiFetch, userId, permissionId);
         }
         fetchPermissions();
     } catch {  }
@@ -162,13 +158,17 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
   );
 }
 
-// id comes from backend
 function getPermissionId(name: string): number {
   const map: Record<string, number> = {
-    "point_create":   1,
-    "line_create":    2,
-    "polygon_create": 3,
-    "admin_access":   4,
+    "point_create":         1,
+    "line_create":          2,
+    "polygon_create":       3,
+    "admin_access":         4,
+    "annotation_create":    5,
+    "annotation_read":      6,
+    "poi_create":           7,
+    "poi_read":             8,
+    "poi_category_manage":  9,
   };
   return map[name] ?? 0;
 }

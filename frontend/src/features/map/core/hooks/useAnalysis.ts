@@ -5,6 +5,8 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { WKT } from "ol/format";
 import { Style, Fill, Stroke, Circle} from "ol/style";
+import { validateGeometry } from "../api/geoService";
+import { analyzeTempInventory } from "../api/analysisService";
 
 interface UseAnalysisOptions {
   map:       Map | null;
@@ -25,7 +27,6 @@ export function useAnalysis({
   const sourceRef = useRef(new VectorSource());
   const layerRef  = useRef<VectorLayer<VectorSource> | null>(null);
 
-  // temp layer
   useEffect(() => {
     if (!map) return;
 
@@ -47,7 +48,6 @@ export function useAnalysis({
     };
   }, [map]);
 
-  // Draw interaction, just active when active is true
   useEffect(() => {
     if (!map) return;
 
@@ -80,11 +80,7 @@ export function useAnalysis({
       const wkt    = new WKT().writeGeometry(cloned);
 
       try {
-        // geofencing validate
-        const validateRes = await apiFetch("/api/geo-permission/validate", {
-          method: "POST",
-          body:   JSON.stringify({ wktGeometry: wkt }),
-        });
+        const validateRes = await validateGeometry(apiFetch, wkt);
 
         if (!validateRes.ok) {
           sourceRef.current.clear();
@@ -93,11 +89,7 @@ export function useAnalysis({
           return;
         }
 
-        // analyze
-        const response = await apiFetch("/api/analysis/temp-inventory", {
-          method: "POST",
-          body:   JSON.stringify({ wktGeometry: wkt }),
-        });
+        const response = await analyzeTempInventory(apiFetch, wkt);
 
         if (!response.ok) { onError("Analiz başarısız."); return; }
 

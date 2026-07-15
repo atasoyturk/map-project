@@ -80,15 +80,14 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return entities.Select(ToDto);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int userId)
     {
         var entity = await _context.GeoPermissions
             .FirstOrDefaultAsync(gp => gp.Id == id && !gp.IsDeleted);
 
         if (entity is null) return false;
 
-        entity.IsDeleted    = true;
-        entity.ModifiedDate = DateTime.UtcNow;
+        entity.SoftDelete(userId);
         await _context.SaveChangesAsync();
         return true;
     }

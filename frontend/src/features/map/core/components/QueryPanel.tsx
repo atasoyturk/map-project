@@ -3,6 +3,7 @@ import { useAuth } from "../../../auth/context/AuthContext";
 import Map                     from "ol/Map";
 import { WKT }                 from "ol/format";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
+import { searchDrawings } from "../api/searchService";
 
 interface DrawingRow {
   id:          number;
@@ -38,14 +39,7 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
   async function fetchData() {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (name)      params.set("name",      name);
-      if (startDate) params.set("startDate", startDate);
-      if (endDate)   params.set("endDate",   endDate);
-      params.set("sortBy",    sortBy);
-      params.set("sortOrder", sortOrder);
-
-      const res = await apiFetch(`/api/drawings/search?${params.toString()}`);
+      const res = await searchDrawings(apiFetch, { name, startDate, endDate, sortBy, sortOrder });
       if (!res.ok) return;
 
       const data = await res.json();
@@ -77,7 +71,6 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
     if (!map) return;
 
     try {
-      // read geometry from WKT and fit map view
       const wktFormat = new WKT();
       const geometry  = wktFormat.readGeometry(row.wktGeometry, {
         dataProjection:    "EPSG:4326",
@@ -91,7 +84,6 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
         duration: 800,
       });
 
-      // find the feature on the map and trigger InfoPopup 
       const found = findFeatureOnMap(map, row.id, row.type);
       if (found) {
         window.dispatchEvent(new CustomEvent("gis:selectFeature", {
@@ -119,7 +111,6 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
       display:    "flex",
       flexDirection: "column",
     }}>
-      {/* Headers + filters*/}
       <div style={{
         display:       "flex",
         alignItems:    "center",
@@ -179,7 +170,6 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
         </button>
       </div>
 
-      {/* Table */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         {isLoading ? (
           <div style={{ padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
@@ -252,7 +242,6 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
   );
 }
 
-// search for a feature on the map by ID and type
 function findFeatureOnMap(
   map: Map,
   id: number,

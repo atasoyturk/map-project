@@ -2,6 +2,7 @@ import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth }     from "../context/AuthContext";
 import { GlobeCanvas } from "../components/GlobeCanvas";
+import { register } from "../api/authService";
 
 export function RegisterPage() {
   const [email, setEmail]       = useState("");
@@ -18,10 +19,7 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiFetch("/api/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await register(apiFetch, { email, password });
 
       if (response.status === 409) {
         setError("Bu e-posta adresi zaten kayıtlı.");

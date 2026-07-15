@@ -2,6 +2,7 @@ import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth }     from "../context/AuthContext";
 import { GlobeCanvas } from "../components/GlobeCanvas";
+import { login as loginRequest } from "../api/authService";
 
 
 export function LoginPage() {
@@ -19,10 +20,7 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiFetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await loginRequest(apiFetch, { email, password });
 
       if (!response.ok) {
         setError("E-posta veya şifre hatalı.");

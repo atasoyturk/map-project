@@ -1,0 +1,12 @@
+{
+  "include": [
+    "frontend/src/**/*.{ts,tsx}",
+    "BackendApi/**/*.cs",
+    "**/package.json",
+    "**/appsettings*.json",
+    "**/tsconfig*.json"
+  ],
+  "output": {
+    "filePath": "repomix-output.xml"
+  }
+}

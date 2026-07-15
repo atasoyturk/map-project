@@ -36,8 +36,7 @@ public sealed class LineService : ILineService
         _context.Lines.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new LineResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry), entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<IEnumerable<LineResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
@@ -48,13 +47,11 @@ public sealed class LineService : ILineService
         {
             GeoViewMode.All  => query,
             GeoViewMode.Team => query.Where(l => l.TeamId == teamId),
-            _                => query.Where(l => l.UserId == userId)   // Own
+            _                => query.Where(l => l.UserId == userId)
         };
 
-        return await query
-            .Select(l => new LineResponseDto(l.Id, l.Name, l.Color,
-                GeometryConverter.ToWkt(l.Geometry), l.CreatedDate))
-            .ToListAsync();
+        var entities = await query.ToListAsync();
+        return entities.Select(ToDto);
     }
 
     public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
@@ -77,8 +74,7 @@ public sealed class LineService : ILineService
 
         await _context.SaveChangesAsync();
 
-        return new LineResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)
@@ -100,9 +96,10 @@ public sealed class LineService : ILineService
         var entity = await _context.Lines
             .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
 
-        if (entity is null) return null;
-
-        return new LineResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+        return entity is null ? null : ToDto(entity);
     }
+
+    private static LineResponseDto ToDto(LineEntity entity) =>
+        new(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
 }

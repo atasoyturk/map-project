@@ -29,14 +29,13 @@ public sealed class PointService : IPointService
             Name     = request.Name,
             Color    = request.Color,
             UserId   = userId,
-            TeamId   = teamId   
+            TeamId   = teamId
         };
 
         _context.Points.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new PointResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry), entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<IEnumerable<PointResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
@@ -47,13 +46,11 @@ public sealed class PointService : IPointService
         {
             GeoViewMode.All  => query,
             GeoViewMode.Team => query.Where(p => p.TeamId == teamId),
-            _                => query.Where(p => p.UserId == userId)   // Own
+            _                => query.Where(p => p.UserId == userId)
         };
 
-        return await query
-            .Select(p => new PointResponseDto(p.Id, p.Name, p.Color,
-                GeometryConverter.ToWkt(p.Geometry), p.CreatedDate))
-            .ToListAsync();
+        var entities = await query.ToListAsync();
+        return entities.Select(ToDto);
     }
 
     public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
@@ -68,16 +65,15 @@ public sealed class PointService : IPointService
 
         if (entity is null) return null;
 
-        entity.Geometry     = GeometryConverter.FromWkt(request.WktGeometry);
-        entity.Name         = request.Name;
-        entity.Color        = request.Color;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId; 
+        entity.Geometry       = geometry;
+        entity.Name           = request.Name;
+        entity.Color          = request.Color;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
 
         await _context.SaveChangesAsync();
 
-        return new PointResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)
@@ -87,9 +83,9 @@ public sealed class PointService : IPointService
 
         if (entity is null) return false;
 
-        entity.IsDeleted    = true;
-        entity.ModifiedDate = DateTime.UtcNow;
-        entity.ModifiedUserId  = userId; 
+        entity.IsDeleted      = true;
+        entity.ModifiedDate   = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -99,9 +95,10 @@ public sealed class PointService : IPointService
         var entity = await _context.Points
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
 
-        if (entity is null) return null;
-
-        return new PointResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
+        return entity is null ? null : ToDto(entity);
     }
+
+    private static PointResponseDto ToDto(PointEntity entity) =>
+        new(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), entity.CreatedDate);
 }

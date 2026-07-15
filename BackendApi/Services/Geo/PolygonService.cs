@@ -36,8 +36,7 @@ public sealed class PolygonService : IPolygonService
         _context.Polygons.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(geometry), 0, entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<IEnumerable<PolygonResponseDto>> GetAllAsync(int userId, int? teamId, GeoViewMode viewMode)
@@ -48,13 +47,11 @@ public sealed class PolygonService : IPolygonService
         {
             GeoViewMode.All  => query,
             GeoViewMode.Team => query.Where(p => p.TeamId == teamId),
-            _                => query.Where(p => p.UserId == userId)   // Own
+            _                => query.Where(p => p.UserId == userId)
         };
 
-        return await query
-            .Select(p => new PolygonResponseDto(p.Id, p.Name, p.Color,
-                GeometryConverter.ToWkt(p.Geometry), 0, p.CreatedDate))
-            .ToListAsync();
+        var entities = await query.ToListAsync();
+        return entities.Select(ToDto);
     }
 
     public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
@@ -77,8 +74,7 @@ public sealed class PolygonService : IPolygonService
 
         await _context.SaveChangesAsync();
 
-        return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), 0, entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)
@@ -100,9 +96,10 @@ public sealed class PolygonService : IPolygonService
         var entity = await _context.Polygons
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
 
-        if (entity is null) return null;
-
-        return new PolygonResponseDto(entity.Id, entity.Name, entity.Color,
-            GeometryConverter.ToWkt(entity.Geometry), 0, entity.CreatedDate);
+        return entity is null ? null : ToDto(entity);
     }
+
+    private static PolygonResponseDto ToDto(PolygonEntity entity) =>
+        new(entity.Id, entity.Name, entity.Color,
+            GeometryConverter.ToWkt(entity.Geometry), 0, entity.CreatedDate);
 }

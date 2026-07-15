@@ -22,9 +22,8 @@ public sealed class AnnotationService : IAnnotationService
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
-            throw new UnauthorizedAccessException("Bu alana not ekleme yetkiniz bulunmamaktadır");
+        await _geoPermissionService.EnsureWithinBoundaryAsync(
+            userId, roles, geometry, "Bu alana not ekleme yetkiniz bulunmamaktadır");
 
         var entity = new AnnotationEntity
         {
@@ -37,8 +36,7 @@ public sealed class AnnotationService : IAnnotationService
         _context.Annotations.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new AnnotationResponseDto(entity.Id, entity.NoteText,
-            GeometryConverter.ToWkt(geometry), entity.UserId, entity.TeamId, entity.CreatedDate);
+        return ToDto(entity);
     }
 
     public async Task<IEnumerable<AnnotationResponseDto>> GetAllAsync(int userId, int? teamId, bool isAdmin)
@@ -47,12 +45,12 @@ public sealed class AnnotationService : IAnnotationService
 
         if (!isAdmin)
             query = query.Where(a => a.TeamId == null || a.TeamId == teamId);
-        // TeamId==null → Admin'in kendi notu (Admin hiçbir takıma bağlı değil, snapshot null kaydedilir)
-        // ve herkese görünür kalması gereken kural bu satırla sağlanıyor.
 
-        return await query
-            .Select(a => new AnnotationResponseDto(a.Id, a.NoteText,
-                GeometryConverter.ToWkt(a.Geometry), a.UserId, a.TeamId, a.CreatedDate))
-            .ToListAsync();
+        var entities = await query.ToListAsync();
+        return entities.Select(ToDto);
     }
+
+    private static AnnotationResponseDto ToDto(AnnotationEntity entity) =>
+        new(entity.Id, entity.NoteText, GeometryConverter.ToWkt(entity.Geometry),
+            entity.UserId, entity.TeamId, entity.CreatedDate);
 }

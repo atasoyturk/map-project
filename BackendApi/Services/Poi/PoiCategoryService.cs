@@ -1,6 +1,7 @@
 using BackendApi.Data;
 using BackendApi.DTOs.Poi;
 using BackendApi.Entities.Poi;
+using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Services.Poi;
@@ -22,7 +23,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
         _context.PoiCategories.Add(category);
         await _context.SaveChangesAsync();
 
-        return new PoiCategoryResponseDto(category.Id, category.Name, category.ParentCategoryId);
+        return ToDto(category);
     }
 
     public async Task<PoiCategoryResponseDto?> UpdateAsync(int id, PoiCategoryRequestDto request)
@@ -40,7 +41,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
         category.ModifiedDate     = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return new PoiCategoryResponseDto(category.Id, category.Name, category.ParentCategoryId);
+        return ToDto(category);
     }
 
     private async Task<bool> CreatesCycleAsync(int categoryId, int candidateParentId)
@@ -63,7 +64,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
         return false;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int userId)
     {
         var category = await _context.PoiCategories
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
@@ -79,8 +80,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
         if (hasActivePois)
             throw new InvalidOperationException("Bu kategoriye bağlı POI'ler var. Önce onları başka bir kategoriye taşıyın veya silin.");
 
-        category.IsDeleted    = true;
-        category.ModifiedDate = DateTime.UtcNow;
+        category.SoftDelete(userId);
         await _context.SaveChangesAsync();
         return true;
     }
@@ -100,4 +100,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
 
         return Build(null);
     }
+
+    private static PoiCategoryResponseDto ToDto(PoiCategory entity) =>
+        new(entity.Id, entity.Name, entity.ParentCategoryId);
 }

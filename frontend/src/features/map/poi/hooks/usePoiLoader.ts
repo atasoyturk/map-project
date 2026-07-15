@@ -5,6 +5,7 @@ import VectorSource  from "ol/source/Vector";
 import { WKT }       from "ol/format";
 import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
 import type { PoiResponseDto } from "../types";
+import { getAllPois } from "../../../../shared/api/poiService";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
@@ -41,7 +42,7 @@ export function usePoiLoader(map: unknown, source: VectorSource, apiFetch: ApiFe
 
     async function load() {
       try {
-        const res = await apiFetch("/api/poi");
+        const res = await getAllPois(apiFetch);
         if (!res.ok) return;   // poi_read yoksa sessizce boş kalır
         const data: PoiResponseDto[] = await res.json();
         for (const dto of data) source.addFeature(poiToFeature(dto));

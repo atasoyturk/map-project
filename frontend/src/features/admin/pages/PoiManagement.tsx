@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { CategoryTreeManager } from "../components/CategoryTreeManager";
 import { flattenCategories, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
-import { getAllPois, getCategoryTree } from "../api/poiService";
+import { getAllPois, getCategoryTree } from "../../../shared/api/poiService";
 import { getUserLookup } from "../../../shared/api/userLookupService";
 
 interface PoiDto {

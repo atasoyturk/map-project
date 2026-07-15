@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { CategoryTreeNode } from "../../../../shared/utils/categoryTree";
+import { getCategoryTree } from "../../../../shared/api/poiService";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
@@ -11,7 +12,7 @@ export function useCategoryTree(apiFetch: ApiFetch): CategoryTreeNode[] {
 
     async function load() {
       try {
-        const res = await apiFetch("/api/poi-category/tree");
+        const res = await getCategoryTree(apiFetch);
         if (!res.ok) return;
         const data: CategoryTreeNode[] = await res.json();
         if (!cancelled) setTree(data);

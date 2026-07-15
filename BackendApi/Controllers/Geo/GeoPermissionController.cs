@@ -38,7 +38,10 @@ public sealed class GeoPermissionController : ApiControllerBase
     [RequirePermission("admin_access")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await _geoPermissionService.DeleteAsync(id);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _geoPermissionService.DeleteAsync(id, userId.Value);
         return result ? NoContent() : NotFound();
     }
 

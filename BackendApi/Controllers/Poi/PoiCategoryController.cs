@@ -33,7 +33,10 @@ public sealed class PoiCategoryController : ApiControllerBase
     [RequirePermission("poi_category_manage")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await _service.DeleteAsync(id);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _service.DeleteAsync(id, userId.Value);
         return result ? NoContent() : NotFound();
     }
 }

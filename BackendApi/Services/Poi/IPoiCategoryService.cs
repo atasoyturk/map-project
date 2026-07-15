@@ -6,6 +6,6 @@ public interface IPoiCategoryService
 {
     Task<PoiCategoryResponseDto>  CreateAsync(PoiCategoryRequestDto request);
     Task<PoiCategoryResponseDto?> UpdateAsync(int id, PoiCategoryRequestDto request);
-    Task<bool>                    DeleteAsync(int id);
+    Task<bool>                    DeleteAsync(int id, int userId);
     Task<IList<PoiCategoryTreeDto>> GetTreeAsync();
 }

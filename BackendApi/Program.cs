@@ -25,12 +25,11 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Settings
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("JwtSettings"));
-
-var jwtSettings = builder.Configuration
-    .GetSection("JwtSettings")
-    .Get<JwtSettings>()!;
+builder.Services
+    .AddOptions<JwtSettings>()
+    .Bind(builder.Configuration.GetSection("JwtSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // CORS policy
 var allowedOrigins = builder.Configuration
@@ -53,16 +52,14 @@ builder.Services
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey         = new SymmetricSecurityKey(
-                                           Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ValidateIssuer           = true,
-            ValidIssuer              = jwtSettings.Issuer,
             ValidateAudience         = true,
-            ValidAudience            = jwtSettings.Audience,
             ValidateLifetime         = true,
-            ClockSkew                = TimeSpan.Zero   
+            ClockSkew                = TimeSpan.Zero
         };
     });
+
+builder.Services.ConfigureOptions<ConfigureJwtBearerOptions>();
 
 // Authorization
 builder.Services.AddAuthorization(options =>
@@ -109,8 +106,11 @@ builder.Services.AddScoped<IPoiCategoryService, PoiCategoryService>();
 builder.Services.AddScoped<IPoiService,         PoiService>();
 
 // GeoServer Settings
-builder.Services.Configure<GeoServerSettings>(
-    builder.Configuration.GetSection("GeoServerSettings"));
+builder.Services
+    .AddOptions<GeoServerSettings>()
+    .Bind(builder.Configuration.GetSection("GeoServerSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // HttpClient — GeoServer proxy 
 builder.Services.AddHttpClient("GeoServer", (serviceProvider, client) =>

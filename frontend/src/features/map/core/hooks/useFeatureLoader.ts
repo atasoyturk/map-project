@@ -4,6 +4,7 @@ import Map           from "ol/Map";
 import VectorSource  from "ol/source/Vector";
 import { GeoJSON }   from "ol/format";
 import { Style }     from "ol/style";
+import { getGeoFeatures } from "../api/geoService";
 
 interface FeatureLoaderOptions {
   map:          Map | null;
@@ -12,7 +13,7 @@ interface FeatureLoaderOptions {
   polygonSource:VectorSource;
   apiFetch:     (path: string, options?: RequestInit) => Promise<Response>;
   buildStyle:   (color: string, name: string) => Style;
-  viewMode:     "own" | "team";  
+  viewMode:     "own" | "team";
 }
 
 const geoJsonFormat = new GeoJSON();
@@ -25,8 +26,7 @@ async function loadLayer(
   buildStyle:  (color: string, name: string) => Style,
   viewMode:    "own" | "team",
 ): Promise<void> {
-  const query = viewMode === "team" ? `&viewMode=team` : "";
-  const res = await apiFetch(`/api/proxy/geoserver/wfs?typeName=${typeName}${query}`);
+  const res = await getGeoFeatures(apiFetch, typeName, viewMode);
   if (!res.ok) return;
 
   const geojson = await res.json();
@@ -39,8 +39,6 @@ async function loadLayer(
   for (const f of features as Feature[]) {
     const props = f.getProperties();
 
-    // GeoServer columns check
-    // GeoServer "tbl_point.8" → 8
     const rawId = props["Id"] ?? props["id"] ?? f.getId();
     const id    = typeof rawId === "string" && rawId.includes(".")
       ? parseInt(rawId.split(".")[1])
@@ -78,7 +76,6 @@ export function useFeatureLoader({
   useEffect(() => {
     if (!map) return;
 
-    
     pointSource.clear();
     lineSource.clear();
     polygonSource.clear();

@@ -4,6 +4,7 @@ import type { Geometry }     from "ol/geom";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import { useAuth }      from "../../../auth/context/AuthContext";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
+import { updateGeoFeature, deleteGeoFeature } from "../api/geoService";
 
 
 interface InfoPopupProps {
@@ -13,16 +14,16 @@ interface InfoPopupProps {
   onDelete:  () => void;
 }
 
-const ENDPOINT: Record<string, string> = {
-  point:   "/api/point",
-  line:    "/api/line",
-  polygon: "/api/polygon",
-};
-
 const TYPE_LABEL: Record<string, string> = {
   point:   "Nokta",
   line:    "Çizgi",
   polygon: "Poligon",
+};
+
+const TYPE_TO_DRAWTYPE: Record<string, "Point" | "LineString" | "Polygon"> = {
+  point:   "Point",
+  line:    "LineString",
+  polygon: "Polygon",
 };
 
 export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps) {
@@ -55,9 +56,10 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
       const cloned = geometry.clone().transform("EPSG:3857", "EPSG:4326");
       const wkt    = new WKT().writeGeometry(cloned);
 
-      const response = await apiFetch(`${ENDPOINT[info.type]}/${info.id}`, {
-        method: "PUT",
-        body:   JSON.stringify({ wktGeometry: wkt, name, color }),
+      const response = await updateGeoFeature(apiFetch, TYPE_TO_DRAWTYPE[info.type], info.id, {
+        wktGeometry: wkt,
+        name,
+        color,
       });
 
       if (!response.ok) { setError("Güncelleme başarısız."); return; }
@@ -80,9 +82,7 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      const response = await apiFetch(`${ENDPOINT[info.type]}/${info.id}`, {
-        method: "DELETE",
-      });
+      const response = await deleteGeoFeature(apiFetch, TYPE_TO_DRAWTYPE[info.type], info.id);
       if (!response.ok) { setError("Silme başarısız."); return; }
       onDelete();
       onClose();

@@ -10,6 +10,7 @@ import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
 import { Toast }      from "../../../../shared/components/Toast";
 import type { DrawType, PendingGeometry } from "../types";
+import { createGeoFeature, validateGeometry } from "../api/geoService";
 
 interface NavbarProps {
   map:               Map | null;
@@ -28,12 +29,6 @@ interface NavbarProps {
   onPoiDrawChange:  (active: boolean) => void;
   poiFormOpen:      boolean;
 }
-
-const ENDPOINT_MAP: Record<DrawType, string> = {
-  Point:      "/api/point",
-  LineString: "/api/line",
-  Polygon:    "/api/polygon",
-};
 
 const LABEL_MAP: Record<DrawType, string> = {
   Point:      "Nokta",
@@ -79,8 +74,6 @@ export function Navbar({
 
   const canManagePoi  = roles.includes("Operator") || roles.includes("Admin");
   const otherToolActive = !!activeType || analysisActive;
-  // pendingGeometry/heatmapActive/poiDrawActive/poiFormOpen: herhangi biri
-  // sürüyorsa diğer araçlar kilitlenir — tek seferde tek etkileşim (POLA).
   const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen;
 
   useFeatureLoader({
@@ -103,10 +96,7 @@ export function Navbar({
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
 
       try {
-        const res = await apiFetch("/api/geo-permission/validate", {
-          method: "POST",
-          body:   JSON.stringify({ wktGeometry: pending.wkt }),
-        });
+        const res = await validateGeometry(apiFetch, pending.wkt);
 
         if (!res.ok) {
           const src =
@@ -152,9 +142,10 @@ export function Navbar({
     if (!pendingGeometry) return;
     setIsSaving(true);
     try {
-      const response = await apiFetch(ENDPOINT_MAP[pendingGeometry.type], {
-        method: "POST",
-        body:   JSON.stringify({ wktGeometry: pendingGeometry.wkt, name, color }),
+      const response = await createGeoFeature(apiFetch, pendingGeometry.type, {
+        wktGeometry: pendingGeometry.wkt,
+        name,
+        color,
       });
 
       if (!response.ok) {
@@ -188,7 +179,7 @@ export function Navbar({
     onAnalysisChange(false);
     setAnalysisResult(null);
     clearAnalysis();
-    onPoiDrawChange(false);   // ← YENİ: başka araç seçilince POI çizimi iptal
+    onPoiDrawChange(false);
     onActiveTypeChange(activeType === type ? null : type);
   }
 
@@ -196,7 +187,7 @@ export function Navbar({
     const next = !analysisActive;
     onAnalysisChange(next);
     onActiveTypeChange(null);
-    onPoiDrawChange(false);   // ← YENİ
+    onPoiDrawChange(false);
     if (!next) { clearAnalysis(); setAnalysisResult(null); }
     setToast(null);
   }
@@ -244,7 +235,6 @@ export function Navbar({
         padding: "0 20px", zIndex: 1000, gap: 12,
       }}>
 
-        {/* Brand + Panel */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 120 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
@@ -272,7 +262,6 @@ export function Navbar({
           )}
         </div>
 
-        {/* Tools */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, left: "50%", position: "absolute", transform: "translateX(-50%)"}}>
           {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
             <button
@@ -431,7 +420,6 @@ export function Navbar({
           )}
         </div>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           style={{

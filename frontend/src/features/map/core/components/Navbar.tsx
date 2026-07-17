@@ -73,6 +73,7 @@ export function Navbar({
   const navigate = useNavigate();
 
   const canManagePoi  = roles.includes("Operator") || roles.includes("Admin");
+  const isOperatorOnly = roles.includes("Operator") && !roles.includes("Admin");
   const otherToolActive = !!activeType || analysisActive;
   const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen;
 
@@ -263,141 +264,145 @@ export function Navbar({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, left: "50%", position: "absolute", transform: "translateX(-50%)"}}>
-          {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
-            <button
-              key={type}
-              onClick={() => handleSelect(type)}
-              disabled={toolsLocked}
-              style={{
-                padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
-                background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
-                color:       activeType === type ? "#93c5fd" : "#94a3b8",
-                fontSize: 13, fontWeight: 500,
-                cursor:   toolsLocked ? "not-allowed" : "pointer",
-                opacity:  toolsLocked ? 0.5 : 1,
-                transition: "all .15s",
-              }}
-            >
-              {LABEL_MAP[type]}
-            </button>
-          ))}
+          {!isOperatorOnly && (
+            <>
+              {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleSelect(type)}
+                  disabled={toolsLocked}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                    borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
+                    background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
+                    color:       activeType === type ? "#93c5fd" : "#94a3b8",
+                    fontSize: 13, fontWeight: 500,
+                    cursor:   toolsLocked ? "not-allowed" : "pointer",
+                    opacity:  toolsLocked ? 0.5 : 1,
+                    transition: "all .15s",
+                  }}
+                >
+                  {LABEL_MAP[type]}
+                </button>
+              ))}
 
-          {activeType && !pendingGeometry && (
-            <button
-              onClick={() => { onActiveTypeChange(null); setToast(null); }}
-              style={{
-                padding: "6px 12px", borderRadius: 8,
-                border: "1px solid rgba(239,68,68,.4)",
-                background: "rgba(239,68,68,.1)",
-                color: "#fca5a5", fontSize: 12, cursor: "pointer",
-              }}
-            >
-              İptal
-            </button>
-          )}
+              {activeType && !pendingGeometry && (
+                <button
+                  onClick={() => { onActiveTypeChange(null); setToast(null); }}
+                  style={{
+                    padding: "6px 12px", borderRadius: 8,
+                    border: "1px solid rgba(239,68,68,.4)",
+                    background: "rgba(239,68,68,.1)",
+                    color: "#fca5a5", fontSize: 12, cursor: "pointer",
+                  }}
+                >
+                  İptal
+                </button>
+              )}
 
-          <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.2)" }} />
+              <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.2)" }} />
 
-          <button
-            onClick={onQueryPanelToggle}
-            disabled={toolsLocked}
-            style={{
-              padding: "6px 14px", borderRadius: 8, border: "1px solid",
-              borderColor: queryPanelOpen ? "#6366f1" : "rgba(255,255,255,.15)",
-              background:  queryPanelOpen ? "rgba(99,102,241,.2)" : "transparent",
-              color:       queryPanelOpen ? "#a5b4fc" : "#94a3b8",
-              fontSize: 13, fontWeight: 500,
-              cursor:   toolsLocked ? "not-allowed" : "pointer",
-              opacity:  toolsLocked ? 0.5 : 1,
-              transition: "all .15s",
-            }}
-          >
-            Geçmiş
-          </button>
+              <button
+                onClick={onQueryPanelToggle}
+                disabled={toolsLocked}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: queryPanelOpen ? "#6366f1" : "rgba(255,255,255,.15)",
+                  background:  queryPanelOpen ? "rgba(99,102,241,.2)" : "transparent",
+                  color:       queryPanelOpen ? "#a5b4fc" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   toolsLocked ? "not-allowed" : "pointer",
+                  opacity:  toolsLocked ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Geçmiş
+              </button>
 
-          <button
-            onClick={handleAnalysisToggle}
-            disabled={toolsLocked}
-            style={{
-              padding: "6px 14px", borderRadius: 8, border: "1px solid",
-              borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
-              background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
-              color:       analysisActive ? "#fde047" : "#94a3b8",
-              fontSize: 13, fontWeight: 500,
-              cursor:   toolsLocked ? "not-allowed" : "pointer",
-              opacity:  toolsLocked ? 0.5 : 1,
-              transition: "all .15s",
-            }}
-          >
-            Alan Tara
-          </button>
+              <button
+                onClick={handleAnalysisToggle}
+                disabled={toolsLocked}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
+                  background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
+                  color:       analysisActive ? "#fde047" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   toolsLocked ? "not-allowed" : "pointer",
+                  opacity:  toolsLocked ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Alan Tara
+              </button>
 
-          <button
-            onClick={onLayerControlToggle}
-            disabled={toolsLocked}
-            style={{
-              padding: "6px 14px", borderRadius: 8, border: "1px solid",
-              borderColor: layerControlOpen ? "#3b82f6" : "rgba(255,255,255,.15)",
-              background:  layerControlOpen ? "rgba(59,130,246,.2)" : "transparent",
-              color:       layerControlOpen ? "#93c5fd" : "#94a3b8",
-              fontSize: 13, fontWeight: 500,
-              cursor:   toolsLocked ? "not-allowed" : "pointer",
-              opacity:  toolsLocked ? 0.5 : 1,
-              transition: "all .15s",
-            }}
-          >
-            Filtre
-          </button>
+              <button
+                onClick={onLayerControlToggle}
+                disabled={toolsLocked}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: layerControlOpen ? "#3b82f6" : "rgba(255,255,255,.15)",
+                  background:  layerControlOpen ? "rgba(59,130,246,.2)" : "transparent",
+                  color:       layerControlOpen ? "#93c5fd" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   toolsLocked ? "not-allowed" : "pointer",
+                  opacity:  toolsLocked ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Filtre
+              </button>
 
-          {analysisResult !== null && (
-            <button
-              onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
-              style={{
-                padding: "6px 12px", borderRadius: 8,
-                border: "1px solid rgba(234,179,8,.4)",
-                background: "rgba(234,179,8,.1)",
-                color: "#fde047", fontSize: 12, cursor: "pointer",
-              }}
-            >
-              Temizle
-            </button>
-          )}
+              {analysisResult !== null && (
+                <button
+                  onClick={() => { clearAnalysis(); setAnalysisResult(null); setToast(null); }}
+                  style={{
+                    padding: "6px 12px", borderRadius: 8,
+                    border: "1px solid rgba(234,179,8,.4)",
+                    background: "rgba(234,179,8,.1)",
+                    color: "#fde047", fontSize: 12, cursor: "pointer",
+                  }}
+                >
+                  Temizle
+                </button>
+              )}
 
-          <button
-            onClick={onHeatmapToggle}
-            disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
-            style={{
-              padding: "6px 14px", borderRadius: 8, border: "1px solid",
-              borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
-              background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
-              color:       heatmapActive ? "#fca5a5" : "#94a3b8",
-              fontSize: 13, fontWeight: 500,
-              cursor:   (pendingGeometry || poiDrawActive || poiFormOpen) ? "not-allowed" : "pointer",
-              opacity:  (pendingGeometry || poiDrawActive || poiFormOpen) ? 0.5 : 1,
-              transition: "all .15s",
-            }}
-          >
-            Isı Haritası
-          </button>
+              <button
+                onClick={onHeatmapToggle}
+                disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
+                  background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
+                  color:       heatmapActive ? "#fca5a5" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   (pendingGeometry || poiDrawActive || poiFormOpen) ? "not-allowed" : "pointer",
+                  opacity:  (pendingGeometry || poiDrawActive || poiFormOpen) ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Isı Haritası
+              </button>
 
-          {!isAdmin && teamId !== null && (
-            <button
-              onClick={() => setTeamModeActive((p) => !p)}
-              disabled={toolsLocked}
-              style={{
-                padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                borderColor: teamModeActive ? "#10b981" : "rgba(255,255,255,.15)",
-                background:  teamModeActive ? "rgba(16,185,129,.2)" : "transparent",
-                color:       teamModeActive ? "#6ee7b7" : "#94a3b8",
-                fontSize: 13, fontWeight: 500,
-                cursor:   toolsLocked ? "not-allowed" : "pointer",
-                opacity:  toolsLocked ? 0.5 : 1,
-                transition: "all .15s",
-              }}
-            >
-              Takım Haritası
-            </button>
+              {!isAdmin && teamId !== null && (
+                <button
+                  onClick={() => setTeamModeActive((p) => !p)}
+                  disabled={toolsLocked}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                    borderColor: teamModeActive ? "#10b981" : "rgba(255,255,255,.15)",
+                    background:  teamModeActive ? "rgba(16,185,129,.2)" : "transparent",
+                    color:       teamModeActive ? "#6ee7b7" : "#94a3b8",
+                    fontSize: 13, fontWeight: 500,
+                    cursor:   toolsLocked ? "not-allowed" : "pointer",
+                    opacity:  toolsLocked ? 0.5 : 1,
+                    transition: "all .15s",
+                  }}
+                >
+                  Takım Haritası
+                </button>
+              )}
+            </>
           )}
 
           {canManagePoi && (

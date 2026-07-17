@@ -1,17 +1,21 @@
 import type { DrawingLayers } from "../hooks/useDrawing";
+import type VectorLayer from "ol/layer/Vector";
+import type VectorSource from "ol/source/Vector";
 
 interface LayerControlProps {
-  layers: DrawingLayers | null;
-  visible : boolean;
+  layers:  DrawingLayers | null;
+  poiLayer?: VectorLayer<VectorSource> | null;
+  visible: boolean;
 }
 
-export function LayerControl({ layers, visible }: LayerControlProps) {
+export function LayerControl({ layers, poiLayer, visible }: LayerControlProps) {
   if (!layers || !visible) return null;
 
   const items = [
-    { label: "Noktalar",   layer: layers.pointLayer   },
-    { label: "Çizgiler",   layer: layers.lineLayer    },
-    { label: "Poligonlar", layer: layers.polygonLayer },
+    { label: "Nokta",   layer: layers.pointLayer   },
+    { label: "Çizgi",   layer: layers.lineLayer    },
+    { label: "Poligon", layer: layers.polygonLayer },
+    ...(poiLayer ? [{ label: "POI", layer: poiLayer }] : []),
   ];
 
   return (

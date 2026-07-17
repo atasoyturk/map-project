@@ -1,11 +1,11 @@
+import { useState, useEffect, useRef }     from "react";
 import Map                         from "ol/Map";
+import type { Feature }            from "ol";
 import VectorSource                from "ol/source/Vector";
 import VectorLayer                 from "ol/layer/Vector";
 import TileLayer   from "ol/layer/Tile";
 import TileWMS     from "ol/source/TileWMS";
-import { useState, useEffect, useRef }     from "react";
-import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
-
+import { useAuth } from "../../../features/auth/context/AuthContext";
 import { MapView }              from "../core/components/MapView";
 import { Navbar }               from "../core/components/Navbar";
 import { InfoPopup }            from "../core/components/InfoPopup";
@@ -18,6 +18,7 @@ import { AnnotationContextMenu} from "../annotation/components/AnnotationContext
 import { AnnotationModal }      from "../annotation/components/AnnotationModal";
 import { PoiFormModal }         from "../poi/components/PoiFormModal";
 import { PoiInfoPopup }         from "../poi/components/PoiInfoPopup";
+import { PoiSearchBar }         from "../poi/components/PoiSearchBar";
 
 import { useMapClick }          from "../core/hooks/useMapClick";
 import { useUserLookup }        from "../core/hooks/useUserLookup";
@@ -31,7 +32,6 @@ import { usePoiDraw }           from "../poi/hooks/usePoiDraw";
 import { usePoiClick }          from "../poi/hooks/usePoiClick";
 import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
 
-import { useAuth }                  from "../../../features/auth/context/AuthContext";
 import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
@@ -39,6 +39,8 @@ import type { AnnotationResponseDto} from "../annotation/types";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
 import { createPoi } from "../../../shared/api/poiService";
 import { createAnnotation } from "../annotation/api/annotationService";
+import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
+
 
 const annotationStyle = new Style({
   image: new CircleStyle({
@@ -72,8 +74,10 @@ export function DashboardPage() {
   const [isSavingPoi,   setIsSavingPoi]   = useState(false);
   const [poiFormError,  setPoiFormError]  = useState<string | null>(null);
   const [toast,         setToast]         = useState<ToastState | null>(null);
+  const [poiFeatures,   setPoiFeatures]   = useState<Feature[]>([]);
+  const [poiSelected,   setPoiSelected]   = useState<Feature | null>(null);
 
-  const { token, apiFetch } = useAuth();
+  const { token, apiFetch, roles, userId } = useAuth();
 
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
@@ -105,17 +109,22 @@ export function DashboardPage() {
     });
     map.addLayer(layer);
     poiLayerRef.current = layer;
+
+    const handleSourceChange = () => setPoiFeatures(poiSourceRef.current.getFeatures());
+    poiSourceRef.current.on("featuresloadend", handleSourceChange);
+    poiSourceRef.current.on("addfeature", handleSourceChange);
+
     return () => {
       map.removeLayer(layer);
       poiLayerRef.current = null;
+      poiSourceRef.current.un("featuresloadend", handleSourceChange);
+      poiSourceRef.current.un("addfeature", handleSourceChange);
     };
   }, [map]);
 
   useAnnotationLoader(map, annotationSourceRef.current, apiFetch);
   usePoiLoader(map, poiSourceRef.current, apiFetch);
 
-  // Herhangi bir çizim/analiz/heatmap/POI akışı sürerken diğer etkileşimler
-  // (tooltip, sağ-tık not menüsü) bilerek devre dışı — tek seferde tek etkileşim.
   const poiFlowActive  = poiDrawActive || pendingPoi !== null;
   const interactionsIdle = !analysisActive && activeType === null && !heatmapActive && !poiFlowActive;
 
@@ -160,11 +169,15 @@ export function DashboardPage() {
     },
   });
 
-  const { selected: poiSelected, clear: clearPoiSelected } = usePoiClick({
+  const { selected: poiClickSelected, clear: clearPoiSelected } = usePoiClick({
     map,
     poiLayer: poiLayerRef.current,
     enabled:  interactionsIdle,
   });
+
+  useEffect(() => {
+    setPoiSelected(poiClickSelected?.feature ?? null);
+  }, [poiClickSelected]);
 
   useMapClick({
     map,
@@ -179,7 +192,6 @@ export function DashboardPage() {
   useEffect(() => {
     if (!map) return;
 
-    // hide point layer
     if (layers?.pointLayer) {
       layers.pointLayer.setVisible(!heatmapActive);
     }
@@ -209,18 +221,16 @@ export function DashboardPage() {
       opacity:  0.75,
     });
 
-    map.addLayer(heatmapLayer);
+  map.addLayer(heatmapLayer);
 
-    return () => {
-      map.removeLayer(heatmapLayer);
-      // reopen point layer
-      if (layers?.pointLayer) {
-        layers.pointLayer.setVisible(true);
-      }
-    };
-  }, [map, heatmapActive, token, layers]);
+  return () => {
+    map.removeLayer(heatmapLayer);
+    if (layers?.pointLayer) {
+      layers.pointLayer.setVisible(true);
+    }
+  };
+}, [map, heatmapActive, token, layers]);
 
-  // feature choice effect
   useEffect(() => {
     function handleSelectFeature(e: Event) {
       const info = (e as CustomEvent<SelectedFeatureInfo>).detail;
@@ -236,7 +246,6 @@ export function DashboardPage() {
     setNoteError(null);
 
     try {
-      
       const res = await createAnnotation(apiFetch, { noteText, wktGeometry: pendingNote.wkt });
 
       if (!res.ok) {
@@ -267,7 +276,6 @@ export function DashboardPage() {
     setPoiFormError(null);
 
     try {
-      
       const res = await createPoi(apiFetch, {
         name:         data.name,
         workingHours: data.workingHours,
@@ -300,6 +308,22 @@ export function DashboardPage() {
     setPoiFormError(null);
   }
 
+  function handlePoiUpdated() {
+    setPoiFeatures([...poiSourceRef.current.getFeatures()]);
+  }
+
+  function handlePoiDeleted() {
+    if (poiSelected) poiSourceRef.current.removeFeature(poiSelected);
+    setPoiSelected(null);
+    clearPoiSelected();
+    setPoiFeatures([...poiSourceRef.current.getFeatures()]);
+  }
+
+  const canManageSelectedPoi =
+    !!poiSelected &&
+    (roles.includes("Admin") ||
+      (roles.includes("Operator") && poiSelected.get("poiUserId") === userId));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <Navbar
@@ -322,7 +346,8 @@ export function DashboardPage() {
       <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
         <HeatmapLegend visible={heatmapActive} />
-        <LayerControl layers={layers} visible={layerControlOpen} />
+        <LayerControl layers={layers} poiLayer={poiLayerRef.current} visible={layerControlOpen} />
+        <PoiSearchBar map={map} poiFeatures={poiFeatures} />
         <FeatureTooltip info={tooltip} />
 
         {pendingNote && !showNoteModal && (
@@ -356,10 +381,13 @@ export function DashboardPage() {
 
       {poiSelected && (
         <PoiInfoPopup
-          feature={poiSelected.feature}
+          feature={poiSelected}
           categories={categories}
           userLookup={userLookup}
-          onClose={clearPoiSelected}
+          canManage={canManageSelectedPoi}
+          onClose={() => { setPoiSelected(null); clearPoiSelected(); }}
+          onUpdated={handlePoiUpdated}
+          onDeleted={handlePoiDeleted}
         />
       )}
 

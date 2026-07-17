@@ -19,6 +19,7 @@ interface AuthContextValue {
   token:    string | null;
   roles:    string[];
   teamId:   number | null;
+  userId:   number | null;
   login:    (token: string) => void;
   logout:   () => void;
   apiFetch: ReturnType<typeof createApiFetch>;
@@ -50,6 +51,18 @@ function getTeamId(token: string | null): number | null {
   }
 }
 
+function getUserId(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const payload = jwtDecode<TokenPayload>(token);
+    if (!payload.sub) return null;
+    const parsed = parseInt(payload.sub, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
@@ -57,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const roles  = getRoles(token);
   const teamId = getTeamId(token);
+  const userId = getUserId(token);
 
   function login(newToken: string) {
     localStorage.setItem("token", newToken);
@@ -71,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const apiFetch = useMemo(() => createApiFetch(logout), []);
 
   return (
-    <AuthContext.Provider value={{ token, roles, teamId, login, logout, apiFetch }}>
+    <AuthContext.Provider value={{ token, roles, teamId, userId, login, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

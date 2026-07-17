@@ -12,7 +12,7 @@ public sealed class GeoServerService : IGeoServerService
 
     private static readonly HashSet<string> AllowedLayers = new()
     {
-        "tbl_point", "tbl_line", "tbl_polygon"
+        "tbl_point", "tbl_line", "tbl_polygon", "tbl_poi_active"
     };
 
     public GeoServerService(
@@ -25,24 +25,29 @@ public sealed class GeoServerService : IGeoServerService
         _logger            = logger;
     }
 
-    private static string BuildCqlFilter(int userId, int? teamId, GeoViewMode viewMode) =>
-        viewMode switch
+    private static string BuildCqlFilter(string typeName, int userId, int? teamId, GeoViewMode viewMode)
+    {
+        if (typeName == "tbl_poi_active")
+            return string.Empty;
+
+        return viewMode switch
         {
             GeoViewMode.All  => "\"IsDeleted\"=false",
             GeoViewMode.Team => $"\"TeamId\"={teamId} AND \"IsDeleted\"=false",
             _                => $"\"UserId\"={userId} AND \"IsDeleted\"=false"
         };
+    }
 
     public async Task<(bool Success, string? Content, string? ContentType, string? Error)>
         GetFeaturesAsync(string typeName, int userId, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
-                return (false, null, null, "Geçersiz katman adı.");
+                return (false, null, null, "Gecersiz katman adi.");
 
             try
             {
                 var client    = _httpClientFactory.CreateClient("GeoServer");
-                var cqlFilter = BuildCqlFilter(userId, teamId, viewMode);
+                var cqlFilter = BuildCqlFilter(typeName, userId, teamId, viewMode);
 
                 var query = HttpUtility.ParseQueryString(string.Empty);
                 query["service"]      = "WFS";
@@ -50,7 +55,9 @@ public sealed class GeoServerService : IGeoServerService
                 query["request"]      = "GetFeature";
                 query["typeNames"]    = $"{_settings.Workspace}:{typeName}";
                 query["outputFormat"] = "application/json";
-                query["CQL_FILTER"]   = cqlFilter;
+
+                if (!string.IsNullOrEmpty(cqlFilter))
+                    query["CQL_FILTER"] = cqlFilter;
 
                 var url      = $"{_settings.BaseUrl}/{_settings.Workspace}/wfs?{query}";
                 var response = await client.GetAsync(url);
@@ -58,7 +65,7 @@ public sealed class GeoServerService : IGeoServerService
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("GeoServer WFS failed: {StatusCode}", response.StatusCode);
-                    return (false, null, null, "GeoServer'dan veri alınamadı.");
+                    return (false, null, null, "GeoServer'dan veri alinamadi.");
                 }
 
                 var content     = await response.Content.ReadAsStringAsync();
@@ -70,7 +77,7 @@ public sealed class GeoServerService : IGeoServerService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GeoServer proxy failed for {TypeName}", typeName);
-                return (false, null, null, "Sunucu hatası.");
+                return (false, null, null, "Sunucu hatasi.");
             }
         }
 
@@ -78,12 +85,12 @@ public sealed class GeoServerService : IGeoServerService
         GetWmsMapAsync(string typeName, int userId, string bbox, int width, int height, string? styles, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
-                return (false, null, null, "Geçersiz katman adı.");
+                return (false, null, null, "Gecersiz katman adi.");
 
             try
             {
                 var client    = _httpClientFactory.CreateClient("GeoServer");
-                var cqlFilter = BuildCqlFilter(userId, teamId, viewMode);   // ← FIX: artık viewMode'u gerçekten kullanıyor
+                var cqlFilter = BuildCqlFilter(typeName, userId, teamId, viewMode);
 
                 var query = HttpUtility.ParseQueryString(string.Empty);
                 query["service"]     = "WMS";
@@ -96,7 +103,9 @@ public sealed class GeoServerService : IGeoServerService
                 query["srs"]         = "EPSG:3857";
                 query["format"]      = "image/png";
                 query["transparent"] = "true";
-                query["CQL_FILTER"]  = cqlFilter;
+
+                if (!string.IsNullOrEmpty(cqlFilter))
+                    query["CQL_FILTER"] = cqlFilter;
 
                 if (!string.IsNullOrWhiteSpace(styles))
                     query["styles"] = styles;
@@ -107,7 +116,7 @@ public sealed class GeoServerService : IGeoServerService
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("GeoServer WMS failed: {StatusCode}", response.StatusCode);
-                    return (false, null, null, "GeoServer'dan görüntü alınamadı.");
+                    return (false, null, null, "GeoServer'dan goruntu alinamadi.");
                 }
 
                 var content     = await response.Content.ReadAsByteArrayAsync();
@@ -119,7 +128,7 @@ public sealed class GeoServerService : IGeoServerService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GeoServer WMS proxy failed for {TypeName}", typeName);
-                return (false, null, null, "Sunucu hatası.");
+                return (false, null, null, "Sunucu hatasi.");
             }
         }
 }

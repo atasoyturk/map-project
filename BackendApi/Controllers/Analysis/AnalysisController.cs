@@ -1,5 +1,7 @@
 using BackendApi.DTOs.Geo;
 using BackendApi.Services.Analysis;
+using BackendApi.DTOs.Analysis;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackendApi.Controllers.Analysis;
@@ -21,4 +23,22 @@ public sealed class AnalysisController : ApiControllerBase
         var count = await _analysisService.TempInventoryAsync(request, userId.Value);
         return Ok(new { intersectedInventoryCount = count });
     }
+
+    [HttpPost("location-analysis")]
+    public async Task<IActionResult> LocationAnalysis([FromBody] LocationAnalysisRequestDto request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var result = await _analysisService.LocationAnalysisAsync(request, userId.Value);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
 }

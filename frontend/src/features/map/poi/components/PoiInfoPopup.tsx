@@ -118,7 +118,7 @@ export function PoiInfoPopup({ feature, categories, userLookup, canManage, onClo
 
             <InfoRow label="Kategori"          value={categoryLabel} />
             <InfoRow label="Mesai Saatleri"    value={feature.get("poiWorkingHours") as string} />
-            <InfoRow label="Ekleyen Kullanıcı" value={creatorEmail} />
+            <InfoRow label="Ekleyen" value={creatorEmail} />
             <InfoRow label="Oluşturma Tarihi"  value={new Date(createdDate).toLocaleString("tr-TR")} />
 
             {error && <p style={{ fontSize: 12, color: "#dc2626", margin: "12px 0 0" }}>{error}</p>}

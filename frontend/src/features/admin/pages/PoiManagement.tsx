@@ -81,7 +81,7 @@ export function PoiManagement() {
                   <th style={thStyle}>İsim</th>
                   <th style={thStyle}>Kategori</th>
                   <th style={thStyle}>Mesai Saatleri</th>
-                  <th style={thStyle}>Ekleyen Kullanıcı</th>
+                  <th style={thStyle}>Ekleyen</th>
                   <th style={thStyle}>Oluşturma Tarihi</th>
                 </tr>
               </thead>

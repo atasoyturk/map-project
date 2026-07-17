@@ -26,9 +26,9 @@ export function annotationToFeature(dto: AnnotationResponseDto): Feature {
   return feature;
 }
 
-export function useAnnotationLoader(map: unknown, source: VectorSource, apiFetch: ApiFetch) {
+export function useAnnotationLoader(map: unknown, source: VectorSource, apiFetch: ApiFetch, enabled: boolean = true) {
   useEffect(() => {
-    if (!map) return;
+    if (!map || !enabled) return;
 
     async function load() {
       try {
@@ -39,9 +39,9 @@ export function useAnnotationLoader(map: unknown, source: VectorSource, apiFetch
         for (const dto of data) {
           source.addFeature(annotationToFeature(dto));
         }
-      } catch { }
+      } catch {  }
     }
 
     load();
-  }, [map]);
+  }, [map, enabled]);
 }

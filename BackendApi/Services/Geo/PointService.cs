@@ -19,8 +19,9 @@ public sealed class PointService : IPointService
     public async Task<PointResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+        var isAdmin = roles.Contains("Admin");
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = new PointEntity
@@ -56,12 +57,14 @@ public sealed class PointService : IPointService
     public async Task<PointResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+        var isAdmin = roles.Contains("Admin");
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+
+        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
     
         var entity = await _context.Points
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         if (entity is null) return null;
 
@@ -76,10 +79,11 @@ public sealed class PointService : IPointService
         return ToDto(entity);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId)
+    public async Task<bool> DeleteAsync(int id, int userId, IEnumerable<string> roles)
     {
+        var isAdmin = roles.Contains("Admin");
         var entity = await _context.Points
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         if (entity is null) return false;
 
@@ -90,10 +94,11 @@ public sealed class PointService : IPointService
         return true;
     }
 
-    public async Task<PointResponseDto?> GetByIdAsync(int id, int userId)
+    public async Task<PointResponseDto?> GetByIdAsync(int id, int userId, IEnumerable<string> roles)
     {
+        var isAdmin = roles.Contains("Admin");
         var entity = await _context.Points
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         return entity is null ? null : ToDto(entity);
     }

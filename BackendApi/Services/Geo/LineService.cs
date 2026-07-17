@@ -20,8 +20,9 @@ public sealed class LineService : ILineService
     public async Task<LineResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+        var isAdmin = roles.Contains("Admin");
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = new LineEntity
@@ -57,12 +58,13 @@ public sealed class LineService : ILineService
     public async Task<LineResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
+        var isAdmin = roles.Contains("Admin");
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = await _context.Lines
-            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
+            .FirstOrDefaultAsync(l => (isAdmin || l.UserId == userId) && l.Id == id && !l.IsDeleted);
 
         if (entity is null) return null;
 
@@ -77,10 +79,11 @@ public sealed class LineService : ILineService
         return ToDto(entity);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId)
+    public async Task<bool> DeleteAsync(int id, int userId, IEnumerable<string> roles)
     {
+        var isAdmin = roles.Contains("Admin");
         var entity = await _context.Lines
-            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
+            .FirstOrDefaultAsync(l => (isAdmin || l.UserId == userId) && l.Id == id && !l.IsDeleted);
 
         if (entity is null) return false;
 
@@ -91,10 +94,12 @@ public sealed class LineService : ILineService
         return true;
     }
 
-    public async Task<LineResponseDto?> GetByIdAsync(int id, int userId)
+    public async Task<LineResponseDto?> GetByIdAsync(int id, int userId, IEnumerable<string> roles)
     {
+        var isAdmin = roles.Contains("Admin");
+
         var entity = await _context.Lines
-            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId && !l.IsDeleted);
+            .FirstOrDefaultAsync(l => (isAdmin || l.UserId == userId) && l.Id == id && !l.IsDeleted);
 
         return entity is null ? null : ToDto(entity);
     }

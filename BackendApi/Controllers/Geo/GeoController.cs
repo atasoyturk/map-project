@@ -42,7 +42,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _pointService.GetByIdAsync(id, userId.Value);
+        var result = await _pointService.GetByIdAsync(id, userId.Value, GetUserRoles());
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -72,7 +72,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _pointService.DeleteAsync(id, userId.Value);
+        var result = await _pointService.DeleteAsync(id, userId.Value, GetUserRoles());
         return result ? NoContent() : NotFound();
     }
 
@@ -95,7 +95,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _lineService.GetByIdAsync(id, userId.Value);
+        var result = await _lineService.GetByIdAsync(id, userId.Value, GetUserRoles());
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -125,7 +125,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _lineService.DeleteAsync(id, userId.Value);
+        var result = await _lineService.DeleteAsync(id, userId.Value, GetUserRoles());
         return result ? NoContent() : NotFound();
     }
 
@@ -148,7 +148,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _polygonService.GetByIdAsync(id, userId.Value);
+        var result = await _polygonService.GetByIdAsync(id, userId.Value, GetUserRoles());
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -178,7 +178,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _polygonService.DeleteAsync(id, userId.Value);
+        var result = await _polygonService.DeleteAsync(id, userId.Value, GetUserRoles());
         return result ? NoContent() : NotFound();
     }
 }

@@ -170,7 +170,8 @@ public sealed class AppDbContext : DbContext
             new Role { Id = 2, Name = "Çalışan"},
             new Role { Id = 3, Name = "Stajyer"},
             new Role { Id = 4, Name = "Takım Lideri"},
-            new Role { Id = 5, Name = "Operator" }
+            new Role { Id = 5, Name = "Operator" },
+            new Role { Id = 6, Name = "Kullanıcı" }
         );
 
         modelBuilder.Entity<Permission>().HasData(
@@ -226,6 +227,11 @@ public sealed class AppDbContext : DbContext
         modelBuilder.Entity<RolePermission>().HasData(
             new RolePermission { RoleId = 5, PermissionId = 7 },   // poi_create
             new RolePermission { RoleId = 5, PermissionId = 8 }    // poi_read — category_manage nto exist
+        );
+
+        // Kullanıcı
+        modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 6, PermissionId = 8 }   // poi_read
         );
 
         modelBuilder.Entity<PoiCategory>().HasData(

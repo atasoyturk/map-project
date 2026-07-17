@@ -7,3 +7,10 @@ export function analyzeTempInventory(apiFetch: ApiFetch, wktGeometry: string) {
     body:   JSON.stringify({ wktGeometry }),
   });
 }
+
+export function getLocationAnalysis(apiFetch: any, data: { wktGeometry: string; criteria: { categoryId: number; score: number }[] }) {
+  return apiFetch("/api/analysis/location-analysis", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}

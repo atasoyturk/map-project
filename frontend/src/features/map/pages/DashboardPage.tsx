@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef }     from "react";
 import Map                         from "ol/Map";
-import type { Feature }            from "ol";
+import Feature                      from "ol/Feature";
+
 import VectorSource                from "ol/source/Vector";
 import VectorLayer                 from "ol/layer/Vector";
-import TileLayer   from "ol/layer/Tile";
-import TileWMS     from "ol/source/TileWMS";
-import { useAuth } from "../../../features/auth/context/AuthContext";
+import HeatmapLayer                from "ol/layer/Heatmap";
+import Point from "ol/geom/Point";
+import { fromLonLat } from "ol/proj";
+
+import TileLayer                   from "ol/layer/Tile";
+import TileWMS                     from "ol/source/TileWMS";
+import { useAuth }                 from "../../../features/auth/context/AuthContext";
 import { MapView }              from "../core/components/MapView";
 import { Navbar }               from "../core/components/Navbar";
 import { InfoPopup }            from "../core/components/InfoPopup";
@@ -31,6 +36,9 @@ import { usePoiLoader, poiToFeature } from "../poi/hooks/usePoiLoader";
 import { usePoiDraw }           from "../poi/hooks/usePoiDraw";
 import { usePoiClick }          from "../poi/hooks/usePoiClick";
 import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
+import { LocationAnalysisPanel } from "../core/components/LocationAnalysisPanel";
+import { getLocationAnalysis } from "../core/api/analysisService";
+
 
 import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
@@ -79,15 +87,22 @@ export function DashboardPage() {
 
   const { token, apiFetch, roles, userId } = useAuth();
 
+  const isPlainUser = roles.includes("User") && roles.length === 1;
+
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
   const poiSourceRef        = useRef(new VectorSource());
   const poiLayerRef         = useRef<VectorLayer<VectorSource> | null>(null);
 
   const categories = useCategoryTree(apiFetch);
+  const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
+  const [locAnalysisPolygon, setLocAnalysisPolygon]    = useState<{ wkt: string; feature: any } | null>(null);
+  const [locAnalysisPoints, setLocAnalysisPoints] = useState<{latitude: number, longitude: number, weight: number}[] | null>(null);
+
+
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || isPlainUser) return;
     const layer = new VectorLayer({
       source: annotationSourceRef.current,
       style:  annotationStyle,
@@ -99,7 +114,7 @@ export function DashboardPage() {
       map.removeLayer(layer);
       annotationLayerRef.current = null;
     };
-  }, [map]);
+  }, [map, isPlainUser]);
 
   useEffect(() => {
     if (!map) return;
@@ -122,7 +137,40 @@ export function DashboardPage() {
     };
   }, [map]);
 
-  useAnnotationLoader(map, annotationSourceRef.current, apiFetch);
+    useEffect(() => {
+      if (!map || !locAnalysisPoints) return;
+
+      // 1. Isı haritası için veri kaynağını oluştur
+      const vectorSource = new VectorSource();
+      
+      locAnalysisPoints.forEach(pt => {
+        const feature = new Feature({
+          geometry: new Point(fromLonLat([pt.longitude, pt.latitude])),
+          weight: pt.weight // Backend'den gelen 0-1 arası ağırlık
+        });
+        vectorSource.addFeature(feature);
+      });
+
+      // 2. Heatmap katmanını oluştur
+      const heatmapLayer = new HeatmapLayer({
+        source: vectorSource,
+        blur: 20,
+        radius: 10,
+        weight: (feature: Feature) => feature.get("weight"),
+        zIndex: 100
+      });
+
+      map.addLayer(heatmapLayer);
+
+      // 3. Temizleme fonksiyonu: Veriler değiştiğinde veya bileşen kapandığında katmanı kaldır
+      return () => {
+        map.removeLayer(heatmapLayer);
+      };
+    }, [map, locAnalysisPoints]);
+
+
+  // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
+  useAnnotationLoader(map, annotationSourceRef.current, apiFetch, !isPlainUser);
   usePoiLoader(map, poiSourceRef.current, apiFetch);
 
   const poiFlowActive  = poiDrawActive || pendingPoi !== null;
@@ -133,12 +181,12 @@ export function DashboardPage() {
     map,
     layers,
     userLookup,
-    enabled: interactionsIdle,
+    enabled: interactionsIdle && !isPlainUser,
   });
 
   const { pending: pendingNote, clear: clearPendingNote } = useAnnotationContextMenu({
     map,
-    enabled: interactionsIdle,
+    enabled: interactionsIdle && !isPlainUser,
   });
 
   usePoiDraw({
@@ -169,10 +217,11 @@ export function DashboardPage() {
     },
   });
 
+  // POI tıklaması User için devre dışı — sadece isim etiketiyle görsün, detay/popup açılmasın.
   const { selected: poiClickSelected, clear: clearPoiSelected } = usePoiClick({
     map,
     poiLayer: poiLayerRef.current,
-    enabled:  interactionsIdle,
+    enabled:  interactionsIdle && !isPlainUser,
   });
 
   useEffect(() => {
@@ -181,7 +230,7 @@ export function DashboardPage() {
 
   useMapClick({
     map,
-    enabled: !analysisActive && activeType === null && !poiFlowActive,
+    enabled: !isPlainUser && !analysisActive && activeType === null && !poiFlowActive,
     onFeaturesFound: (found) => {
       if (found.length === 0) { setSelected(null); setCandidates([]); return; }
       if (found.length === 1) { setSelected(found[0]); setCandidates([]); return; }
@@ -190,7 +239,7 @@ export function DashboardPage() {
   });
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || isPlainUser) return;
 
     if (layers?.pointLayer) {
       layers.pointLayer.setVisible(!heatmapActive);
@@ -229,7 +278,7 @@ export function DashboardPage() {
       layers.pointLayer.setVisible(true);
     }
   };
-}, [map, heatmapActive, token, layers]);
+}, [map, heatmapActive, token, layers, isPlainUser]);
 
   useEffect(() => {
     function handleSelectFeature(e: Event) {
@@ -319,6 +368,49 @@ export function DashboardPage() {
     setPoiFeatures([...poiSourceRef.current.getFeatures()]);
   }
 
+  async function handleStartLocationAnalysis(criteria: { categoryId: number; score: number }[]) {
+    if (!locAnalysisPolygon) return;
+    
+    try {
+      const res = await getLocationAnalysis(apiFetch, {
+        wktGeometry: locAnalysisPolygon.wkt,
+        criteria: criteria
+      });
+      
+      if (!res.ok) {
+        const msg = await res.text();
+        setToast({ message: `Analiz Hatası: ${msg}`, type: "error" });
+        return;
+      }
+      
+      const data = await res.json();
+      setLocAnalysisPoints(data.heatmapPoints);
+      
+      setToast({ message: "Konum analizi tamamlandı, ısı haritası oluşturuldu.", type: "success" });
+    } catch {
+      setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+    }
+  }
+
+  function handleClearLocationAnalysis() {
+    
+    if (locAnalysisPolygon?.feature) {
+      map?.getLayers().getArray().forEach(layer => {
+        if (layer instanceof VectorLayer) {
+          const source = layer.getSource();
+          if (source && source.hasFeature(locAnalysisPolygon.feature)) {
+            source.removeFeature(locAnalysisPolygon.feature);
+          }
+        }
+      });
+    }
+    setLocAnalysisPoints(null);
+    setLocAnalysisPolygon(null);
+    setToast({ message: "Konum analizi sonuçları temizlendi.", type: "success" });
+  }
+
+
+
   const canManageSelectedPoi =
     !!poiSelected &&
     (roles.includes("Admin") ||
@@ -342,15 +434,40 @@ export function DashboardPage() {
         poiDrawActive={poiDrawActive}
         onPoiDrawChange={setPoiDrawActive}
         poiFormOpen={pendingPoi !== null}
+        locAnalysisActive={locAnalysisPanelOpen}
+        onLocAnalysisToggle={() => setLocAnalysisPanelOpen(!locAnalysisPanelOpen)}
+        onLocAnalysisPolygonReady={(wkt, feature: any) => {
+          setLocAnalysisPolygon({ wkt, feature });
+          setToast({ message: "Bölge başarıyla seçildi. Şimdi kriterlerinizi belirleyebilirsiniz.", type: "success" });
+        }}
       />
       <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
-        <HeatmapLegend visible={heatmapActive} />
-        <LayerControl layers={layers} poiLayer={poiLayerRef.current} visible={layerControlOpen} />
-        <PoiSearchBar map={map} poiFeatures={poiFeatures} />
-        <FeatureTooltip info={tooltip} />
 
-        {pendingNote && !showNoteModal && (
+        {locAnalysisPanelOpen && (
+          <LocationAnalysisPanel
+            categories={categories}
+            onStart={handleStartLocationAnalysis}
+            onClear={handleClearLocationAnalysis}
+            hasResults={!!locAnalysisPoints}
+            onCancel={() => {
+              setLocAnalysisPanelOpen(false);
+              setLocAnalysisPolygon(null);
+            }}
+            isPolygonSelected={!!locAnalysisPolygon}
+            onSelectPolygon={() => {
+              setActiveType("Polygon");
+              setToast({ message: "Analiz için hedef bölgeyi harita üzerinde çizin.", type: "success" });
+            }}
+          />
+        )}
+        
+        {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
+        {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayerRef.current} visible={layerControlOpen} />}
+        <PoiSearchBar map={map} poiFeatures={poiFeatures} />
+        {!isPlainUser && <FeatureTooltip info={tooltip} />}
+
+        {!isPlainUser && pendingNote && !showNoteModal && (
           <AnnotationContextMenu
             x={pendingNote.x}
             y={pendingNote.y}
@@ -360,7 +477,7 @@ export function DashboardPage() {
         )}
       </div>
 
-      {showNoteModal && (
+      {!isPlainUser && showNoteModal && (
         <AnnotationModal
           onSave={handleSaveNote}
           onCancel={handleCancelNote}
@@ -379,7 +496,7 @@ export function DashboardPage() {
         />
       )}
 
-      {poiSelected && (
+      {!isPlainUser && poiSelected && (
         <PoiInfoPopup
           feature={poiSelected}
           categories={categories}
@@ -391,7 +508,7 @@ export function DashboardPage() {
         />
       )}
 
-      {selected && (
+      {!isPlainUser && selected && (
         <InfoPopup
           info={selected}
           onClose={() => setSelected(null)}
@@ -406,7 +523,7 @@ export function DashboardPage() {
         />
       )}
 
-      {candidates.length > 1 && (
+      {!isPlainUser && candidates.length > 1 && (
         <FeaturePickerModal
           features={candidates}
           onPick={(info) => { setSelected(info); setCandidates([]); }}
@@ -414,7 +531,7 @@ export function DashboardPage() {
         />
       )}
 
-      {queryPanelOpen && (
+      {!isPlainUser && queryPanelOpen && (
         <QueryPanel
           map={map}
           onClose={() => setQueryPanelOpen(false)}

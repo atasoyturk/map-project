@@ -28,6 +28,11 @@ interface NavbarProps {
   poiDrawActive:    boolean;
   onPoiDrawChange:  (active: boolean) => void;
   poiFormOpen:      boolean;
+  locAnalysisActive: boolean;
+  onLocAnalysisToggle: () => void;
+  onLocAnalysisPolygonReady?: (wkt: string, feature: any) => void;
+
+
 }
 
 const LABEL_MAP: Record<DrawType, string> = {
@@ -57,6 +62,9 @@ export function Navbar({
   poiDrawActive,
   onPoiDrawChange,
   poiFormOpen,
+  locAnalysisActive,
+  onLocAnalysisToggle,
+  onLocAnalysisPolygonReady,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -71,6 +79,8 @@ export function Navbar({
 
   const { logout, apiFetch, roles, teamId } = useAuth();
   const navigate = useNavigate();
+
+  const isPlainUser = roles.includes("User") && roles.length === 1;
 
   const canManagePoi  = roles.includes("Operator") || roles.includes("Admin");
   const isOperatorOnly = roles.includes("Operator") && !roles.includes("Admin");
@@ -94,6 +104,14 @@ export function Navbar({
     polygonSource: polygonSourceRef.current,
     activeType,
     onDrawEnd: async (pending) => {
+      
+      if (locAnalysisActive && pending.type === "Polygon") {
+        // DashboardPage'e poligonu bildir (bu prop'u birazdan ekleyeceğiz)
+        onLocAnalysisPolygonReady?.(pending.wkt, pending.feature);
+        onActiveTypeChange(null);
+        return;
+      }
+      
       pending.feature.setStyle(buildStyle("#3b82f6", ""));
 
       try {
@@ -224,6 +242,39 @@ export function Navbar({
 
   const isAdmin = roles.includes("Admin");
 
+  if (isPlainUser) {
+    return (
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0,
+        height: 50,
+        background: "#030c21",
+        borderBottom: "1px solid rgba(255,255,255,.08)",
+        display: "flex", alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 20px", zIndex: 1000,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
+          <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
+            AtaGIS
+          </span>
+        </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "6px 14px", borderRadius: 8,
+            border: "1px solid rgba(255,255,255,.15)",
+            background: "transparent", color: "#94a3b8",
+            fontSize: 13, fontWeight: 500,
+            cursor: "pointer", minWidth: 80,
+          }}
+        >
+          Çıkış Yap
+        </button>
+      </nav>
+    );
+  }
+
   return (
     <>
       <nav style={{
@@ -334,6 +385,23 @@ export function Navbar({
                 }}
               >
                 Alan Tara
+              </button>
+
+              <button
+                onClick={onLocAnalysisToggle}
+                disabled={toolsLocked}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: locAnalysisActive ? "#ec4899" : "rgba(255,255,255,.15)",
+                  background:  locAnalysisActive ? "rgba(236,72,153,.2)" : "transparent",
+                  color:       locAnalysisActive ? "#fbcfe8" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   toolsLocked ? "not-allowed" : "pointer",
+                  opacity:  toolsLocked ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Konum Analizi
               </button>
 
               <button

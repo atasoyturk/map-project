@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getTeams, createTeam, deleteTeam } from "../api/teamService";
 import { getUsers, assignTeamToUsers } from "../api/userService";
+import { AddTeamMembersModal } from "../components/AddTeamMembersModal";
 
 interface TeamDto {
   id:   number;
@@ -30,6 +31,7 @@ export function TeamManagement() {
   const [selectedByTeam,  setSelectedByTeam]  = useState<Record<number, Set<number>>>({});
   const [targetByTeam,    setTargetByTeam]    = useState<Record<number, TargetTeam>>({});
   const [isMoving,        setIsMoving]        = useState<number | null>(null);
+  const [addMembersTeamId, setAddMembersTeamId] = useState<number | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -227,7 +229,7 @@ export function TeamManagement() {
                   </div>
 
                   {members.length === 0 ? (
-                    <p style={{ fontSize: 12, color: "#94a3b8" }}>
+                    <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>
                       Bu takımda kimse yok.
                     </p>
                   ) : (
@@ -266,6 +268,24 @@ export function TeamManagement() {
                       ))}
                     </div>
                   )}
+
+                  <button
+                    onClick={() => setAddMembersTeamId(team.id)}
+                    style={{
+                      width:        "100%",
+                      padding:      "6px 0",
+                      borderRadius: 6,
+                      marginBottom: members.length > 0 ? 8 : 0,
+                      border:       "1px solid rgba(59,130,246,.3)",
+                      background:   "rgba(59,130,246,.05)",
+                      color:        "#3b82f6",
+                      fontSize:     12,
+                      fontWeight:   500,
+                      cursor:       "pointer",
+                    }}
+                  >
+                    + Eleman Ekle
+                  </button>
 
                   {members.length > 0 && (
                     <div style={{ display: "flex", gap: 6, borderTop: "1px solid #f1f5f9", paddingTop: 12 }}>
@@ -320,6 +340,18 @@ export function TeamManagement() {
             })}
           </div>
         </div>
+      )}
+
+      {addMembersTeamId !== null && (
+        <AddTeamMembersModal
+          teamId={addMembersTeamId}
+          teamName={teams.find((t) => t.id === addMembersTeamId)?.name ?? ""}
+          users={users
+            .filter((u) => u.teamId !== addMembersTeamId)
+            .map((u) => ({ id: u.id, email: u.email, teamName: u.teamName }))}
+          onClose={() => setAddMembersTeamId(null)}
+          onAdded={() => { fetchTeams(); fetchUsers(); setAddMembersTeamId(null); }}
+        />
       )}
     </div>
   );

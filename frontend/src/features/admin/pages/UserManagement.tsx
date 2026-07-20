@@ -4,6 +4,7 @@ import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
 import { getUsers, setUserActive } from "../api/userService";
+import { AddEmployeeModal } from "../components/AddEmployeeModal";
 
 interface UserDto {
   id:       number;
@@ -24,6 +25,8 @@ export function UserManagement() {
   const [geoUserId,    setGeoUserId]    = useState<number | undefined>();
   const [geoUserEmail, setGeoUserEmail] = useState("");
   const [showGeoModal, setShowGeoModal] = useState(false);
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+
 
   const { apiFetch } = useAuth();
 
@@ -52,12 +55,32 @@ export function UserManagement() {
   return (
     <>
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>
-          Şirket Yönetimi
-        </h1>
-        <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-          Şirket çalışanlarını yönetin.
-        </p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>
+              Şirket Yönetimi
+            </h1>
+            <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+              Şirket çalışanlarını yönetin.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddEmployee(true)}
+            style={{
+              padding:      "8px 16px",
+              borderRadius: 8,
+              border:       "none",
+              background:   "#0f172a",
+              color:        "#ffffff",
+              fontSize:     13,
+              fontWeight:   500,
+              cursor:       "pointer",
+              whiteSpace:   "nowrap",
+            }}
+          >
+            + Çalışan Ekle
+          </button>
+        </div>
 
         {isLoading && <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>}
         {error     && <p style={{ color: "#ef4444", fontSize: 13 }}>{error}</p>}
@@ -214,7 +237,13 @@ export function UserManagement() {
           onClose={() => setShowGeoModal(false)}
         />
       )}
-      
+
+      {showAddEmployee && (
+        <AddEmployeeModal
+          onClose={() => setShowAddEmployee(false)}
+          onCreated={() => { fetchUsers(); setShowAddEmployee(false); }}
+        />
+      )}
     </>
   );
 }

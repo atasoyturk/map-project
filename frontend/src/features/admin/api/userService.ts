@@ -24,3 +24,10 @@ export function assignTeamToUsers(apiFetch: ApiFetch, userIds: number[], teamId:
     body:   JSON.stringify({ userIds, teamId }),
   });
 }
+
+export function createEmployee(apiFetch: ApiFetch, email: string, password: string) {
+  return apiFetch("/api/admin/users", {
+    method: "POST",
+    body:   JSON.stringify({ email, password }),
+  });
+}

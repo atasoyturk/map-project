@@ -15,3 +15,9 @@ export function createAnnotation(apiFetch: ApiFetch, data: AnnotationPayload) {
     body:   JSON.stringify(data),
   });
 }
+
+export function deleteAnnotation(apiFetch: any, id: number) {
+  return apiFetch(`/api/annotation/${id}`, {
+    method: "DELETE",
+  });
+}

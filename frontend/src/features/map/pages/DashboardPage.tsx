@@ -21,6 +21,11 @@ import { FeatureTooltip }       from "../core/components/FeatureTooltip";
 import { HeatmapLegend }        from "../core/components/HeatmapLegend";
 import { AnnotationContextMenu} from "../annotation/components/AnnotationContextMenu";
 import { AnnotationModal }      from "../annotation/components/AnnotationModal";
+import { useAnnotationClick } from "../annotation/hooks/useAnnotationClick";
+import { AnnotationInfoPopup } from "../annotation/components/AnnotationInfoPopup";
+import { createAnnotation, deleteAnnotation } from "../annotation/api/annotationService";
+
+
 import { PoiFormModal }         from "../poi/components/PoiFormModal";
 import { PoiInfoPopup }         from "../poi/components/PoiInfoPopup";
 import { PoiSearchBar }         from "../poi/components/PoiSearchBar";
@@ -46,16 +51,18 @@ import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
 import { createPoi } from "../../../shared/api/poiService";
-import { createAnnotation } from "../annotation/api/annotationService";
-import { Style, Fill, Stroke, Circle as CircleStyle } from "ol/style";
+import { Style, Icon } from "ol/style";
+
 
 
 const annotationStyle = new Style({
-  image: new CircleStyle({
-    radius: 7,
-    fill:   new Fill({ color: "#f59e0b" }),
-    stroke: new Stroke({ color: "#78350f", width: 2 }),
-  }),
+  image: new Icon({
+    anchor: [0.5, 1], // İğnenin ucunu tam koordinata oturtur
+    anchorXUnits: "fraction",
+    anchorYUnits: "fraction",
+    src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23f59e0b" stroke="%2378350f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
+    scale: 0.5
+  } ),
 });
 
 interface ToastState {
@@ -224,6 +231,13 @@ export function DashboardPage() {
     enabled:  interactionsIdle && !isPlainUser,
   });
 
+  const { selected: annotationSelected, clear: clearAnnotationSelected } = useAnnotationClick({
+    map,
+    annotationLayer: annotationLayerRef.current,
+    enabled: interactionsIdle && !isPlainUser,
+  });
+
+
   useEffect(() => {
     setPoiSelected(poiClickSelected?.feature ?? null);
   }, [poiClickSelected]);
@@ -312,6 +326,29 @@ export function DashboardPage() {
       setIsSavingNote(false);
     }
   }
+
+  async function handleDeleteAnnotation(id: number) {
+    try {
+      const res = await deleteAnnotation(apiFetch, id);
+      
+      if (!res.ok) {
+        const message = res.status === 403 ? "Bu notu silme yetkiniz bulunmuyor." : "Not silinemedi.";
+        setToast({ message, type: "error" });
+        return;
+      }
+
+      // Başarılıysa: Haritadaki katmandan (source) kaldır
+      if (annotationSelected) {
+        annotationSourceRef.current.removeFeature(annotationSelected.feature);
+      }
+      
+      clearAnnotationSelected();
+      setToast({ message: "Not başarıyla silindi.", type: "success" });
+    } catch {
+      setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+    }
+  }
+
 
   function handleCancelNote() {
     setShowNoteModal(false);
@@ -444,6 +481,18 @@ export function DashboardPage() {
       <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
         <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
 
+        {annotationSelected && (
+          <div style={{ position: "absolute", left: annotationSelected.x, top: annotationSelected.y }}>
+            <AnnotationInfoPopup
+              feature={annotationSelected.feature}
+              userLookup={userLookup}
+              onClose={clearAnnotationSelected}
+              onDelete={() => handleDeleteAnnotation(annotationSelected.feature.get("id"))}
+              canDelete={roles.includes("Admin") || annotationSelected.feature.get("userId") === userId}
+            />
+          </div>
+        )}
+
         {locAnalysisPanelOpen && (
           <LocationAnalysisPanel
             categories={categories}
@@ -517,8 +566,12 @@ export function DashboardPage() {
             setSelected(null);
           }}
           onDelete={() => {
-            (selected.feature.get("source") as VectorSource)?.removeFeature(selected.feature);
-            setSelected(null);
+            const id = annotationSelected?.feature.get("id");
+            if (id) {
+              handleDeleteAnnotation(id);
+            } else {
+              setToast({ message: "Not ID'si bulunamadı.", type: "error" });
+            }
           }}
         />
       )}

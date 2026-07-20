@@ -10,19 +10,30 @@ type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
 const wktFormat = new WKT();
 
-export function annotationToFeature(dto: AnnotationResponseDto): Feature {
-  const geometry = wktFormat.readGeometry(dto.wktGeometry, {
+export function annotationToFeature(dto: any): Feature { 
+  const geometry = wktFormat.readGeometry(dto.wktGeometry || dto.WktGeometry, {
     dataProjection:    "EPSG:4326",
     featureProjection: "EPSG:3857",
   }) as Point;
 
   const feature = new Feature({ geometry });
-  feature.set("id",          dto.id);
-  feature.set("noteText",    dto.noteText);
-  feature.set("userId",      dto.userId);
-  feature.set("teamId",      dto.teamId);
-  feature.set("createdDate", dto.createdDate);
+  
+  // Hem PascalCase hem camelCase kontrolü
+  const id = dto.id ?? dto.Id;
+  const noteText = dto.noteText ?? dto.NoteText;
+  const userId = dto.userId ?? dto.UserId;
+  const teamId = dto.teamId ?? dto.TeamId;
+  const createdDate = dto.createdDate ?? dto.CreatedDate;
+
+  feature.set("id",          id);
+  feature.set("noteText",    noteText);
+  feature.set("userId",      userId);
+  feature.set("teamId",      teamId);
+  feature.set("createdDate", createdDate);
   feature.set("isAnnotation", true);
+  
+  if (id) feature.setId(id); 
+  
   return feature;
 }
 

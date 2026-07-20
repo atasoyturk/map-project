@@ -26,6 +26,9 @@ export function useAnnotationClick({ map, annotationLayer, enabled }: UseAnnotat
 
     selectInteraction.on("select", (e) => {
       const feature = e.selected[0];
+      console.log("Selected feature:", feature);
+      console.log("Is annotation?", feature?.get("isAnnotation"));
+      console.log("Feature ID:", feature?.getId());
       if (feature) {
         const pixel = map.getPixelFromCoordinate(feature.getGeometry()?.getClosestPoint(map.getView().getCenter()!)!);
         setSelected({

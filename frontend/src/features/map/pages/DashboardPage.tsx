@@ -52,6 +52,9 @@ import type { AnnotationResponseDto} from "../annotation/types";
 import type { PoiResponseDto, PendingPoi } from "../poi/types";
 import { createPoi } from "../../../shared/api/poiService";
 import { Style, Icon } from "ol/style";
+import WKT from "ol/format/WKT";
+import { Fill, Stroke} from "ol/style";
+
 
 
 
@@ -105,7 +108,8 @@ export function DashboardPage() {
   const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
   const [locAnalysisPolygon, setLocAnalysisPolygon]    = useState<{ wkt: string; feature: any } | null>(null);
   const [locAnalysisPoints, setLocAnalysisPoints] = useState<{latitude: number, longitude: number, weight: number}[] | null>(null);
-
+  const regionPreviewLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
+  const [annotationLayer, setAnnotationLayer] = useState<VectorLayer<VectorSource> | null>(null);
 
 
   useEffect(() => {
@@ -115,11 +119,15 @@ export function DashboardPage() {
       style:  annotationStyle,
       zIndex: 2,
     });
+    
     map.addLayer(layer);
     annotationLayerRef.current = layer;
+    setAnnotationLayer(layer);
+    
     return () => {
       map.removeLayer(layer);
       annotationLayerRef.current = null;
+      setAnnotationLayer(null); 
     };
   }, [map, isPlainUser]);
 
@@ -233,7 +241,7 @@ export function DashboardPage() {
 
   const { selected: annotationSelected, clear: clearAnnotationSelected } = useAnnotationClick({
     map,
-    annotationLayer: annotationLayerRef.current,
+    annotationLayer: annotationLayer,
     enabled: interactionsIdle && !isPlainUser,
   });
 
@@ -430,7 +438,11 @@ export function DashboardPage() {
   }
 
   function handleClearLocationAnalysis() {
-    
+    if (regionPreviewLayerRef.current && map) {
+      map.removeLayer(regionPreviewLayerRef.current);
+      regionPreviewLayerRef.current = null;
+    }
+
     if (locAnalysisPolygon?.feature) {
       map?.getLayers().getArray().forEach(layer => {
         if (layer instanceof VectorLayer) {
@@ -441,11 +453,11 @@ export function DashboardPage() {
         }
       });
     }
+
     setLocAnalysisPoints(null);
     setLocAnalysisPolygon(null);
     setToast({ message: "Konum analizi sonuçları temizlendi.", type: "success" });
   }
-
 
 
   const canManageSelectedPoi =
@@ -497,9 +509,11 @@ export function DashboardPage() {
           <LocationAnalysisPanel
             categories={categories}
             onStart={handleStartLocationAnalysis}
-            onClear={handleClearLocationAnalysis}
-            hasResults={!!locAnalysisPoints}
             onCancel={() => {
+              if (regionPreviewLayerRef.current && map) {
+                map.removeLayer(regionPreviewLayerRef.current);
+                regionPreviewLayerRef.current = null;
+              }
               setLocAnalysisPanelOpen(false);
               setLocAnalysisPolygon(null);
             }}
@@ -508,8 +522,44 @@ export function DashboardPage() {
               setActiveType("Polygon");
               setToast({ message: "Analiz için hedef bölgeyi harita üzerinde çizin.", type: "success" });
             }}
+            onClear={handleClearLocationAnalysis}
+            hasResults={!!locAnalysisPoints}
+            onRegionSelect={(wkt, displayName) => {  
+              if (regionPreviewLayerRef.current && map) {
+                map.removeLayer(regionPreviewLayerRef.current);
+                regionPreviewLayerRef.current = null;
+              }
+
+              const geometry = new WKT().readGeometry(wkt, {
+                dataProjection:    "EPSG:4326",
+                featureProjection: "EPSG:3857",
+              });
+
+              const source = new VectorSource({ features: [new Feature({ geometry })] });
+              const layer  = new VectorLayer({
+                source,
+                style: new Style({
+                  fill:   new Fill({ color: "rgba(59,130,246,0.2)" }),
+                  stroke: new Stroke({ color: "#3b82f6", width: 2 }),
+                }),
+                zIndex: 50,
+              });
+
+              map?.addLayer(layer);
+              regionPreviewLayerRef.current = layer;
+
+              map?.getView().fit(geometry.getExtent(), {
+                padding: [60, 60, 60, 60],
+                maxZoom: 12,
+                duration: 500,
+              });
+
+              setLocAnalysisPolygon({ wkt, feature: null });
+              setToast({ message: `"${displayName}" seçildi.`, type: "success" });
+            }}
           />
         )}
+
         
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayerRef.current} visible={layerControlOpen} />}
@@ -566,7 +616,9 @@ export function DashboardPage() {
             setSelected(null);
           }}
           onDelete={() => {
-            const id = annotationSelected?.feature.get("id");
+            const id = annotationSelected?.feature.get("id") ?? annotationSelected?.feature.getId();
+            console.log("Annotation ID:", id);
+            console.log("Feature Properties:", annotationSelected?.feature.getProperties());
             if (id) {
               handleDeleteAnnotation(id);
             } else {

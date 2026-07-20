@@ -16,7 +16,7 @@ export function AnnotationInfoPopup({feature, userLookup, onClose, onDelete, can
   const userId   = feature.get("userId");
   const date     = feature.get("createdDate");
   
-  const userName = userId ? (userLookup.get(userId)?.fullName || "Bilinmeyen Kullanıcı") : "Bilinmeyen Kullanıcı";
+  const userName = userId ? (userLookup.get(Number(userId))?.email || "Bilinmeyen Kullanıcı") : "Bilinmeyen Kullanıcı";
 
   const formattedDate = date ? new Intl.DateTimeFormat('tr-TR', {
     day: 'numeric',

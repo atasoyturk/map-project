@@ -6,6 +6,8 @@ import { RoleManagement } from "./RoleManagement";
 import { GeoPermissionPage } from "./GeoPermissionPage";
 import { TeamManagement } from "./TeamManagement";
 import { PoiManagement } from "./PoiManagement";
+import { CompanyUserManagement } from "./CompanyUserManagement";
+
 
 
 
@@ -19,7 +21,8 @@ export function AdminPage() {
   }
 
   const navItems = [
-    { to: "/admin/users", label: "Kullanıcı Yönetimi"},
+    { to: "/admin/users", label: "Şirket Yönetimi"},
+    { to: "/admin/company-users", label: "Kullanıcı Yönetimi" },
     { to: "/admin/roles", label: "Rol Yönetimi"      },
     { to: "/admin/teams", label: "Takım Yönetimi"    },
     { to: "/admin/geo",   label: "Coğrafi Yetkiler"   },
@@ -121,6 +124,7 @@ export function AdminPage() {
         <Routes>
           <Route index element={<Navigate to="users" replace />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="company-users" element={<CompanyUserManagement />} />
           <Route path="roles" element={<RoleManagement />} />
           <Route path="teams" element={<TeamManagement />} />
           <Route path="geo"   element={<GeoPermissionPage />} />

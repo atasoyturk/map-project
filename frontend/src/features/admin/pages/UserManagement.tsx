@@ -55,10 +55,10 @@ export function UserManagement() {
     <>
       <div>
         <h1 style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>
-          Kullanıcı Yönetimi
+          Şirket Yönetimi
         </h1>
         <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-          Sistemdeki kullanıcıları yönetin.
+          Şirket çalışanlarını yönetin.
         </p>
 
         {isLoading && <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>}
@@ -78,7 +78,9 @@ export function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {users
+                  .filter((user) => !user.roles.includes("Kullanıcı"))
+                  .map((user) => (
                   <tr key={user.id} style={{ borderTop: "1px solid #f1f5f9" }}>
                     <td style={tdStyle}>{user.id}</td>
                     <td style={tdStyle}>{user.email}</td>

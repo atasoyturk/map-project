@@ -1,0 +1,280 @@
+import { useRef, useState } from "react";
+import { useAuth } from "../../../auth/context/AuthContext";
+import {
+  createTransitRoute, deleteTransitRoute,
+  getTransitRouteDetail, reorderTransitStops,
+} from "../../../../shared/api/transitService";
+import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
+
+interface RouteManagementPanelProps {
+  routes:            TransitRouteResponseDto[];
+  reloadRoutes:      () => void;
+  onClose:           () => void;
+  onAddStopToRoute:  (routeId: number) => void;
+}
+
+export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopToRoute }: RouteManagementPanelProps) {
+  const { apiFetch } = useAuth();
+
+  const [newName,  setNewName]  = useState("");
+  const [newColor, setNewColor] = useState("#3b82f6");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+
+  const [expandedId,   setExpandedId]   = useState<number | null>(null);
+  const [detailById,   setDetailById]   = useState<Record<number, TransitRouteDetailDto>>({});
+  const [isReordering, setIsReordering] = useState<number | null>(null);
+
+  const dragItemId     = useRef<number | null>(null);
+  const dragOverItemId = useRef<number | null>(null);
+
+  async function handleCreateRoute() {
+    if (!newName.trim() || isSaving) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const res = await createTransitRoute(apiFetch, { name: newName.trim(), color: newColor });
+      if (!res.ok) { setError("Güzergah oluşturulamadı."); return; }
+      setNewName("");
+      reloadRoutes();
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteRoute(id: number) {
+    setError(null);
+    try {
+      const res = await deleteTransitRoute(apiFetch, id);
+      if (!res.ok) {
+        setError(res.status === 400 ? "Bu güzergaha bağlı duraklar var, önce onları taşıyın/silin." : "Silme başarısız.");
+        return;
+      }
+      if (expandedId === id) setExpandedId(null);
+      reloadRoutes();
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    }
+  }
+
+  async function toggleExpand(routeId: number) {
+    if (expandedId === routeId) { setExpandedId(null); return; }
+    setExpandedId(routeId);
+    await loadDetail(routeId);
+  }
+
+  async function loadDetail(routeId: number) {
+    try {
+      const res = await getTransitRouteDetail(apiFetch, routeId);
+      if (!res.ok) return;
+      const data: TransitRouteDetailDto = await res.json();
+      setDetailById((prev) => ({ ...prev, [routeId]: data }));
+    } catch { }
+  }
+
+  function handleDragStart(stopId: number) {
+    dragItemId.current = stopId;
+  }
+
+  function handleDragOver(e: React.DragEvent, stopId: number) {
+    e.preventDefault();
+    dragOverItemId.current = stopId;
+  }
+
+  async function handleDrop(routeId: number) {
+    const fromId = dragItemId.current;
+    const toId   = dragOverItemId.current;
+    dragItemId.current     = null;
+    dragOverItemId.current = null;
+    if (fromId == null || toId == null || fromId === toId) return;
+
+    const detail = detailById[routeId];
+    if (!detail) return;
+
+    const stops     = [...detail.stops];
+    const fromIndex = stops.findIndex((s) => s.id === fromId);
+    const toIndex   = stops.findIndex((s) => s.id === toId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = stops.splice(fromIndex, 1);
+    stops.splice(toIndex, 0, moved);
+
+    // İyimser güncelleme — sürükleme sonrası liste anında yeni sırayla görünsün
+    setDetailById((prev) => ({ ...prev, [routeId]: { ...detail, stops } }));
+    setIsReordering(routeId);
+
+    try {
+      const res = await reorderTransitStops(apiFetch, routeId, stops.map((s) => s.id));
+      if (!res.ok) { await loadDetail(routeId); setError("Sıralama kaydedilemedi."); return; }
+    } catch {
+      await loadDetail(routeId);
+      setError("Sunucuya bağlanılamadı.");
+    } finally {
+      setIsReordering(null);
+    }
+  }
+
+  return (
+    <div style={{
+      position:     "fixed",
+      top:          70, bottom: 100, right: 16,
+      width:        340,
+      background:   "#ffffff",
+      borderRadius: 12,
+      border:       "1px solid #e2e8f0",
+      boxShadow:    "0 8px 32px rgba(0,0,0,0.15)",
+      zIndex:       950,
+      display:      "flex",
+      flexDirection:"column",
+      overflow:     "hidden",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "12px 16px", borderBottom: "1px solid #f1f5f9",
+      }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Güzergah Yönetimi</span>
+        <button
+          onClick={onClose}
+          style={{
+            border: "none", background: "transparent",
+            color: "#94a3b8", fontSize: 16, cursor: "pointer", lineHeight: 1,
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
+        <input
+          type="text"
+          placeholder="Yeni güzergah adı..."
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          style={{
+            flex: 1, padding: "7px 10px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 13, color: "#0f172a", outline: "none",
+          }}
+        />
+        <input
+          type="color"
+          value={newColor}
+          onChange={(e) => setNewColor(e.target.value)}
+          style={{ width: 36, height: 32, padding: 0, border: "1px solid #e2e8f0", borderRadius: 8, cursor: "pointer" }}
+        />
+        <button
+          onClick={handleCreateRoute}
+          disabled={isSaving || !newName.trim()}
+          style={{
+            padding: "7px 12px", borderRadius: 8, border: "none",
+            background: "#0f172a", color: "#ffffff", fontSize: 13, fontWeight: 500,
+            cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.6 : 1,
+          }}
+        >
+          Ekle
+        </button>
+      </div>
+
+      {error && (
+        <p style={{ fontSize: 12, color: "#dc2626", padding: "8px 16px 0", margin: 0 }}>{error}</p>
+      )}
+
+      <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
+        {routes.length === 0 ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
+            Henüz güzergah yok.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {routes.map((route) => {
+              const isExpanded = expandedId === route.id;
+              const detail     = detailById[route.id];
+              const stopCount  = detail?.stops.length;
+
+              return (
+                <div
+                  key={route.id}
+                  style={{ border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}
+                >
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "10px 12px", cursor: "pointer",
+                  }}
+                    onClick={() => toggleExpand(route.id)}
+                  >
+                    <div style={{ width: 12, height: 12, borderRadius: "50%", background: route.color, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "#0f172a" }}>
+                      {route.name}
+                    </span>
+                    {stopCount !== undefined && (
+                      <span style={{ fontSize: 11, color: "#94a3b8" }}>{stopCount} durak</span>
+                    )}
+                    <span style={{ fontSize: 11, color: "#94a3b8" }}>{isExpanded ? "▲" : "▼"}</span>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ borderTop: "1px solid #f1f5f9", padding: "10px 12px", background: "#f8fafc" }}>
+                      {!detail ? (
+                        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Yükleniyor...</p>
+                      ) : detail.stops.length === 0 ? (
+                        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Bu güzergahta durak yok.</p>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                          {detail.stops.map((stop: TransitStopResponseDto, i: number) => (
+                            <div
+                              key={stop.id}
+                              draggable
+                              onDragStart={() => handleDragStart(stop.id)}
+                              onDragOver={(e) => handleDragOver(e, stop.id)}
+                              onDrop={() => handleDrop(route.id)}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 8,
+                                padding: "6px 8px", borderRadius: 6,
+                                background: "#ffffff", border: "1px solid #e2e8f0",
+                                fontSize: 12, color: "#374151",
+                                cursor: "grab",
+                                opacity: isReordering === route.id ? 0.6 : 1,
+                              }}
+                            >
+                              <span style={{ color: "#cbd5e1", fontSize: 14 }}>⋮⋮</span>
+                              <span style={{ width: 18, textAlign: "center", color: "#94a3b8", fontSize: 11 }}>{i + 1}</span>
+                              <span style={{ flex: 1 }}>{stop.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          onClick={() => onAddStopToRoute(route.id)}
+                          style={{
+                            flex: 1, padding: "6px 0", borderRadius: 6,
+                            border: "1px solid rgba(59,130,246,.3)", background: "rgba(59,130,246,.05)",
+                            color: "#3b82f6", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                          }}
+                        >
+                          Durak Ekle
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoute(route.id)}
+                          style={{
+                            padding: "6px 12px", borderRadius: 6,
+                            border: "1px solid rgba(239,68,68,.3)", background: "rgba(239,68,68,.05)",
+                            color: "#ef4444", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                          }}
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

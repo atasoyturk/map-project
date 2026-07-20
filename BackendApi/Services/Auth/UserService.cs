@@ -30,7 +30,7 @@ public sealed class UserService : IUserService
 
         await _userRepository.AddAsync(user);
 
-        _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 2 });
+        _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 6 });
         await _context.SaveChangesAsync();
 
         return true;

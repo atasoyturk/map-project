@@ -70,6 +70,23 @@ public sealed class AdminService : IAdminService
         return true;
     }
 
+    public async Task<int> AssignTeamToUsersAsync(int[] userIds, int? teamId)
+    {
+        var users = await _context.Users
+            .Where(u => userIds.Contains(u.Id) && !u.IsDeleted)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        foreach (var user in users)
+        {
+            user.TeamId       = teamId;
+            user.ModifiedDate = now;
+        }
+
+        await _context.SaveChangesAsync();
+        return users.Count;
+    }
+
     public async Task<bool> RemoveRoleFromUserAsync(int userId, int roleId)
     {
         var userRole = await _context.UserRoles

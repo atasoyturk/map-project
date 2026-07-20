@@ -23,6 +23,9 @@ public sealed record UpdateUserDto(
     bool IsActive);
 
 public sealed record TeamDto(int Id, string Name);
-public sealed record AssignTeamDto(int? TeamId);   
+public sealed record AssignTeamDto(int? TeamId);  
+public sealed record AssignTeamBulkDto(
+    [Required] int[] UserIds,
+    int? TeamId); 
 public sealed record CreateTeamDto(
     [Required, MaxLength(100)] string Name);

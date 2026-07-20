@@ -114,4 +114,11 @@ public sealed class AdminController : ApiControllerBase
         var result = await _adminService.AssignTeamToUserAsync(id, dto.TeamId);
         return result ? NoContent() : NotFound();
     }
+
+    [HttpPut("users/team/bulk")]
+    public async Task<IActionResult> AssignTeamBulk([FromBody] AssignTeamBulkDto dto)
+    {
+        var updated = await _adminService.AssignTeamToUsersAsync(dto.UserIds, dto.TeamId);
+        return Ok(new { updated });
+    }
 }

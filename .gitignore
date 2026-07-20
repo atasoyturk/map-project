@@ -508,11 +508,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Workflow.py — kişisel state ve geçici dosyalar
-.workflow_state.json
-.workflow_state.backup.json
-repomix.config.json
-temp.py
-project_ai/backups/
-project_ai/models/
-project_ai/artifacts/
+# repomix
+repomix
+.xml
+.txt
+backend_code.xml
+backend_structure.txt
+frontend_code.xml
+frontend_structure.txt

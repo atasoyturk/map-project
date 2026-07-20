@@ -77,8 +77,8 @@ export function Navbar({
 
   const isPlainUser = roles.includes("User") && roles.length === 1;
 
-  const canManagePoi  = roles.includes("Operator") || roles.includes("Admin");
-  const isOperatorOnly = roles.includes("Operator") && !roles.includes("Admin");
+  const canManagePoi  = roles.includes("POI Operatörü") || roles.includes("Admin");
+  const isOperatorOnly = roles.includes("POI Operatörü") && !roles.includes("Admin");
   const otherToolActive = !!activeType || analysisActive;
   const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen;
 

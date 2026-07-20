@@ -4,6 +4,7 @@ using BackendApi.Entities.Geo;
 using BackendApi.Entities.Team;
 using BackendApi.Entities.Annotation;
 using BackendApi.Entities.Poi;
+using BackendApi.Entities.Transit;
 
 namespace BackendApi.Data;
 
@@ -24,6 +25,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<Annotation> Annotations => Set<Annotation>();
     public DbSet<PoiCategory> PoiCategories => Set<PoiCategory>();
     public DbSet<Poi>         Pois          => Set<Poi>();
+    public DbSet<TransitRoute> TransitRoutes => Set<TransitRoute>();
+    public DbSet<TransitStop>  TransitStops  => Set<TransitStop>();
     public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
     public DbSet<UserGeoPermission> UserGeoPermissions => Set<UserGeoPermission>();
     public DbSet<RoleGeoPermission> RoleGeoPermissions => Set<RoleGeoPermission>();
@@ -163,6 +166,20 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        // TransitStop → TransitRoute
+        modelBuilder.Entity<TransitStop>()
+            .HasOne<TransitRoute>()
+            .WithMany()
+            .HasForeignKey(s => s.TransitRouteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // TransitStop → User
+        modelBuilder.Entity<TransitStop>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(
@@ -170,8 +187,9 @@ public sealed class AppDbContext : DbContext
             new Role { Id = 2, Name = "Çalışan"},
             new Role { Id = 3, Name = "Stajyer"},
             new Role { Id = 4, Name = "Takım Lideri"},
-            new Role { Id = 5, Name = "Operator" },
-            new Role { Id = 6, Name = "Kullanıcı" }
+            new Role { Id = 5, Name = "POI Operatorü" },
+            new Role { Id = 6, Name = "Kullanıcı" },
+            new Role { Id = 7, Name = "Ulaşım Operatörü"}
         );
 
         modelBuilder.Entity<Permission>().HasData(
@@ -183,7 +201,10 @@ public sealed class AppDbContext : DbContext
             new Permission { Id = 6, Name = "annotation_read",  Description = "Not geçmişini görüntüleme yetkisi" },
             new Permission { Id = 7, Name = "poi_create",           Description = "POI oluşturma/güncelleme yetkisi" },  
             new Permission { Id = 8, Name = "poi_read",             Description = "POI görüntüleme yetkisi" },            
-            new Permission { Id = 9, Name = "poi_category_manage",  Description = "POI kategori ağacını yönetme yetkisi" } 
+            new Permission { Id = 9, Name = "poi_category_manage",  Description = "POI kategori ağacını yönetme yetkisi" },
+            new Permission { Id = 10, Name = "transit_stop_create",   Description = "Durak oluşturma/güncelleme yetkisi" },
+            new Permission { Id = 11, Name = "transit_stop_read",     Description = "Durak/güzergah görüntüleme yetkisi" },
+            new Permission { Id = 12, Name = "transit_route_manage",  Description = "Güzergah yönetme yetkisi" } 
         );
 
         // Admin
@@ -196,7 +217,10 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 1, PermissionId = 6 },
             new RolePermission { RoleId = 1, PermissionId = 7 },   
             new RolePermission { RoleId = 1, PermissionId = 8 },   
-            new RolePermission { RoleId = 1, PermissionId = 9 }    
+            new RolePermission { RoleId = 1, PermissionId = 9 },  
+            new RolePermission { RoleId = 1, PermissionId = 10 },
+            new RolePermission { RoleId = 1, PermissionId = 11 },
+            new RolePermission { RoleId = 1, PermissionId = 12 } 
         );
 
         // Worker
@@ -223,7 +247,7 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 4, PermissionId = 5 },   
             new RolePermission { RoleId = 4, PermissionId = 6 }    
         );
-        // Operator
+        // POI Operatorü
         modelBuilder.Entity<RolePermission>().HasData(
             new RolePermission { RoleId = 5, PermissionId = 7 },   // poi_create
             new RolePermission { RoleId = 5, PermissionId = 8 }    // poi_read — category_manage nto exist
@@ -231,7 +255,15 @@ public sealed class AppDbContext : DbContext
 
         // Kullanıcı
         modelBuilder.Entity<RolePermission>().HasData(
-            new RolePermission { RoleId = 6, PermissionId = 8 }   // poi_read
+            new RolePermission { RoleId = 6, PermissionId = 8 },  // poi_read
+            new RolePermission { RoleId = 6, PermissionId = 11 }  // transit_stop_read
+        );
+
+        // Ulaşım Operatörü
+        modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 7, PermissionId = 10 }, // transit_stop_create
+            new RolePermission { RoleId = 7, PermissionId = 11 }, // transit_stop_read
+            new RolePermission { RoleId = 7, PermissionId = 12 }  // transit_route_manage
         );
 
         modelBuilder.Entity<PoiCategory>().HasData(

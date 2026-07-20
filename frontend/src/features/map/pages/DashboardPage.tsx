@@ -463,7 +463,7 @@ export function DashboardPage() {
   const canManageSelectedPoi =
     !!poiSelected &&
     (roles.includes("Admin") ||
-      (roles.includes("Operator") && poiSelected.get("poiUserId") === userId));
+      (roles.includes("POI Operatörü") && poiSelected.get("poiUserId") === userId));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>

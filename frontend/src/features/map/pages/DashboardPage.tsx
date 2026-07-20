@@ -25,20 +25,9 @@ import { useAnnotationClick } from "../annotation/hooks/useAnnotationClick";
 import { AnnotationInfoPopup } from "../annotation/components/AnnotationInfoPopup";
 import { createAnnotation, deleteAnnotation } from "../annotation/api/annotationService";
 
-
-import { PoiFormModal }         from "../poi/components/PoiFormModal";
-import { PoiInfoPopup }         from "../poi/components/PoiInfoPopup";
+import { PoiModule }            from "../poi/components/PoiModule";
 import { PoiSearchBar }         from "../poi/components/PoiSearchBar";
-
-import { StopFormModal }        from "../transit/components/StopFormModal";
-import { StopInfoPopup }        from "../transit/components/StopInfoPopup";
-import { RouteManagementPanel } from "../transit/components/RouteManagementPanel";
-import { useTransitStopLoader, transitStopToFeature } from "../transit/hooks/useTransitStopLoader";
-import { useTransitStopDraw }   from "../transit/hooks/useTransitStopDraw";
-import { useTransitStopClick }  from "../transit/hooks/useTransitStopClick";
-import { useTransitRoutes }     from "../transit/hooks/useTransitRoutes";
-import { createTransitStop }    from "../../../shared/api/transitService";
-import type { PendingStop }     from "../transit/types";
+import { TransitModule }        from "../transit/components/TransitModule";
 
 import { useMapClick }          from "../core/hooks/useMapClick";
 import { useUserLookup }        from "../core/hooks/useUserLookup";
@@ -47,30 +36,21 @@ import type { SelectedFeatureInfo } from "../core/hooks/useSelect";
 import type { DrawingLayers }       from "../core/hooks/useDrawing";
 import { useAnnotationContextMenu } from "../annotation/hooks/useAnnotationContextMenu";
 import { useAnnotationLoader, annotationToFeature } from "../annotation/hooks/useAnnotationLoader";
-import { usePoiLoader, poiToFeature } from "../poi/hooks/usePoiLoader";
-import { usePoiDraw }           from "../poi/hooks/usePoiDraw";
-import { usePoiClick }          from "../poi/hooks/usePoiClick";
 import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
 import { LocationAnalysisPanel } from "../core/components/LocationAnalysisPanel";
 import { getLocationAnalysis } from "../core/api/analysisService";
-
 
 import { Toast }                    from "../../../shared/components/Toast";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
-import type { PoiResponseDto, PendingPoi } from "../poi/types";
-import { createPoi } from "../../../shared/api/poiService";
 import { Style, Icon } from "ol/style";
 import WKT from "ol/format/WKT";
 import { Fill, Stroke} from "ol/style";
 
-
-
-
 const annotationStyle = new Style({
   image: new Icon({
-    anchor: [0.5, 1], // İğnenin ucunu tam koordinata oturtur
+    anchor: [0.5, 1],
     anchorXUnits: "fraction",
     anchorYUnits: "fraction",
     src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23f59e0b" stroke="%2378350f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
@@ -96,22 +76,18 @@ export function DashboardPage() {
   const [isSavingNote,  setIsSavingNote]  = useState(false);
   const [noteError,     setNoteError]     = useState<string | null>(null);
   const [showNoteModal, setShowNoteModal] = useState(false);
-
-  const [poiDrawActive, setPoiDrawActive] = useState(false);
-  const [pendingPoi,    setPendingPoi]    = useState<PendingPoi | null>(null);
-  const [isSavingPoi,   setIsSavingPoi]   = useState(false);
-  const [poiFormError,  setPoiFormError]  = useState<string | null>(null);
   const [toast,         setToast]         = useState<ToastState | null>(null);
-  const [poiFeatures,   setPoiFeatures]   = useState<Feature[]>([]);
-  const [poiSelected,   setPoiSelected]   = useState<Feature | null>(null);
 
+  // --- POI modülünün dışa açtığı (Navbar/LayerControl/PoiSearchBar için gereken) minimal durum ---
+  const [poiDrawActive, setPoiDrawActive] = useState(false);
+  const [poiFormOpen,   setPoiFormOpen]   = useState(false);
+  const [poiFeatures,   setPoiFeatures]   = useState<Feature[]>([]);
+  const [poiLayer,      setPoiLayer]      = useState<VectorLayer<VectorSource> | null>(null);
+
+  // --- Transit modülünün dışa açtığı (Navbar için gereken) minimal durum ---
   const [stopDrawActive,      setStopDrawActive]      = useState(false);
-  const [pendingStop,         setPendingStop]         = useState<PendingStop | null>(null);
-  const [isSavingStop,        setIsSavingStop]        = useState(false);
-  const [stopFormError,       setStopFormError]       = useState<string | null>(null);
-  const [stopSelected,        setStopSelected]        = useState<Feature | null>(null);
+  const [stopFormOpen,        setStopFormOpen]        = useState(false);
   const [routeManagementOpen, setRouteManagementOpen] = useState(false);
-  const [lockedRouteId,       setLockedRouteId]       = useState<number | null>(null);
 
   const { token, apiFetch, roles, userId } = useAuth();
 
@@ -119,10 +95,6 @@ export function DashboardPage() {
 
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
-  const poiSourceRef        = useRef(new VectorSource());
-  const poiLayerRef         = useRef<VectorLayer<VectorSource> | null>(null);
-  const stopSourceRef       = useRef(new VectorSource());
-  const stopLayerRef        = useRef<VectorLayer<VectorSource> | null>(null);
 
   const categories = useCategoryTree(apiFetch);
   const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
@@ -131,7 +103,6 @@ export function DashboardPage() {
   const regionPreviewLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
   const [annotationLayer, setAnnotationLayer] = useState<VectorLayer<VectorSource> | null>(null);
 
-
   useEffect(() => {
     if (!map || isPlainUser) return;
     const layer = new VectorLayer({
@@ -139,54 +110,31 @@ export function DashboardPage() {
       style:  annotationStyle,
       zIndex: 2,
     });
-    
+
     map.addLayer(layer);
     annotationLayerRef.current = layer;
     setAnnotationLayer(layer);
-    
+
     return () => {
       map.removeLayer(layer);
       annotationLayerRef.current = null;
-      setAnnotationLayer(null); 
+      setAnnotationLayer(null);
     };
   }, [map, isPlainUser]);
 
   useEffect(() => {
-    if (!map) return;
-    const layer = new VectorLayer({
-      source: poiSourceRef.current,
-      zIndex: 3,
-    });
-    map.addLayer(layer);
-    poiLayerRef.current = layer;
-
-    const handleSourceChange = () => setPoiFeatures(poiSourceRef.current.getFeatures());
-    poiSourceRef.current.on("featuresloadend", handleSourceChange);
-    poiSourceRef.current.on("addfeature", handleSourceChange);
-
-    return () => {
-      map.removeLayer(layer);
-      poiLayerRef.current = null;
-      poiSourceRef.current.un("featuresloadend", handleSourceChange);
-      poiSourceRef.current.un("addfeature", handleSourceChange);
-    };
-  }, [map]);
-
-  useEffect(() => {
     if (!map || !locAnalysisPoints) return;
 
-    // 1. Isı haritası için veri kaynağını oluştur
     const vectorSource = new VectorSource();
-    
+
     locAnalysisPoints.forEach(pt => {
       const feature = new Feature({
         geometry: new Point(fromLonLat([pt.longitude, pt.latitude])),
-        weight: pt.weight // Backend'den gelen 0-1 arası ağırlık
+        weight: pt.weight
       });
       vectorSource.addFeature(feature);
     });
 
-    // 2. Heatmap katmanını oluştur
     const heatmapLayer = new HeatmapLayer({
       source: vectorSource,
       blur: 20,
@@ -197,22 +145,17 @@ export function DashboardPage() {
 
     map.addLayer(heatmapLayer);
 
-    // 3. Temizleme fonksiyonu: Veriler değiştiğinde veya bileşen kapandığında katmanı kaldır
     return () => {
       map.removeLayer(heatmapLayer);
     };
   }, [map, locAnalysisPoints]);
 
-
   // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
   useAnnotationLoader(map, annotationSourceRef.current, apiFetch, !isPlainUser);
-  usePoiLoader(map, poiSourceRef.current, apiFetch);
-  useTransitStopLoader(map, stopSourceRef.current, apiFetch);
-  const { routes: transitRoutes, reload: reloadTransitRoutes } = useTransitRoutes(apiFetch);
 
-  const poiFlowActive  = poiDrawActive || pendingPoi !== null;
-  const stopFlowActive = stopDrawActive || pendingStop !== null;
-  const interactionsIdle = !analysisActive && activeType === null && !heatmapActive && !poiFlowActive;
+  const poiFlowActive    = poiDrawActive || poiFormOpen;
+  const stopFlowActive   = stopDrawActive || stopFormOpen;
+  const interactionsIdle = !analysisActive && activeType === null && !heatmapActive && !poiFlowActive && !stopFlowActive;
 
   const userLookup = useUserLookup(apiFetch);
   const tooltip = useFeatureTooltip({
@@ -227,89 +170,11 @@ export function DashboardPage() {
     enabled: interactionsIdle && !isPlainUser,
   });
 
-  usePoiDraw({
-    map,
-    source: poiSourceRef.current,
-    active: poiDrawActive,
-    onDrawEnd: async (wkt, feature) => {
-      setPoiDrawActive(false);
-
-      try {
-        const res = await apiFetch("/api/geo-permission/validate", {
-          method: "POST",
-          body:   JSON.stringify({ wktGeometry: wkt }),
-        });
-
-        if (!res.ok) {
-          poiSourceRef.current.removeFeature(feature);
-          const message = await res.text();
-          setToast({ message: `Hata: ${message}`, type: "error" });
-          return;
-        }
-
-        setPendingPoi({ wkt, feature });
-      } catch {
-        poiSourceRef.current.removeFeature(feature);
-        setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-      }
-    },
-  });
-
-  useTransitStopDraw({
-    map,
-    source: stopSourceRef.current,
-    active: stopDrawActive,
-    onDrawEnd: async (wkt, feature) => {
-      setStopDrawActive(false);
-
-      try {
-        const res = await apiFetch("/api/geo-permission/validate", {
-          method: "POST",
-          body:   JSON.stringify({ wktGeometry: wkt }),
-        });
-
-        if (!res.ok) {
-          stopSourceRef.current.removeFeature(feature);
-          const message = await res.text();
-          setToast({ message: `Hata: ${message}`, type: "error" });
-          return;
-        }
-
-        setPendingStop({ wkt, feature });
-      } catch {
-        stopSourceRef.current.removeFeature(feature);
-        setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-      }
-    },
-  });
-
-  // POI tıklaması User için devre dışı — sadece isim etiketiyle görsün, detay/popup açılmasın.
-  const { selected: poiClickSelected, clear: clearPoiSelected } = usePoiClick({
-    map,
-    poiLayer: poiLayerRef.current,
-    enabled:  interactionsIdle && !isPlainUser,
-  });
-
-  const { selected: stopClickSelected, clear: clearStopSelected } = useTransitStopClick({
-    map,
-    stopLayer: stopLayerRef.current,
-    enabled:   interactionsIdle && !isPlainUser,
-  });
-
   const { selected: annotationSelected, clear: clearAnnotationSelected } = useAnnotationClick({
     map,
     annotationLayer: annotationLayer,
     enabled: interactionsIdle && !isPlainUser,
   });
-
-
-  useEffect(() => {
-    setPoiSelected(poiClickSelected?.feature ?? null);
-  }, [poiClickSelected]);
-
-  useEffect(() => {
-    setStopSelected(stopClickSelected?.feature ?? null);
-  }, [stopClickSelected]);
 
   useMapClick({
     map,
@@ -353,15 +218,15 @@ export function DashboardPage() {
       opacity:  0.75,
     });
 
-  map.addLayer(heatmapLayer);
+    map.addLayer(heatmapLayer);
 
-  return () => {
-    map.removeLayer(heatmapLayer);
-    if (layers?.pointLayer) {
-      layers.pointLayer.setVisible(true);
-    }
-  };
-}, [map, heatmapActive, token, layers, isPlainUser]);
+    return () => {
+      map.removeLayer(heatmapLayer);
+      if (layers?.pointLayer) {
+        layers.pointLayer.setVisible(true);
+      }
+    };
+  }, [map, heatmapActive, token, layers, isPlainUser]);
 
   useEffect(() => {
     function handleSelectFeature(e: Event) {
@@ -399,18 +264,17 @@ export function DashboardPage() {
   async function handleDeleteAnnotation(id: number) {
     try {
       const res = await deleteAnnotation(apiFetch, id);
-      
+
       if (!res.ok) {
         const message = res.status === 403 ? "Bu notu silme yetkiniz bulunmuyor." : "Not silinemedi.";
         setToast({ message, type: "error" });
         return;
       }
 
-      // Başarılıysa: Haritadaki katmandan (source) kaldır
       if (annotationSelected) {
         annotationSourceRef.current.removeFeature(annotationSelected.feature);
       }
-      
+
       clearAnnotationSelected();
       setToast({ message: "Not başarıyla silindi.", type: "success" });
     } catch {
@@ -418,135 +282,30 @@ export function DashboardPage() {
     }
   }
 
-
   function handleCancelNote() {
     setShowNoteModal(false);
     setNoteError(null);
     clearPendingNote();
   }
 
-  async function handleSavePoi(data: { name: string; workingHours: string; categoryId: number }) {
-    if (!pendingPoi) return;
-    setIsSavingPoi(true);
-    setPoiFormError(null);
-
-    try {
-      const res = await createPoi(apiFetch, {
-        name:         data.name,
-        workingHours: data.workingHours,
-        categoryId:   data.categoryId,
-        wktGeometry:  pendingPoi.wkt,
-      });
-
-      if (!res.ok) {
-        const message = res.status === 403 ? await res.text() : "POI kaydedilemedi.";
-        setPoiFormError(message);
-        setToast({ message, type: "error" });
-        return;
-      }
-
-      const dto: PoiResponseDto = await res.json();
-      poiSourceRef.current.removeFeature(pendingPoi.feature);
-      poiSourceRef.current.addFeature(poiToFeature(dto));
-      setPendingPoi(null);
-    } catch {
-      setPoiFormError("Sunucuya bağlanılamadı.");
-      setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-    } finally {
-      setIsSavingPoi(false);
-    }
-  }
-
-  function handleCancelPoi() {
-    if (pendingPoi) poiSourceRef.current.removeFeature(pendingPoi.feature);
-    setPendingPoi(null);
-    setPoiFormError(null);
-  }
-
-  function handlePoiUpdated() {
-    setPoiFeatures([...poiSourceRef.current.getFeatures()]);
-  }
-
-  function handlePoiDeleted() {
-    if (poiSelected) poiSourceRef.current.removeFeature(poiSelected);
-    setPoiSelected(null);
-    clearPoiSelected();
-    setPoiFeatures([...poiSourceRef.current.getFeatures()]);
-  }
-
-  async function handleSaveStop(data: { name: string; transitRouteId: number }) {
-    if (!pendingStop) return;
-    setIsSavingStop(true);
-    setStopFormError(null);
-
-    try {
-      const res = await createTransitStop(apiFetch, {
-        name:           data.name,
-        transitRouteId: data.transitRouteId,
-        wktGeometry:    pendingStop.wkt,
-      });
-
-      if (!res.ok) {
-        const message = res.status === 403 ? await res.text() : "Durak kaydedilemedi.";
-        setStopFormError(message);
-        setToast({ message, type: "error" });
-        return;
-      }
-
-      const dto   = await res.json();
-      const route = transitRoutes.find((r) => r.id === dto.transitRouteId);
-
-      stopSourceRef.current.removeFeature(pendingStop.feature);
-      stopSourceRef.current.addFeature(transitStopToFeature(dto, route?.color ?? "#3b82f6", route?.name ?? ""));
-
-      setPendingStop(null);
-      setLockedRouteId(null);
-      reloadTransitRoutes();
-    } catch {
-      setStopFormError("Sunucuya bağlanılamadı.");
-      setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-    } finally {
-      setIsSavingStop(false);
-    }
-  }
-
-  function handleCancelStop() {
-    if (pendingStop) stopSourceRef.current.removeFeature(pendingStop.feature);
-    setPendingStop(null);
-    setStopFormError(null);
-    setLockedRouteId(null);
-  }
-
-  function handleStopDeleted() {
-    if (stopSelected) stopSourceRef.current.removeFeature(stopSelected);
-    setStopSelected(null);
-    clearStopSelected();
-  }
-
-  function handleAddStopToRoute(routeId: number) {
-    setLockedRouteId(routeId);
-    setStopDrawActive(true);
-    setToast({ message: "Haritada durağın ekleneceği noktayı işaretleyin.", type: "success" });
-  }
-
   async function handleStartLocationAnalysis(criteria: { categoryId: number; score: number }[]) {
     if (!locAnalysisPolygon) return;
-    
+
     try {
       const res = await getLocationAnalysis(apiFetch, {
         wktGeometry: locAnalysisPolygon.wkt,
         criteria: criteria
       });
-      
+
       if (!res.ok) {
         const msg = await res.text();
         setToast({ message: `Analiz Hatası: ${msg}`, type: "error" });
         return;
       }
-      
+
       const data = await res.json();
       setLocAnalysisPoints(data.heatmapPoints);
-      
+
       setToast({ message: "Konum analizi tamamlandı, ısı haritası oluşturuldu.", type: "success" });
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
@@ -575,17 +334,6 @@ export function DashboardPage() {
     setToast({ message: "Konum analizi sonuçları temizlendi.", type: "success" });
   }
 
-
-  const canManageSelectedPoi =
-    !!poiSelected &&
-    (roles.includes("Admin") ||
-      (roles.includes("POI Operatörü") && poiSelected.get("poiUserId") === userId));
-  
-  const canManageSelectedStop =
-    !!stopSelected &&
-    (roles.includes("Admin") ||
-      (roles.includes("Ulaşım Operatörü") && stopSelected.get("stopUserId") === userId));
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <Navbar
@@ -603,7 +351,7 @@ export function DashboardPage() {
         onHeatmapToggle={() => setHeatmapActive((p) => !p)}
         poiDrawActive={poiDrawActive}
         onPoiDrawChange={setPoiDrawActive}
-        poiFormOpen={pendingPoi !== null}
+        poiFormOpen={poiFormOpen}
         locAnalysisActive={locAnalysisPanelOpen}
         onLocAnalysisToggle={() => setLocAnalysisPanelOpen(!locAnalysisPanelOpen)}
         onLocAnalysisPolygonReady={(wkt, feature: any) => {
@@ -611,11 +359,8 @@ export function DashboardPage() {
           setToast({ message: "Bölge başarıyla seçildi. Şimdi kriterlerinizi belirleyebilirsiniz.", type: "success" });
         }}
         stopDrawActive={stopDrawActive}
-        onStopDrawChange={(active) => {
-          setStopDrawActive(active);
-          if (active) setLockedRouteId(null);
-        }}
-        stopFormOpen={pendingStop !== null}
+        onStopDrawChange={setStopDrawActive}
+        stopFormOpen={stopFormOpen}
         routeManagementOpen={routeManagementOpen}
         onRouteManagementToggle={() => setRouteManagementOpen((p) => !p)}
       />
@@ -653,7 +398,7 @@ export function DashboardPage() {
             }}
             onClear={handleClearLocationAnalysis}
             hasResults={!!locAnalysisPoints}
-            onRegionSelect={(wkt, displayName) => {  
+            onRegionSelect={(wkt, displayName) => {
               if (regionPreviewLayerRef.current && map) {
                 map.removeLayer(regionPreviewLayerRef.current);
                 regionPreviewLayerRef.current = null;
@@ -689,9 +434,8 @@ export function DashboardPage() {
           />
         )}
 
-        
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
-        {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayerRef.current} visible={layerControlOpen} />}
+        {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
 
@@ -714,59 +458,38 @@ export function DashboardPage() {
         />
       )}
 
-      {pendingPoi && (
-        <PoiFormModal
-          categories={categories}
-          onSave={handleSavePoi}
-          onCancel={handleCancelPoi}
-          isSaving={isSavingPoi}
-          error={poiFormError}
-        />
-      )}
+      <PoiModule
+        map={map}
+        apiFetch={apiFetch}
+        categories={categories}
+        userLookup={userLookup}
+        roles={roles}
+        userId={userId}
+        isPlainUser={isPlainUser}
+        otherFlowsIdle={!analysisActive && activeType === null && !heatmapActive && !stopFlowActive}
+        drawActive={poiDrawActive}
+        onDrawActiveChange={setPoiDrawActive}
+        onFormOpenChange={setPoiFormOpen}
+        onFeaturesChange={setPoiFeatures}
+        onLayerReady={setPoiLayer}
+        onToast={setToast}
+      />
 
-      {!isPlainUser && poiSelected && (
-        <PoiInfoPopup
-          feature={poiSelected}
-          categories={categories}
-          userLookup={userLookup}
-          canManage={canManageSelectedPoi}
-          onClose={() => { setPoiSelected(null); clearPoiSelected(); }}
-          onUpdated={handlePoiUpdated}
-          onDeleted={handlePoiDeleted}
-        />
-      )}
-
-      {pendingStop && (
-        <StopFormModal
-          routes={transitRoutes}
-          lockedRouteId={lockedRouteId}
-          onSave={handleSaveStop}
-          onCancel={handleCancelStop}
-          isSaving={isSavingStop}
-          error={stopFormError}
-        />
-      )}
-
-      {!isPlainUser && stopSelected && (
-        <StopInfoPopup
-          feature={stopSelected}
-          routes={transitRoutes}
-          userLookup={userLookup}
-          canManage={canManageSelectedStop}
-          onClose={() => { setStopSelected(null); clearStopSelected(); }}
-          onUpdated={() => {}}
-          onDeleted={handleStopDeleted}
-        />
-      )}
-
-      {routeManagementOpen && (
-        <RouteManagementPanel
-          routes={transitRoutes}
-          reloadRoutes={reloadTransitRoutes}
-          onClose={() => setRouteManagementOpen(false)}
-          onAddStopToRoute={handleAddStopToRoute}
-        />
-      )}
+      <TransitModule
+        map={map}
+        apiFetch={apiFetch}
+        userLookup={userLookup}
+        roles={roles}
+        userId={userId}
+        isPlainUser={isPlainUser}
+        otherFlowsIdle={!analysisActive && activeType === null && !heatmapActive && !poiFlowActive}
+        drawActive={stopDrawActive}
+        onDrawActiveChange={setStopDrawActive}
+        onFormOpenChange={setStopFormOpen}
+        onToast={setToast}
+        routeManagementOpen={routeManagementOpen}
+        onRouteManagementClose={() => setRouteManagementOpen(false)}
+      />
 
       {!isPlainUser && selected && (
         <InfoPopup
@@ -778,8 +501,6 @@ export function DashboardPage() {
           }}
           onDelete={() => {
             const id = annotationSelected?.feature.get("id") ?? annotationSelected?.feature.getId();
-            console.log("Annotation ID:", id);
-            console.log("Feature Properties:", annotationSelected?.feature.getProperties());
             if (id) {
               handleDeleteAnnotation(id);
             } else {

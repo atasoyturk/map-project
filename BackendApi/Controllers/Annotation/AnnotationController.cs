@@ -34,4 +34,16 @@ public sealed class AnnotationController : ApiControllerBase
         var result = await _annotationService.GetAllAsync(userId.Value, GetTeamId(), HasAdminAccess());
         return Ok(result);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+    
+       var userId = GetUserId(); 
+       if (userId is null) return Unauthorized();
+
+       var success = await _annotationService.DeleteAsync(id, userId.Value, GetUserRoles());
+       return success ? NoContent() : NotFound();
+    }
+
 }

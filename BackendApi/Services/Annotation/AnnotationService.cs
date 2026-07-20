@@ -50,6 +50,28 @@ public sealed class AnnotationService : IAnnotationService
         return entities.Select(ToDto);
     }
 
+    public async Task<bool> DeleteAsync(int id, int userId, IEnumerable<string> roles)
+    {
+        var isAdmin = roles.Contains("Admin");
+        Console.WriteLine($"Silinecek ID: {id}");
+        Console.WriteLine($"Giriş yapan UserId: {userId}");
+        Console.WriteLine($"Roller: {string.Join(",", roles)}");
+        Console.WriteLine($"Admin mi: {isAdmin}");
+        
+        var entity = await _context.Annotations
+            .FirstOrDefaultAsync(a => (isAdmin || a.UserId == userId) && a.Id == id && !a.IsDeleted);
+
+        if (entity is null) return false;
+
+        entity.IsDeleted = true;
+        entity.ModifiedDate = DateTime.UtcNow;
+        entity.ModifiedUserId = userId;
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+
     private static AnnotationResponseDto ToDto(AnnotationEntity entity) =>
         new(entity.Id, entity.NoteText, GeometryConverter.ToWkt(entity.Geometry),
             entity.UserId, entity.TeamId, entity.CreatedDate);

@@ -19,6 +19,7 @@ using BackendApi.Services.Permission;
 using BackendApi.Services.Search;
 using BackendApi.Services.Annotation;
 using BackendApi.Services.Poi;
+using BackendApi.Services.Transit;
 
 using Microsoft.Extensions.Options;
 
@@ -82,6 +83,12 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("poi_read")));
     options.AddPolicy("poi_category_manage", policy =>
         policy.Requirements.Add(new PermissionRequirement("poi_category_manage")));
+    options.AddPolicy("transit_stop_create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("transit_stop_create")));
+    options.AddPolicy("transit_stop_read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("transit_stop_read")));
+    options.AddPolicy("transit_route_manage", policy =>
+        policy.Requirements.Add(new PermissionRequirement("transit_route_manage")));
 });
 
 // Exception Handling
@@ -104,6 +111,8 @@ builder.Services.AddScoped<IGeoServerService, GeoServerService>();
 builder.Services.AddScoped<IAnnotationService, AnnotationService>();
 builder.Services.AddScoped<IPoiCategoryService, PoiCategoryService>();
 builder.Services.AddScoped<IPoiService,         PoiService>();
+builder.Services.AddScoped<ITransitRouteService, TransitRouteService>();
+builder.Services.AddScoped<ITransitStopService,  TransitStopService>();
 
 // GeoServer Settings
 builder.Services

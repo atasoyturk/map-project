@@ -12,7 +12,7 @@ public sealed class GeoServerService : IGeoServerService
 
     private static readonly HashSet<string> AllowedLayers = new()
     {
-        "tbl_point", "tbl_line", "tbl_polygon", "tbl_poi_active"
+        "tbl_point", "tbl_line", "tbl_polygon", "tbl_poi_active", "tbl_transit_stop_active"
     };
 
     public GeoServerService(
@@ -27,7 +27,7 @@ public sealed class GeoServerService : IGeoServerService
 
     private static string BuildCqlFilter(string typeName, int userId, int? teamId, GeoViewMode viewMode)
     {
-        if (typeName == "tbl_poi_active")
+        if (typeName == "tbl_poi_active" || typeName == "tbl_transit_stop_active")
             return string.Empty;
 
         return viewMode switch

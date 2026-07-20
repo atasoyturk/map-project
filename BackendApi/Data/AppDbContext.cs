@@ -173,6 +173,13 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(s => s.TransitRouteId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        // TransitRoute → User
+        modelBuilder.Entity<TransitRoute>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // TransitStop → User
         modelBuilder.Entity<TransitStop>()
@@ -180,6 +187,7 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
 
         // Seed Data
         modelBuilder.Entity<Role>().HasData(

@@ -490,8 +490,8 @@ export function DashboardPage() {
           setToast({ message: "Bölge başarıyla seçildi. Şimdi kriterlerinizi belirleyebilirsiniz.", type: "success" });
         }}
       />
-      <div style={{ position: "relative", marginTop: 50, flex: 1 }}>
-        <MapView onMapReady={setMap} height="calc(100vh - 56px)" />
+      <div style={{ position: "relative", flex: 1 }}>
+        <MapView onMapReady={setMap} height="100vh" />
 
         {annotationSelected && (
           <div style={{ position: "absolute", left: annotationSelected.x, top: annotationSelected.y }}>

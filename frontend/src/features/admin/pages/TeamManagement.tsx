@@ -287,7 +287,7 @@ export function TeamManagement() {
                           color:        "#0f172a",
                         }}
                       >
-                        <option value="">Hedef takım seç...</option>
+                        <option value="">Takım seç...</option>
                         {teams
                           .filter((t) => t.id !== team.id)
                           .map((t) => (

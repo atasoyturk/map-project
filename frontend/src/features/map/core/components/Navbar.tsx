@@ -11,6 +11,8 @@ import { AttributeModal } from "./AttributeModal";
 import { Toast }      from "../../../../shared/components/Toast";
 import type { DrawType, PendingGeometry } from "../types";
 import { createGeoFeature, validateGeometry } from "../api/geoService";
+import { useEdgeVisibility } from "../hooks/useEdgeVisibility";
+import { BottomToolbar } from "./BottomToolbar";
 
 interface NavbarProps {
   map:               Map | null;
@@ -31,15 +33,8 @@ interface NavbarProps {
   locAnalysisActive: boolean;
   onLocAnalysisToggle: () => void;
   onLocAnalysisPolygonReady?: (wkt: string, feature: any) => void;
-
-
 }
 
-const LABEL_MAP: Record<DrawType, string> = {
-  Point:      "Nokta",
-  LineString: "Çizgi",
-  Polygon:    "Poligon",
-};
 
 interface ToastState {
   message: string;
@@ -242,16 +237,24 @@ export function Navbar({
 
   const isAdmin = roles.includes("Admin");
 
+  const keepNavVisible = !isPlainUser && (
+    !!pendingGeometry || !!activeType || analysisActive || heatmapActive ||
+    poiDrawActive || poiFormOpen || locAnalysisActive || queryPanelOpen || layerControlOpen
+  );
+
+  const topVisible = useEdgeVisibility("top", keepNavVisible);
+
   if (isPlainUser) {
     return (
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0,
+        position: "fixed", top: topVisible ? 0 : -60, left: 0, right: 0,
         height: 50,
         background: "#030c21",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
         padding: "0 20px", zIndex: 1000,
+        transition: "top .25s ease",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
@@ -278,13 +281,14 @@ export function Navbar({
   return (
     <>
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0,
+        position: "fixed", top: topVisible ? 0 : -60, left: 0, right: 0,
         height: 50,
         background: "#030c21",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
         padding: "0 20px", zIndex: 1000, gap: 12,
+        transition: "top .25s ease",
       }}>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 120 }}>
@@ -317,41 +321,6 @@ export function Navbar({
         <div style={{ display: "flex", alignItems: "center", gap: 8, left: "50%", position: "absolute", transform: "translateX(-50%)"}}>
           {!isOperatorOnly && (
             <>
-              {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => handleSelect(type)}
-                  disabled={toolsLocked}
-                  style={{
-                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                    borderColor: activeType === type ? "#3b82f6" : "rgba(255,255,255,.15)",
-                    background:  activeType === type ? "rgba(6,18,52,.2)" : "transparent",
-                    color:       activeType === type ? "#93c5fd" : "#94a3b8",
-                    fontSize: 13, fontWeight: 500,
-                    cursor:   toolsLocked ? "not-allowed" : "pointer",
-                    opacity:  toolsLocked ? 0.5 : 1,
-                    transition: "all .15s",
-                  }}
-                >
-                  {LABEL_MAP[type]}
-                </button>
-              ))}
-
-              {activeType && !pendingGeometry && (
-                <button
-                  onClick={() => { onActiveTypeChange(null); setToast(null); }}
-                  style={{
-                    padding: "6px 12px", borderRadius: 8,
-                    border: "1px solid rgba(239,68,68,.4)",
-                    background: "rgba(239,68,68,.1)",
-                    color: "#fca5a5", fontSize: 12, cursor: "pointer",
-                  }}
-                >
-                  İptal
-                </button>
-              )}
-
-              <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.2)" }} />
 
               <button
                 onClick={onQueryPanelToggle}
@@ -506,6 +475,16 @@ export function Navbar({
           Çıkış Yap
         </button>
       </nav>
+
+      {!isOperatorOnly && (
+        <BottomToolbar
+          activeType={activeType}
+          onSelect={handleSelect}
+          onCancel={() => { onActiveTypeChange(null); setToast(null); }}
+          disabled={toolsLocked}
+          keepVisible={keepNavVisible}
+        />
+      )}
 
       {pendingGeometry && (
         <AttributeModal

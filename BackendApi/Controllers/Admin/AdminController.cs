@@ -19,6 +19,13 @@ public sealed class AdminController : ApiControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers() => Ok(await _adminService.GetAllUsersAsync());
 
+     [HttpPost("users")]
+    public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto)
+    {
+        var success = await _adminService.CreateEmployeeAsync(dto.Email, dto.Password);
+        return success ? Created(string.Empty, null) : Conflict("Bu e-posta adresi zaten kayıtlı.");
+    }
+
     [HttpPut("users/{id:int}/active")]
     public async Task<IActionResult> SetUserActive(int id, [FromBody] UpdateUserDto dto)
     {

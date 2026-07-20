@@ -21,6 +21,7 @@ public interface IAdminService
     Task<TeamDto>                       CreateTeamAsync(string name);
     Task<bool>                          DeleteRoleAsync(int roleId);
     Task<bool>                          DeleteTeamAsync(int teamId);
+    Task<bool>                          CreateEmployeeAsync(string email, string password);
 
 }
 

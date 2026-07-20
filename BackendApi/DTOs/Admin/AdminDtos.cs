@@ -29,3 +29,7 @@ public sealed record AssignTeamBulkDto(
     int? TeamId); 
 public sealed record CreateTeamDto(
     [Required, MaxLength(100)] string Name);
+
+public sealed record CreateEmployeeDto(
+    [Required, EmailAddress] string Email,
+    [Required, MinLength(6)] string Password);

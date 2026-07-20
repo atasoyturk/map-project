@@ -161,4 +161,24 @@ public sealed class AdminService : IAdminService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> CreateEmployeeAsync(string email, string password)
+    {
+        var exists = await _context.Users.AnyAsync(u => u.Email == email);
+        if (exists) return false;
+
+        var user = new User
+        {
+            Email        = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 2 }); // Çalışan sabit
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
 }

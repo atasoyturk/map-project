@@ -22,16 +22,20 @@ export interface TransitRouteRequestDto {
 }
 
 export interface TransitRouteResponseDto {
-  id:    number;
-  name:  string;
-  color: string;
+  id:          number;
+  name:        string;
+  color:       string;
+  userId:      number | null;
+  createdDate: string;
 }
 
 export interface TransitRouteDetailDto {
-  id:    number;
-  name:  string;
-  color: string;
-  stops: TransitStopResponseDto[];
+  id:          number;
+  name:        string;
+  color:       string;
+  userId:      number | null;
+  createdDate: string;
+  stops:       TransitStopResponseDto[];
 }
 
 export interface PendingStop {

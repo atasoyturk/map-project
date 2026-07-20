@@ -7,14 +7,18 @@ public sealed record TransitRouteRequestDto(
     [Required, MaxLength(20)]  string Color);
 
 public sealed record TransitRouteResponseDto(
-    int    Id,
-    string Name,
-    string Color);
+    int      Id,
+    string   Name,
+    string   Color,
+    int?     UserId,
+    DateTime CreatedDate);
 
 public sealed record TransitRouteDetailDto(
-    int    Id,
-    string Name,
-    string Color,
+    int      Id,
+    string   Name,
+    string   Color,
+    int?     UserId,
+    DateTime CreatedDate,
     IList<TransitStopResponseDto> Stops);
 
 public sealed record ReorderStopsDto(

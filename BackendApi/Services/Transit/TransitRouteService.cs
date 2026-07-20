@@ -12,12 +12,14 @@ public sealed class TransitRouteService : ITransitRouteService
 
     public TransitRouteService(AppDbContext context) => _context = context;
 
-    public async Task<TransitRouteResponseDto> CreateAsync(TransitRouteRequestDto request)
+    public async Task<TransitRouteResponseDto> CreateAsync(TransitRouteRequestDto request, int userId)
     {
         var entity = new TransitRoute
         {
             Name  = request.Name,
             Color = request.Color,
+            UserId = userId,
+
         };
 
         _context.TransitRoutes.Add(entity);
@@ -75,7 +77,7 @@ public sealed class TransitRouteService : ITransitRouteService
 
         var stopDtos = stops.Select(TransitStopService.ToDto).ToList();
 
-        return new TransitRouteDetailDto(entity.Id, entity.Name, entity.Color, stopDtos);
+        return new TransitRouteDetailDto(entity.Id, entity.Name, entity.Color, entity.UserId, entity.CreatedDate, stopDtos);
     }
 
     public async Task<bool> ReorderStopsAsync(int routeId, int[] stopIdsInOrder)
@@ -100,5 +102,5 @@ public sealed class TransitRouteService : ITransitRouteService
     }
 
     private static TransitRouteResponseDto ToDto(TransitRoute r) =>
-        new(r.Id, r.Name, r.Color);
+        new(r.Id, r.Name, r.Color, r.UserId, r.CreatedDate);
 }

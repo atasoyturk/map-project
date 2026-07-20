@@ -27,7 +27,12 @@ public sealed class TransitRouteController : ApiControllerBase
     [HttpPost]
     [RequirePermission("transit_route_manage")]
     public async Task<IActionResult> Create([FromBody] TransitRouteRequestDto request)
-        => Created(string.Empty, await _service.CreateAsync(request));
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        return Created(string.Empty, await _service.CreateAsync(request, userId.Value));
+    }
 
     [HttpPut("{id:int}")]
     [RequirePermission("transit_route_manage")]

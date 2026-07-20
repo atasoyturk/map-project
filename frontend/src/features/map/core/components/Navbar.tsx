@@ -33,6 +33,11 @@ interface NavbarProps {
   locAnalysisActive: boolean;
   onLocAnalysisToggle: () => void;
   onLocAnalysisPolygonReady?: (wkt: string, feature: any) => void;
+  stopDrawActive:        boolean;
+  onStopDrawChange:      (active: boolean) => void;
+  stopFormOpen:          boolean;
+  routeManagementOpen:   boolean;
+  onRouteManagementToggle: () => void;
 }
 
 
@@ -60,6 +65,11 @@ export function Navbar({
   locAnalysisActive,
   onLocAnalysisToggle,
   onLocAnalysisPolygonReady,
+  stopDrawActive,
+  onStopDrawChange,
+  stopFormOpen,
+  routeManagementOpen,
+  onRouteManagementToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -78,9 +88,11 @@ export function Navbar({
   const isPlainUser = roles.includes("User") && roles.length === 1;
 
   const canManagePoi  = roles.includes("POI Operatörü") || roles.includes("Admin");
-  const isOperatorOnly = roles.includes("POI Operatörü") && !roles.includes("Admin");
+  const canManageTransit = roles.includes("Ulaşım Operatörü") || roles.includes("Admin");
+  const isOperatorOnly = (roles.includes("POI Operatörü") || roles.includes("Ulaşım Operatörü")) && !roles.includes("Admin");
+  
   const otherToolActive = !!activeType || analysisActive;
-  const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen;
+  const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen || stopDrawActive || stopFormOpen;
 
   useFeatureLoader({
     map,
@@ -445,20 +457,58 @@ export function Navbar({
           {canManagePoi && (
             <button
               onClick={handlePoiButtonClick}
-              disabled={!!pendingGeometry || heatmapActive || otherToolActive || poiFormOpen}
+              disabled={!!pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || stopDrawActive || stopFormOpen}
               style={{
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 borderColor: poiDrawActive ? "#0d9488" : "rgba(255,255,255,.15)",
                 background:  poiDrawActive ? "rgba(13,148,136,.2)" : "transparent",
                 color:       poiDrawActive ? "#5eead4" : "#94a3b8",
                 fontSize: 13, fontWeight: 500,
-                cursor:   (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen) ? "not-allowed" : "pointer",
-                opacity:  (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen) ? 0.5 : 1,
+                cursor:   (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || stopDrawActive || stopFormOpen) ? "not-allowed" : "pointer",
+                opacity:  (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || stopDrawActive || stopFormOpen) ? 0.5 : 1,
                 transition: "all .15s",
               }}
             >
               POI
             </button>
+          )}
+
+          {canManageTransit && (
+            <>
+              <button
+                onClick={() => onStopDrawChange(!stopDrawActive)}
+                disabled={!!pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || poiDrawActive || stopFormOpen}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: stopDrawActive ? "#0ea5e9" : "rgba(255,255,255,.15)",
+                  background:  stopDrawActive ? "rgba(14,165,233,.2)" : "transparent",
+                  color:       stopDrawActive ? "#7dd3fc" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || poiDrawActive || stopFormOpen) ? "not-allowed" : "pointer",
+                  opacity:  (pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || poiDrawActive || stopFormOpen) ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Durak Ekle
+              </button>
+
+              <button
+                onClick={onRouteManagementToggle}
+                disabled={toolsLocked}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                  borderColor: routeManagementOpen ? "#8b5cf6" : "rgba(255,255,255,.15)",
+                  background:  routeManagementOpen ? "rgba(139,92,246,.2)" : "transparent",
+                  color:       routeManagementOpen ? "#c4b5fd" : "#94a3b8",
+                  fontSize: 13, fontWeight: 500,
+                  cursor:   toolsLocked ? "not-allowed" : "pointer",
+                  opacity:  toolsLocked ? 0.5 : 1,
+                  transition: "all .15s",
+                }}
+              >
+                Güzergah Yönetimi
+              </button>
+            </>
           )}
         </div>
 

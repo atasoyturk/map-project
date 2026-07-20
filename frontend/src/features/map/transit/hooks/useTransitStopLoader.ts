@@ -53,3 +53,25 @@ export function useTransitStopLoader(map: unknown, source: VectorSource, apiFetc
     load();
   }, [map]);
 }
+
+import { WKT } from "ol/format";
+import type { TransitStopResponseDto } from "../types";
+
+const wktFormat2 = new WKT();
+
+export function transitStopToFeature(dto: TransitStopResponseDto, routeColor: string, routeName: string): Feature {
+  const geometry = wktFormat2.readGeometry(dto.wktGeometry, {
+    dataProjection:    "EPSG:4326",
+    featureProjection: "EPSG:3857",
+  });
+
+  const feature = new Feature({ geometry });
+  feature.set("stopId",          dto.id);
+  feature.set("stopName",        dto.name);
+  feature.set("stopRouteId",     dto.transitRouteId);
+  feature.set("stopRouteName",   routeName);
+  feature.set("stopUserId",      dto.userId);
+  feature.set("stopCreatedDate", dto.createdDate);
+  feature.setStyle(buildStyle(routeColor, dto.name));
+  return feature;
+}

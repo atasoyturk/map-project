@@ -3,7 +3,6 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { PermissionMatrix } from "../components/PermissionMatrix";
 import { RoleAssignModal }  from "../components/RoleAssignModal";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
-import { TeamAssignModal }  from "../components/TeamAssignModal";
 import { getUsers, setUserActive } from "../api/userService";
 
 interface UserDto {
@@ -25,7 +24,6 @@ export function UserManagement() {
   const [geoUserId,    setGeoUserId]    = useState<number | undefined>();
   const [geoUserEmail, setGeoUserEmail] = useState("");
   const [showGeoModal, setShowGeoModal] = useState(false);
-  const [teamUser, setTeamUser] = useState<UserDto | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -164,20 +162,7 @@ export function UserManagement() {
                         >
                           Yetkiler
                         </button>
-                        <button
-                          onClick={() => setTeamUser(user)}
-                          style={{
-                            padding:      "4px 10px",
-                            borderRadius: 6,
-                            border:       "1px solid rgba(245,158,11,.3)",
-                            background:   "rgba(245,158,11,.05)",
-                            color:        "#d97706",
-                            fontSize:     12,
-                            cursor:       "pointer",
-                          }}
-                        >
-                          Takım
-                        </button>
+                      
                         <button
                         onClick={() => {
                           setGeoUserId(user.id);
@@ -229,15 +214,7 @@ export function UserManagement() {
           onClose={() => setShowGeoModal(false)}
         />
       )}
-      {teamUser && (
-        <TeamAssignModal
-          userId={teamUser.id}
-          userEmail={teamUser.email}
-          currentTeamId={teamUser.teamId}
-          onClose={() => setTeamUser(null)}
-          onUpdated={() => { fetchUsers(); setTeamUser(null); }}
-        />
-      )}
+      
     </>
   );
 }

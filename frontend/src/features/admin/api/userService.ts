@@ -17,3 +17,10 @@ export function assignTeamToUser(apiFetch: ApiFetch, userId: number, teamId: num
     body:   JSON.stringify({ teamId }),
   });
 }
+
+export function assignTeamToUsers(apiFetch: ApiFetch, userIds: number[], teamId: number | null) {
+  return apiFetch(`/api/admin/users/team/bulk`, {
+    method: "PUT",
+    body:   JSON.stringify({ userIds, teamId }),
+  });
+}

@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getTeams, createTeam, deleteTeam } from "../api/teamService";
+import { getUsers, assignTeamToUsers } from "../api/userService";
 
 interface TeamDto {
   id:   number;
   name: string;
 }
+
+interface UserDto {
+  id:       number;
+  email:    string;
+  isActive: boolean;
+  roles:    string[];
+  teamId:   number | null;
+  teamName: string | null;
+}
+
+type TargetTeam = number | "unassigned" | "";
 
 export function TeamManagement() {
   const [teams,     setTeams]     = useState<TeamDto[]>([]);
@@ -13,6 +25,11 @@ export function TeamManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving,  setIsSaving]  = useState(false);
   const [error,     setError]     = useState<string | null>(null);
+
+  const [users,           setUsers]           = useState<UserDto[]>([]);
+  const [selectedByTeam,  setSelectedByTeam]  = useState<Record<number, Set<number>>>({});
+  const [targetByTeam,    setTargetByTeam]    = useState<Record<number, TargetTeam>>({});
+  const [isMoving,        setIsMoving]        = useState<number | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -29,7 +46,44 @@ export function TeamManagement() {
     }
   }
 
-  useEffect(() => { fetchTeams(); }, []);
+  async function fetchUsers() {
+    try {
+      const res = await getUsers(apiFetch);
+      if (!res.ok) return;
+      setUsers(await res.json());
+    } catch { }
+  }
+
+  function toggleMember(teamId: number, userId: number) {
+    setSelectedByTeam((prev) => {
+      const current = new Set(prev[teamId] ?? []);
+      current.has(userId) ? current.delete(userId) : current.add(userId);
+      return { ...prev, [teamId]: current };
+    });
+  }
+
+  async function handleMove(teamId: number) {
+    const selected = selectedByTeam[teamId];
+    const target   = targetByTeam[teamId];
+    if (!selected || selected.size === 0 || target === "") return;
+
+    setIsMoving(teamId);
+    try {
+      const teamIdToAssign = target === "unassigned" ? null : target;
+      const res = await assignTeamToUsers(apiFetch, Array.from(selected), teamIdToAssign);
+      if (!res.ok) { setError("Taşıma işlemi başarısız oldu."); return; }
+      setSelectedByTeam((prev) => ({ ...prev, [teamId]: new Set() }));
+      setTargetByTeam((prev) => ({ ...prev, [teamId]: "" }));
+      fetchTeams();
+      fetchUsers();
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    } finally {
+      setIsMoving(null);
+    }
+  }
+
+  useEffect(() => { fetchTeams(); fetchUsers(); }, []);
 
   async function handleCreate() {
     if (!newTeam.trim()) return;
@@ -134,6 +188,137 @@ export function TeamManagement() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!isLoading && !error && (
+        <div style={{ marginTop: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>
+            Takım Üyeleri
+          </h2>
+
+          <div style={{
+            display:               "grid",
+            gridTemplateColumns:   "repeat(auto-fill, minmax(300px, 1fr))",
+            gap:                   16,
+          }}>
+            {teams.map((team) => {
+              const members  = users.filter((u) => u.teamId === team.id);
+              const selected = selectedByTeam[team.id] ?? new Set<number>();
+              const target   = targetByTeam[team.id] ?? "";
+
+              return (
+                <div
+                  key={team.id}
+                  style={{
+                    background:   "#ffffff",
+                    borderRadius: 12,
+                    border:       "1px solid #e2e8f0",
+                    padding:      16,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", margin: 0 }}>
+                      {team.name}
+                    </h3>
+                    <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                      {members.length} kişi
+                    </span>
+                  </div>
+
+                  {members.length === 0 ? (
+                    <p style={{ fontSize: 12, color: "#94a3b8" }}>
+                      Bu takımda kimse yok.
+                    </p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                      {members.map((user) => (
+                        <label
+                          key={user.id}
+                          style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.has(user.id)}
+                            onChange={() => toggleMember(team.id, user.id)}
+                          />
+                          <span style={{ color: "#374151", flex: 1 }}>
+                            {user.email}
+                          </span>
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            {user.roles.map((r) => (
+                              <span
+                                key={r}
+                                style={{
+                                  padding:      "1px 6px",
+                                  borderRadius: 20,
+                                  background:   "#eff6ff",
+                                  color:        "#3b82f6",
+                                  fontSize:     10,
+                                  fontWeight:   500,
+                                }}
+                              >
+                                {r}
+                              </span>
+                            ))}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {members.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, borderTop: "1px solid #f1f5f9", paddingTop: 12 }}>
+                      <select
+                        value={target}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setTargetByTeam((prev) => ({
+                            ...prev,
+                            [team.id]: v === "" ? "" : v === "unassigned" ? "unassigned" : Number(v),
+                          }));
+                        }}
+                        style={{
+                          flex:         1,
+                          padding:      "6px 8px",
+                          borderRadius: 6,
+                          border:       "1px solid #e2e8f0",
+                          fontSize:     12,
+                          color:        "#0f172a",
+                        }}
+                      >
+                        <option value="">Hedef takım seç...</option>
+                        {teams
+                          .filter((t) => t.id !== team.id)
+                          .map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name}
+                            </option>
+                          ))}
+                        <option value="unassigned">Takımsız</option>
+                      </select>
+                      <button
+                        onClick={() => handleMove(team.id)}
+                        disabled={selected.size === 0 || target === "" || isMoving === team.id}
+                        style={{
+                          padding:      "6px 12px",
+                          borderRadius: 6,
+                          border:       "none",
+                          background:   selected.size === 0 || target === "" ? "#e2e8f0" : "#0f172a",
+                          color:        "#ffffff",
+                          fontSize:     12,
+                          fontWeight:   500,
+                          cursor:       selected.size === 0 || target === "" ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {isMoving === team.id ? "Taşınıyor..." : "Taşı"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -212,7 +212,10 @@ public sealed class AppDbContext : DbContext
             new Permission { Id = 9, Name = "poi_category_manage",  Description = "POI kategori ağacını yönetme yetkisi" },
             new Permission { Id = 10, Name = "transit_stop_create",   Description = "Durak oluşturma/güncelleme yetkisi" },
             new Permission { Id = 11, Name = "transit_stop_read",     Description = "Durak/güzergah görüntüleme yetkisi" },
-            new Permission { Id = 12, Name = "transit_route_manage",  Description = "Güzergah yönetme yetkisi" } 
+            new Permission { Id = 12, Name = "transit_route_manage",  Description = "Güzergah yönetme yetkisi" },
+            new Permission { Id = 13, Name = "area_scan",           Description = "Alan tarama analizi yapma yetkisi" },
+            new Permission { Id = 14, Name = "location_analysis",   Description = "Konum analizi yapma yetkisi" },
+            new Permission { Id = 15, Name = "heatmap_view",        Description = "Isı haritası görüntüleme yetkisi" }
         );
 
         // Admin
@@ -228,7 +231,10 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 1, PermissionId = 9 },  
             new RolePermission { RoleId = 1, PermissionId = 10 },
             new RolePermission { RoleId = 1, PermissionId = 11 },
-            new RolePermission { RoleId = 1, PermissionId = 12 } 
+            new RolePermission { RoleId = 1, PermissionId = 12 },
+            new RolePermission { RoleId = 1, PermissionId = 13 },
+            new RolePermission { RoleId = 1, PermissionId = 14 },
+            new RolePermission { RoleId = 1, PermissionId = 15 }
         );
 
         // Worker
@@ -237,7 +243,14 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 2, PermissionId = 2 },
             new RolePermission { RoleId = 2, PermissionId = 3 },
             new RolePermission { RoleId = 2, PermissionId = 5 },   
-            new RolePermission { RoleId = 2, PermissionId = 6 }   
+            new RolePermission { RoleId = 2, PermissionId = 6 },
+            new RolePermission { RoleId = 2, PermissionId = 7 },   
+            new RolePermission { RoleId = 2, PermissionId = 8 },   
+            new RolePermission { RoleId = 2, PermissionId = 10 },  
+            new RolePermission { RoleId = 2, PermissionId = 11 },              
+            new RolePermission { RoleId = 2, PermissionId = 13 },             
+            new RolePermission { RoleId = 2, PermissionId = 14 },              
+            new RolePermission { RoleId = 2, PermissionId = 15 }   
         );
         // Stajyer 
         modelBuilder.Entity<RolePermission>().HasData(
@@ -253,7 +266,15 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 4, PermissionId = 2 },   
             new RolePermission { RoleId = 4, PermissionId = 3 },   
             new RolePermission { RoleId = 4, PermissionId = 5 },   
-            new RolePermission { RoleId = 4, PermissionId = 6 }    
+            new RolePermission { RoleId = 4, PermissionId = 6 },
+            new RolePermission { RoleId = 4, PermissionId = 7 },   
+            new RolePermission { RoleId = 4, PermissionId = 8 },   
+            new RolePermission { RoleId = 4, PermissionId = 10 },  
+            new RolePermission { RoleId = 4, PermissionId = 11 },  
+            new RolePermission { RoleId = 4, PermissionId = 12 },  
+            new RolePermission { RoleId = 4, PermissionId = 13 },  
+            new RolePermission { RoleId = 4, PermissionId = 14 },  
+            new RolePermission { RoleId = 4, PermissionId = 15 }   
         );
         // POI Operatorü
         modelBuilder.Entity<RolePermission>().HasData(

@@ -89,6 +89,12 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("transit_stop_read")));
     options.AddPolicy("transit_route_manage", policy =>
         policy.Requirements.Add(new PermissionRequirement("transit_route_manage")));
+    options.AddPolicy("area_scan", policy =>
+        policy.Requirements.Add(new PermissionRequirement("area_scan")));
+    options.AddPolicy("location_analysis", policy =>
+        policy.Requirements.Add(new PermissionRequirement("location_analysis")));
+    options.AddPolicy("heatmap_view", policy =>
+        policy.Requirements.Add(new PermissionRequirement("heatmap_view")));
 });
 
 // Exception Handling

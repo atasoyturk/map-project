@@ -1,5 +1,6 @@
 using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
+using BackendApi.Authorization;
 
 namespace BackendApi.Controllers.Geo;
 
@@ -43,6 +44,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
     }
 
     [HttpGet("wms")]
+    [RequirePermission("heatmap_view")]
     public async Task<IActionResult> GetWms(
         [FromQuery] string  typeName,
         [FromQuery] string  bbox,

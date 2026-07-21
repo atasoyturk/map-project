@@ -1,6 +1,7 @@
 using BackendApi.DTOs.Geo;
 using BackendApi.Services.Analysis;
 using BackendApi.DTOs.Analysis;
+using BackendApi.Authorization;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ public sealed class AnalysisController : ApiControllerBase
         => _analysisService = analysisService;
 
     [HttpPost("temp-inventory")]
+    [RequirePermission("area_scan")]
     public async Task<IActionResult> TempInventory([FromBody] GeoRequestDto request)
     {
         var userId = GetUserId();
@@ -25,6 +27,7 @@ public sealed class AnalysisController : ApiControllerBase
     }
 
     [HttpPost("location-analysis")]
+    [RequirePermission("location_analysis")]
     public async Task<IActionResult> LocationAnalysis([FromBody] LocationAnalysisRequestDto request)
     {
         var userId = GetUserId();

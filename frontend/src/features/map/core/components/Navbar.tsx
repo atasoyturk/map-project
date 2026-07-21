@@ -351,39 +351,43 @@ export function Navbar({
                 Geçmiş
               </button>
 
-              <button
-                onClick={handleAnalysisToggle}
-                disabled={toolsLocked}
-                style={{
-                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                  borderColor: analysisActive ? "#eab308" : "rgba(255,255,255,.15)",
-                  background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
-                  color:       analysisActive ? "#fde047" : "#94a3b8",
-                  fontSize: 13, fontWeight: 500,
-                  cursor:   toolsLocked ? "not-allowed" : "pointer",
-                  opacity:  toolsLocked ? 0.5 : 1,
-                  transition: "all .15s",
-                }}
-              >
-                Alan Tara
-              </button>
+              {!roles.includes("Stajyer") && (
+                <button
+                  onClick={handleAnalysisToggle}
+                  disabled={toolsLocked}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                    borderColor: analysisActive ? "#656154" : "rgba(255,255,255,.15)",
+                    background:  analysisActive ? "rgba(234,179,8,.2)" : "transparent",
+                    color:       analysisActive ? "#fde047" : "#94a3b8",
+                    fontSize: 13, fontWeight: 500,
+                    cursor:   toolsLocked ? "not-allowed" : "pointer",
+                    opacity:  toolsLocked ? 0.5 : 1,
+                    transition: "all .15s",
+                  }}
+                >
+                  Alan Tara
+                </button>
+              )}
 
-              <button
-                onClick={onLocAnalysisToggle}
-                disabled={toolsLocked}
-                style={{
-                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                  borderColor: locAnalysisActive ? "#ec4899" : "rgba(255,255,255,.15)",
-                  background:  locAnalysisActive ? "rgba(236,72,153,.2)" : "transparent",
-                  color:       locAnalysisActive ? "#fbcfe8" : "#94a3b8",
-                  fontSize: 13, fontWeight: 500,
-                  cursor:   toolsLocked ? "not-allowed" : "pointer",
-                  opacity:  toolsLocked ? 0.5 : 1,
-                  transition: "all .15s",
-                }}
-              >
-                Konum Analizi
-              </button>
+              {!roles.includes("Stajyer") && (
+                <button
+                  onClick={onLocAnalysisToggle}
+                  disabled={toolsLocked}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                    borderColor: locAnalysisActive ? "#ec4899" : "rgba(255,255,255,.15)",
+                    background:  locAnalysisActive ? "rgba(236,72,153,.2)" : "transparent",
+                    color:       locAnalysisActive ? "#fbcfe8" : "#94a3b8",
+                    fontSize: 13, fontWeight: 500,
+                    cursor:   toolsLocked ? "not-allowed" : "pointer",
+                    opacity:  toolsLocked ? 0.5 : 1,
+                    transition: "all .15s",
+                  }}
+                >
+                  Konum Analizi
+                </button>
+              )}
 
               <button
                 onClick={onLayerControlToggle}
@@ -416,22 +420,24 @@ export function Navbar({
                 </button>
               )}
 
-              <button
-                onClick={onHeatmapToggle}
-                disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
-                style={{
-                  padding: "6px 14px", borderRadius: 8, border: "1px solid",
-                  borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
-                  background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
-                  color:       heatmapActive ? "#fca5a5" : "#94a3b8",
-                  fontSize: 13, fontWeight: 500,
-                  cursor:   (pendingGeometry || poiDrawActive || poiFormOpen) ? "not-allowed" : "pointer",
-                  opacity:  (pendingGeometry || poiDrawActive || poiFormOpen) ? 0.5 : 1,
-                  transition: "all .15s",
-                }}
-              >
-                Isı Haritası
-              </button>
+              {!roles.includes("Stajyer") && (
+                <button
+                  onClick={onHeatmapToggle}
+                  disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                    borderColor: heatmapActive ? "#ef4444" : "rgba(255,255,255,.15)",
+                    background:  heatmapActive ? "rgba(239,68,68,.2)" : "transparent",
+                    color:       heatmapActive ? "#fca5a5" : "#94a3b8",
+                    fontSize: 13, fontWeight: 500,
+                    cursor:   (pendingGeometry || poiDrawActive || poiFormOpen) ? "not-allowed" : "pointer",
+                    opacity:  (pendingGeometry || poiDrawActive || poiFormOpen) ? 0.5 : 1,
+                    transition: "all .15s",
+                  }}
+                >
+                  Isı Haritası
+                </button>
+              )}
 
               {!isAdmin && teamId !== null && (
                 <button

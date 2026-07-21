@@ -195,7 +195,7 @@ public sealed class AppDbContext : DbContext
             new Role { Id = 2, Name = "Çalışan"},
             new Role { Id = 3, Name = "Stajyer"},
             new Role { Id = 4, Name = "Takım Lideri"},
-            new Role { Id = 5, Name = "POI Operatorü" },
+            new Role { Id = 5, Name = "POI Operatörü" },
             new Role { Id = 6, Name = "Kullanıcı" },
             new Role { Id = 7, Name = "Ulaşım Operatörü"}
         );

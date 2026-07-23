@@ -42,7 +42,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ReactPolicy", policy =>
         policy.WithOrigins(allowedOrigins)
               .WithMethods("GET", "POST", "PUT", "DELETE")
-              .WithHeaders("Authorization", "Content-Type")
+              .AllowAnyHeader()
+              .AllowCredentials()
               .SetPreflightMaxAge(TimeSpan.FromHours(1))));
 
 

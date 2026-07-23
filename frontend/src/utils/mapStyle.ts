@@ -1,4 +1,4 @@
-import { Style, Fill, Stroke, Circle, Text, RegularShape } from "ol/style";
+import { Style, Fill, Stroke, Circle, Text, RegularShape, Icon} from "ol/style";
 import type { FeatureLike } from "ol/Feature";
 import LineString from "ol/geom/LineString";
 import Point from "ol/geom/Point";
@@ -74,4 +74,14 @@ export function buildRouteStyle(color: string) {
       ...buildArrowStyles(geometry, color),
     ];
   };
+}
+
+export function buildVehicleStyle(): Style {
+  return new Style({
+    image: new Icon({
+      src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23f59e0b" stroke="%230f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
+      scale: 0.5,
+      anchor: [0.5, 0.5],
+    }),
+  });
 }

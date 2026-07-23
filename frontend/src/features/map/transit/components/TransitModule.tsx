@@ -1,21 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import OlMap from "ol/Map";
-import type Feature from "ol/Feature";
+import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import { fromLonLat } from "ol/proj";
+
+import { VehicleInfoPopup } from "./VehicleInfoPopup";
+import { buildVehicleStyle } from "../../../../utils/mapStyle";
+import Point from "ol/geom/Point";
 
 import { useTransitStopLoader, transitStopToFeature } from "../hooks/useTransitStopLoader";
 import { useTransitStopDraw } from "../hooks/useTransitStopDraw";
 import { useTransitStopClick } from "../hooks/useTransitStopClick";
 import { useTransitRoutes } from "../hooks/useTransitRoutes";
 import { useTransitRouteLines } from "../hooks/useTransitRouteLines";
+import { useRouteSimulation } from "../hooks/useRouteSimulation";
+import { useVehicleClick } from "../hooks/useVehicleClick";
+import { useTransitRouteClick } from "../hooks/useTransitRouteClick";
+
 
 import { StopFormModal } from "./StopFormModal";
 import { StopInfoPopup } from "./StopInfoPopup";
 import { RouteManagementPanel } from "./RouteManagementPanel";
-import { createTransitStop } from "../../../../shared/api/transitService";
 import type { PendingStop } from "../types";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
+import { createRouteSimulationConnection } from "../../../../shared/api/signalR";
+import { RouteInfoPopup } from "./RouteInfoPopup";
+import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
+
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 interface ToastState { message: string; type: "success" | "error"; }
@@ -52,11 +64,21 @@ export function TransitModule({
   const routeLineSourceRef = useRef(new VectorSource());
   const [routeLineLayer, setRouteLineLayer] = useState<VectorLayer<VectorSource> | null>(null);
 
+  const vehicleSourceRef = useRef(new VectorSource());
+  const [vehicleLayer, setVehicleLayer] = useState<VectorLayer<VectorSource> | null>(null);
+  const connectionRef = useRef(createRouteSimulationConnection());
+
   const flowActive = drawActive || pendingStop !== null;
 
   useEffect(() => { onFormOpenChange(pendingStop !== null); }, [pendingStop]);
 
   useEffect(() => { if (!flowActive) setLockedRouteId(null); }, [flowActive]);
+
+  // SignalR bağlantısının component unmount olduğunda düzgün kapatılması
+  useEffect(() => {
+    const connection = connectionRef.current;
+    return () => { connection.stop(); };
+  }, []);
 
   useEffect(() => {
     if (!map) return;
@@ -82,9 +104,106 @@ export function TransitModule({
     };
   }, [map]);
 
+  useEffect(() => {
+    if (!map) return;
+    const layer = new VectorLayer({ source: vehicleSourceRef.current, zIndex: 5 });
+    map.addLayer(layer);
+    setVehicleLayer(layer);
+
+    return () => {
+      map.removeLayer(layer);
+      setVehicleLayer(null);
+    };
+  }, [map]);
+
   useTransitStopLoader(map, stopSourceRef.current, apiFetch);
   const { routes: transitRoutes, reload: reloadTransitRoutes } = useTransitRoutes(apiFetch);
   useTransitRouteLines(routeLineSourceRef.current, transitRoutes);
+
+  const {
+    trackedRouteId, vehiclePosition, startTracking, stopTracking, startSimulation, stopSimulation,
+  } = useRouteSimulation(connectionRef.current, apiFetch);
+
+  const { selected: vehicleSelected, clear: clearVehicleSelected } = useVehicleClick({
+    map, vehicleLayer, enabled: otherFlowsIdle && !flowActive,
+  });
+
+  const { selected: routeSelected, clear: clearRouteSelected } = useTransitRouteClick({
+    map, routeLineLayer, enabled: otherFlowsIdle && !flowActive,
+  });
+
+  const canManageTransitRoutes =
+    roles.includes("Admin") || roles.includes("Takım Lideri") || roles.includes("Ulaşım Operatörü");
+
+  const [routeActionBusy, setRouteActionBusy] = useState(false);
+
+  async function handleStartSimulation(routeId: number) {
+    setRouteActionBusy(true);
+    try {
+      const res = await startSimulation(routeId);
+      if (!res.ok) {
+        const message = await res.text().catch(() => "Simülasyon başlatılamadı.");
+        onToast({ message, type: "error" });
+        return;
+      }
+      await startTracking(routeId);
+    } catch {
+      onToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+    } finally {
+      setRouteActionBusy(false);
+    }
+  }
+
+  async function handleStopSimulation(routeId: number) {
+    setRouteActionBusy(true);
+    try {
+      const res = await stopSimulation(routeId);
+      if (!res.ok) {
+        onToast({ message: "Simülasyon durdurulamadı.", type: "error" });
+        return;
+      }
+      if (trackedRouteId === routeId) stopTracking();
+    } catch {
+      onToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
+    } finally {
+      setRouteActionBusy(false);
+    }
+  }
+
+  const [selectedRouteRunning, setSelectedRouteRunning] = useState(false);
+
+  useEffect(() => {
+    if (!routeSelected) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getRouteSimulationStatus(apiFetch, routeSelected.routeId);
+        if (!cancelled) setSelectedRouteRunning(res.ok && res.status !== 204);
+      } catch {
+        if (!cancelled) setSelectedRouteRunning(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [routeSelected]);
+
+  // Canlı araç pozisyonu değiştikçe haritadaki feature'ı günceller
+  useEffect(() => {
+    const source = vehicleSourceRef.current;
+    source.clear();
+
+    if (!vehiclePosition || vehiclePosition.completed) return;
+
+    const feature = new Feature({
+      geometry: new Point(fromLonLat([vehiclePosition.longitude, vehiclePosition.latitude])),
+    });
+    feature.set("routeId", vehiclePosition.routeId);
+    feature.set("progressPercentage", vehiclePosition.progressPercentage);
+    feature.setStyle(buildVehicleStyle());
+
+    source.addFeature(feature);
+  }, [vehiclePosition]);
 
   useTransitStopDraw({
     map,
@@ -214,6 +333,34 @@ export function TransitModule({
           onClose={onRouteManagementClose}
           onAddStopToRoute={handleAddStopToRoute}
           routeLineLayer={routeLineLayer}
+        />
+      )}
+
+      {vehicleSelected && vehiclePosition && (
+        <VehicleInfoPopup
+          x={vehicleSelected.x}
+          y={vehicleSelected.y}
+          routeName={transitRoutes.find((r) => r.id === vehiclePosition.routeId)?.name ?? ""}
+          progressPercentage={vehiclePosition.progressPercentage}
+          onClose={clearVehicleSelected}
+          onStopTracking={() => { stopTracking(); clearVehicleSelected(); }}
+        />
+      )}
+
+      {routeSelected && (
+        <RouteInfoPopup
+          x={routeSelected.x}
+          y={routeSelected.y}
+          routeName={transitRoutes.find((r) => r.id === routeSelected.routeId)?.name ?? ""}
+          canManage={canManageTransitRoutes}
+          isSimulationRunning={selectedRouteRunning}
+          isTrackingThisRoute={trackedRouteId === routeSelected.routeId}
+          isBusy={routeActionBusy}
+          onClose={clearRouteSelected}
+          onStart={() => { handleStartSimulation(routeSelected.routeId); setSelectedRouteRunning(true); }}
+          onStop={() => { handleStopSimulation(routeSelected.routeId); setSelectedRouteRunning(false); }}
+          onTrack={() => startTracking(routeSelected.routeId)}
+          onStopTracking={() => stopTracking()}
         />
       )}
     </>

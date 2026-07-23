@@ -1,15 +1,15 @@
-import { useEffect ,useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type VectorLayer  from "ol/layer/Vector";
 import type VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import { useAuth } from "../../../auth/context/AuthContext";
 import {
   createTransitRoute, deleteTransitRoute,
-  getTransitRouteDetail, reorderTransitStops, 
-  generateTransitRoute, clearTransitRoute,
+  getTransitRouteDetail, reorderTransitStops, generateTransitRoute, clearTransitRoute,
 } from "../../../../shared/api/transitService";
 import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
+
 
 interface RouteManagementPanelProps {
   routes:            TransitRouteResponseDto[];
@@ -18,8 +18,9 @@ interface RouteManagementPanelProps {
   onAddStopToRoute:  (routeId: number) => void;
   routeLineLayer:    VectorLayer<VectorSource> | null;
 }
-
-export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopToRoute, routeLineLayer }: RouteManagementPanelProps) {
+export function RouteManagementPanel({
+  routes, reloadRoutes, onClose, onAddStopToRoute, routeLineLayer,
+}: RouteManagementPanelProps) {
   const { apiFetch } = useAuth();
 
   const [generatingRouteId, setGeneratingRouteId] = useState<number | null>(null);
@@ -151,6 +152,7 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
     e.preventDefault();
     dragOverItemId.current = stopId;
   }
+
 
   async function handleDrop(routeId: number) {
     const fromId = dragItemId.current;

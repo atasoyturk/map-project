@@ -71,3 +71,15 @@ export function clearTransitRoute(apiFetch: ApiFetch, routeId: number) {
     method: "DELETE",
   });
 }
+
+export function startRouteSimulation(apiFetch: ApiFetch, routeId: number) {
+  return apiFetch(`/api/transit-route/${routeId}/simulation/start`, { method: "POST" });
+}
+
+export function stopRouteSimulation(apiFetch: ApiFetch, routeId: number) {
+  return apiFetch(`/api/transit-route/${routeId}/simulation/stop`, { method: "POST" });
+}
+
+export function getRouteSimulationStatus(apiFetch: ApiFetch, routeId: number) {
+  return apiFetch(`/api/transit-route/${routeId}/simulation/status`);
+}

@@ -59,3 +59,9 @@ export function reorderTransitStops(apiFetch: ApiFetch, routeId: number, stopIds
     body:   JSON.stringify({ stopIdsInOrder }),
   });
 }
+
+export function generateTransitRoute(apiFetch: ApiFetch, routeId: number) {
+  return apiFetch(`/api/transit-route/${routeId}/generate-route`, {
+    method: "POST",
+  });
+}

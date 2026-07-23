@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map from "ol/Map";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
@@ -14,6 +14,7 @@ interface UseAnnotationClickProps {
 
 export function useAnnotationClick({ map, annotationLayer, enabled }: UseAnnotationClickProps) {
   const [selected, setSelected] = useState<{ feature: Feature; x: number; y: number } | null>(null);
+  const selectInteractionRef = useRef<Select | null>(null);
 
   useEffect(() => {
     if (!map || !annotationLayer || !enabled) return;
@@ -21,14 +22,11 @@ export function useAnnotationClick({ map, annotationLayer, enabled }: UseAnnotat
     const selectInteraction = new Select({
       condition: click,
       layers: [annotationLayer],
-      style: null, // Mevcut stili bozma
+      style: null, 
     });
 
     selectInteraction.on("select", (e) => {
       const feature = e.selected[0];
-      console.log("Selected feature:", feature);
-      console.log("Is annotation?", feature?.get("isAnnotation"));
-      console.log("Feature ID:", feature?.getId());
       if (feature) {
         const pixel = map.getPixelFromCoordinate(feature.getGeometry()?.getClosestPoint(map.getView().getCenter()!)!);
         setSelected({
@@ -42,14 +40,19 @@ export function useAnnotationClick({ map, annotationLayer, enabled }: UseAnnotat
     });
 
     map.addInteraction(selectInteraction);
+    selectInteractionRef.current = selectInteraction;
 
     return () => {
       map.removeInteraction(selectInteraction);
+      selectInteractionRef.current = null;
     };
   }, [map, annotationLayer, enabled]);
 
   return {
     selected,
-    clear: () => setSelected(null),
+    clear: () => {
+      selectInteractionRef.current?.getFeatures().clear();
+      setSelected(null);
+    },
   };
 }

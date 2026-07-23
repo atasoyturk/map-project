@@ -1,4 +1,7 @@
-import { Style, Fill, Stroke, Circle, Text } from "ol/style";
+import { Style, Fill, Stroke, Circle, Text, RegularShape } from "ol/style";
+import type { FeatureLike } from "ol/Feature";
+import LineString from "ol/geom/LineString";
+import Point from "ol/geom/Point";
 
 export function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -26,4 +29,49 @@ export function buildStyle(color: string, name: string): Style {
       overflow: true,
     }) : undefined,
   });
+}
+
+const ROUTE_ARROW_COUNT = 4;
+
+function buildArrowStyles(geometry: LineString, color: string): Style[] {
+  const length = geometry.getLength();
+  if (length === 0) return [];
+
+  const arrows: Style[] = [];
+  const sampleDelta = 0.01;
+
+  for (let i = 1; i <= ROUTE_ARROW_COUNT; i++) {
+    const fraction     = i / (ROUTE_ARROW_COUNT + 1);
+    const point        = geometry.getCoordinateAt(fraction);
+    const aheadFraction = Math.min(fraction + sampleDelta, 1);
+    const aheadPoint    = geometry.getCoordinateAt(aheadFraction);
+
+    const angle = Math.atan2(aheadPoint[1] - point[1], aheadPoint[0] - point[0]);
+
+    arrows.push(new Style({
+      geometry: new Point(point),
+      image: new RegularShape({
+        points:  3,
+        radius:  7,
+        fill:    new Fill({ color }),
+        stroke:  new Stroke({ color: "#ffffff", width: 1 }),
+    
+        rotation: -angle + Math.PI / 2,
+      }),
+    }));
+  }
+
+  return arrows;
+}
+
+export function buildRouteStyle(color: string) {
+  return function routeStyleFn(feature: FeatureLike): Style[] {
+    const geometry = feature.getGeometry();
+    if (!(geometry instanceof LineString)) return [];
+
+    return [
+      new Style({ stroke: new Stroke({ color, width: 4 }) }),
+      ...buildArrowStyles(geometry, color),
+    ];
+  };
 }

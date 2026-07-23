@@ -3,10 +3,13 @@ import OlMap from "ol/Map";
 import type Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+
 import { useTransitStopLoader, transitStopToFeature } from "../hooks/useTransitStopLoader";
 import { useTransitStopDraw } from "../hooks/useTransitStopDraw";
 import { useTransitStopClick } from "../hooks/useTransitStopClick";
 import { useTransitRoutes } from "../hooks/useTransitRoutes";
+import { useTransitRouteLines } from "../hooks/useTransitRouteLines";
+
 import { StopFormModal } from "./StopFormModal";
 import { StopInfoPopup } from "./StopInfoPopup";
 import { RouteManagementPanel } from "./RouteManagementPanel";
@@ -46,12 +49,13 @@ export function TransitModule({
 
   const stopSourceRef = useRef(new VectorSource());
   const stopLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
+  const routeLineSourceRef = useRef(new VectorSource());
+  const [routeLineLayer, setRouteLineLayer] = useState<VectorLayer<VectorSource> | null>(null);
 
   const flowActive = drawActive || pendingStop !== null;
 
   useEffect(() => { onFormOpenChange(pendingStop !== null); }, [pendingStop]);
 
-  // Bir durak ekleme akışı (kilitli ya da serbest) tamamen bittiğinde kilit sıfırlanır.
   useEffect(() => { if (!flowActive) setLockedRouteId(null); }, [flowActive]);
 
   useEffect(() => {
@@ -66,8 +70,21 @@ export function TransitModule({
     };
   }, [map]);
 
+  useEffect(() => {
+    if (!map) return;
+    const layer = new VectorLayer({ source: routeLineSourceRef.current, zIndex: 3 });
+    map.addLayer(layer);
+    setRouteLineLayer(layer);
+
+    return () => {
+      map.removeLayer(layer);
+      setRouteLineLayer(null);
+    };
+  }, [map]);
+
   useTransitStopLoader(map, stopSourceRef.current, apiFetch);
   const { routes: transitRoutes, reload: reloadTransitRoutes } = useTransitRoutes(apiFetch);
+  useTransitRouteLines(routeLineSourceRef.current, transitRoutes);
 
   useTransitStopDraw({
     map,
@@ -196,6 +213,7 @@ export function TransitModule({
           reloadRoutes={reloadTransitRoutes}
           onClose={onRouteManagementClose}
           onAddStopToRoute={handleAddStopToRoute}
+          routeLineLayer={routeLineLayer}
         />
       )}
     </>

@@ -516,3 +516,6 @@ backend_code.xml
 backend_structure.txt
 frontend_code.xml
 frontend_structure.txt
+
+# OSRM 
+osrm-data/

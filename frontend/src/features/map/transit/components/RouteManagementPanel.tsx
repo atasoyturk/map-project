@@ -1,9 +1,13 @@
-import { useRef, useState } from "react";
+import { useEffect ,useRef, useState } from "react";
+import type VectorLayer  from "ol/layer/Vector";
+import type VectorSource from "ol/source/Vector";
+import { Style } from "ol/style";
 import { useAuth } from "../../../auth/context/AuthContext";
 import {
   createTransitRoute, deleteTransitRoute,
-  getTransitRouteDetail, reorderTransitStops,
+  getTransitRouteDetail, reorderTransitStops, generateTransitRoute,
 } from "../../../../shared/api/transitService";
+import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
 
 interface RouteManagementPanelProps {
@@ -11,10 +15,15 @@ interface RouteManagementPanelProps {
   reloadRoutes:      () => void;
   onClose:           () => void;
   onAddStopToRoute:  (routeId: number) => void;
+  routeLineLayer:    VectorLayer<VectorSource> | null;
 }
 
-export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopToRoute }: RouteManagementPanelProps) {
+export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopToRoute, routeLineLayer }: RouteManagementPanelProps) {
   const { apiFetch } = useAuth();
+
+  const [generatingRouteId, setGeneratingRouteId] = useState<number | null>(null);
+  const [routeGenError,     setRouteGenError]     = useState<string | null>(null);
+  const [hiddenRouteIds,    setHiddenRouteIds]     = useState<Set<number>>(new Set());
 
   const [newName,  setNewName]  = useState("");
   const [newColor, setNewColor] = useState("#3b82f6");
@@ -58,6 +67,48 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
       setError("Sunucuya bağlanılamadı.");
     }
   }
+
+  async function handleGenerateRoute(routeId: number) {
+    setRouteGenError(null);
+    setGeneratingRouteId(routeId);
+    try {
+      const res = await generateTransitRoute(apiFetch, routeId);
+      if (!res.ok) {
+        const message = res.status === 400 ? await res.text() : "Rota oluşturulamadı.";
+        setRouteGenError(message);
+        return;
+      }
+      reloadRoutes();
+    } catch {
+      setRouteGenError("Sunucuya bağlanılamadı.");
+    } finally {
+      setGeneratingRouteId(null);
+    }
+  }
+
+  function toggleRouteVisibility(routeId: number) {
+    setHiddenRouteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(routeId)) next.delete(routeId);
+      else next.add(routeId);
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    if (!routeLineLayer) return;
+    const source = routeLineLayer.getSource();
+    if (!source) return;
+
+    for (const route of routes) {
+      const feature = source.getFeatureById(route.id);
+      if (!feature) continue;
+
+      feature.setStyle(
+        hiddenRouteIds.has(route.id) ? new Style() : buildRouteStyle(route.color)
+      );
+    }
+  }, [routeLineLayer, routes, hiddenRouteIds]);
 
   async function toggleExpand(routeId: number) {
     if (expandedId === routeId) { setExpandedId(null); return; }
@@ -207,6 +258,16 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "#0f172a" }}>
                       {route.name}
                     </span>
+                    {route.routeWktGeometry && (
+                      <input
+                        type="checkbox"
+                        defaultChecked
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => toggleRouteVisibility(route.id)}
+                        title="Haritada göster/gizle"
+                        style={{ cursor: "pointer" }}
+                      />
+                    )}
                     {stopCount !== undefined && (
                       <span style={{ fontSize: 11, color: "#94a3b8" }}>{stopCount} durak</span>
                     )}
@@ -245,6 +306,9 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
                         </div>
                       )}
 
+                      {routeGenError && (
+                        <p style={{ fontSize: 11, color: "#dc2626", margin: "0 0 8px" }}>{routeGenError}</p>
+                      )}
                       <div style={{ display: "flex", gap: 6 }}>
                         <button
                           onClick={() => onAddStopToRoute(route.id)}
@@ -255,6 +319,19 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
                           }}
                         >
                           Durak Ekle
+                        </button>
+                        <button
+                          onClick={() => handleGenerateRoute(route.id)}
+                          disabled={(stopCount ?? 0) < 2 || generatingRouteId === route.id}
+                          style={{
+                            flex: 1, padding: "6px 0", borderRadius: 6,
+                            border: "1px solid rgba(16,185,129,.3)", background: "rgba(16,185,129,.05)",
+                            color: "#10b981", fontSize: 12, fontWeight: 500,
+                            cursor: (stopCount ?? 0) < 2 ? "not-allowed" : "pointer",
+                            opacity: (stopCount ?? 0) < 2 ? 0.5 : 1,
+                          }}
+                        >
+                          {generatingRouteId === route.id ? "Oluşturuluyor..." : "Rota Oluştur"}
                         </button>
                         <button
                           onClick={() => handleDeleteRoute(route.id)}

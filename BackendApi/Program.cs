@@ -21,6 +21,7 @@ using BackendApi.Services.Annotation;
 using BackendApi.Services.Poi;
 using BackendApi.Services.Transit;
 using BackendApi.Hubs;
+using BackendApi.Services.Company;
 
 using Microsoft.Extensions.Options;
 
@@ -137,6 +138,9 @@ builder.Services.AddScoped<IOsrmService, OsrmService>();
 builder.Services.AddScoped<ITransitRouteService, TransitRouteService>();
 builder.Services.AddScoped<ITransitStopService,  TransitStopService>();
 builder.Services.AddSingleton<IRouteSimulationService, RouteSimulationService>();
+builder.Services.AddScoped<ICompanyCategoryService, CompanyCategoryService>();
+builder.Services.AddScoped<ICompanyService,         CompanyService>();
+builder.Services.AddScoped<IVehicleService,         VehicleService>();
 
 // GeoServer Settings
 builder.Services

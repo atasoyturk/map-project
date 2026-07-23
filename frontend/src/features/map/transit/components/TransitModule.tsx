@@ -195,7 +195,10 @@ export function TransitModule({
     (async () => {
       try {
         const res = await getRouteSimulationStatus(apiFetch, routeSelected.routeId);
-        if (!cancelled) setSelectedRouteRunning(res.ok && res.status !== 204);
+        if (!res.ok) { if (!cancelled) setSelectedRouteRunning(false); return; }
+
+        const data = await res.json();
+        if (!cancelled) setSelectedRouteRunning(Array.isArray(data) && data.length > 0);
       } catch {
         if (!cancelled) setSelectedRouteRunning(false);
       }
@@ -384,8 +387,8 @@ export function TransitModule({
           isTrackingThisRoute={trackedRouteId === routeSelected.routeId}
           isBusy={routeActionBusy}
           onClose={clearRouteSelected}
-          onStart={() => { handleStartSimulation(routeSelected.routeId); setSelectedRouteRunning(true); }}
-          onStop={() => { handleStopSimulation(routeSelected.routeId); setSelectedRouteRunning(false); }}
+          onStart={() => handleStartSimulation(routeSelected.routeId)}
+          onStop={() => handleStopSimulation(routeSelected.routeId)}
           onTrack={() => startTracking(routeSelected.routeId)}
           onStopTracking={() => stopTracking()}
         />

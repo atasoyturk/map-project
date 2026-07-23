@@ -34,11 +34,15 @@ public sealed class JwtTokenService : ITokenService
         if (hasAdminAccess)
             claims.Add(new Claim("admin_access", "true"));  
 
+        var roleList = roles.ToList();
+        var isPlainUserRole = roleList.Count == 1 && roleList[0] == "Kullanıcı";
+        var expiresInMinutes = isPlainUserRole ? _settings.ExpiresInMinutes : _settings.ExtendedExpiresInMinutes;
+
         var token = new JwtSecurityToken(
             issuer:             _settings.Issuer,
             audience:           _settings.Audience,
             claims:             claims,
-            expires:            DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes),
+            expires:            DateTime.UtcNow.AddMinutes(expiresInMinutes),
             signingCredentials: credentials
         );
 

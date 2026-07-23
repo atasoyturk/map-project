@@ -140,6 +140,16 @@ builder.Services.AddHttpClient("GeoServer", (serviceProvider, client) =>
         new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 });
 
+// OSRM Settings
+builder.Services
+    .AddOptions<OsrmSettings>()
+    .Bind(builder.Configuration.GetSection("OsrmSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+// HttpClient — OSRM routing service
+builder.Services.AddHttpClient("Osrm");
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>

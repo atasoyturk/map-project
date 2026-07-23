@@ -5,6 +5,7 @@ using BackendApi.Entities.Team;
 using BackendApi.Entities.Annotation;
 using BackendApi.Entities.Poi;
 using BackendApi.Entities.Transit;
+using BackendApi.Entities.Company;
 
 namespace BackendApi.Data;
 
@@ -30,6 +31,11 @@ public sealed class AppDbContext : DbContext
     public DbSet<GeoPermissionEntity> GeoPermissions => Set<GeoPermissionEntity>();
     public DbSet<UserGeoPermission> UserGeoPermissions => Set<UserGeoPermission>();
     public DbSet<RoleGeoPermission> RoleGeoPermissions => Set<RoleGeoPermission>();
+    public DbSet<CompanyCategory> CompanyCategories => Set<CompanyCategory>();
+    public DbSet<Company>         Companies         => Set<Company>();
+    public DbSet<Vehicle>         Vehicles          => Set<Vehicle>();
+    public DbSet<CompanyRoute>    CompanyRoutes     => Set<CompanyRoute>();
+    public DbSet<ShipmentRecord>  ShipmentRecords   => Set<ShipmentRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,6 +106,48 @@ public sealed class AppDbContext : DbContext
             .HasOne(rgp => rgp.Role)
             .WithMany()
             .HasForeignKey(rgp => rgp.RoleId);
+        
+        // CompanyRoute (many-to-many: Company <-> TransitRoute)
+        modelBuilder.Entity<CompanyRoute>()
+            .HasKey(cr => new { cr.CompanyId, cr.TransitRouteId });
+
+        modelBuilder.Entity<CompanyRoute>()
+            .HasOne(cr => cr.Company)
+            .WithMany(c => c.CompanyRoutes)
+            .HasForeignKey(cr => cr.CompanyId);
+
+        modelBuilder.Entity<CompanyRoute>()
+            .HasOne(cr => cr.TransitRoute)
+            .WithMany(r => r.CompanyRoutes)
+            .HasForeignKey(cr => cr.TransitRouteId);
+
+        // Company -> CompanyCategory
+        modelBuilder.Entity<Company>()
+            .HasOne<CompanyCategory>()
+            .WithMany()
+            .HasForeignKey(c => c.CompanyCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Vehicle -> Company
+        modelBuilder.Entity<Vehicle>()
+            .HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(v => v.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ShipmentRecord -> TransitRoute
+        modelBuilder.Entity<ShipmentRecord>()
+            .HasOne<TransitRoute>()
+            .WithMany()
+            .HasForeignKey(s => s.TransitRouteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ShipmentRecord -> Vehicle
+        modelBuilder.Entity<ShipmentRecord>()
+            .HasOne<Vehicle>()
+            .WithMany()
+            .HasForeignKey(s => s.VehicleId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<RoleGeoPermission>()
             .HasOne(rgp => rgp.GeoPermission)

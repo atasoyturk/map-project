@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using BackendApi.Entities.Company;
 using NetTopologySuite.Geometries;
 
 namespace BackendApi.Entities.Transit;
@@ -11,4 +12,6 @@ public sealed class TransitRoute : BaseEntity
     public int?      UserId           { get; set; }
     public Geometry? RouteGeometry    { get; set; }
     public double?   DurationSeconds  { get; set; }
+
+    public ICollection<CompanyRoute> CompanyRoutes { get; init; } = [];
 }

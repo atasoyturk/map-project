@@ -5,7 +5,8 @@ import { Style } from "ol/style";
 import { useAuth } from "../../../auth/context/AuthContext";
 import {
   createTransitRoute, deleteTransitRoute,
-  getTransitRouteDetail, reorderTransitStops, generateTransitRoute,
+  getTransitRouteDetail, reorderTransitStops, 
+  generateTransitRoute, clearTransitRoute,
 } from "../../../../shared/api/transitService";
 import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
@@ -76,6 +77,23 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
       if (!res.ok) {
         const message = res.status === 400 ? await res.text() : "Rota oluşturulamadı.";
         setRouteGenError(message);
+        return;
+      }
+      reloadRoutes();
+    } catch {
+      setRouteGenError("Sunucuya bağlanılamadı.");
+    } finally {
+      setGeneratingRouteId(null);
+    }
+  }
+
+  async function handleClearRoute(routeId: number) {
+    setRouteGenError(null);
+    setGeneratingRouteId(routeId);
+    try {
+      const res = await clearTransitRoute(apiFetch, routeId);
+      if (!res.ok) {
+        setRouteGenError("Rota temizlenemedi.");
         return;
       }
       reloadRoutes();
@@ -333,6 +351,19 @@ export function RouteManagementPanel({ routes, reloadRoutes, onClose, onAddStopT
                         >
                           {generatingRouteId === route.id ? "Oluşturuluyor..." : "Rota Oluştur"}
                         </button>
+                        {route.routeWktGeometry && (
+                          <button
+                            onClick={() => handleClearRoute(route.id)}
+                            disabled={generatingRouteId === route.id}
+                            style={{
+                              padding: "6px 10px", borderRadius: 6,
+                              border: "1px solid #e2e8f0", background: "#f8fafc",
+                              color: "#64748b", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                            }}
+                          >
+                            Rotayı Temizle
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteRoute(route.id)}
                           style={{

@@ -142,6 +142,19 @@ public sealed class TransitRouteService : ITransitRouteService
         return ToDto(entity);
     }
 
+    public async Task<TransitRouteResponseDto?> ClearRouteGeometryAsync(int routeId)
+    {
+        var entity = await _context.TransitRoutes
+            .FirstOrDefaultAsync(r => r.Id == routeId && !r.IsDeleted);
+        if (entity is null) return null;
+
+        entity.RouteGeometry = null;
+        entity.ModifiedDate  = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return ToDto(entity);
+    }
+
     public async Task<bool> TryGenerateRouteAsync(int routeId)
     {
         try

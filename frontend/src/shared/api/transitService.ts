@@ -65,3 +65,9 @@ export function generateTransitRoute(apiFetch: ApiFetch, routeId: number) {
     method: "POST",
   });
 }
+
+export function clearTransitRoute(apiFetch: ApiFetch, routeId: number) {
+  return apiFetch(`/api/transit-route/${routeId}/route-geometry`, {
+    method: "DELETE",
+  });
+}

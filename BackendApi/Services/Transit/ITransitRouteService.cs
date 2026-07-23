@@ -12,4 +12,6 @@ public interface ITransitRouteService
     Task<bool>                          ReorderStopsAsync(int routeId, int[] stopIdsInOrder);
     Task<TransitRouteResponseDto?>      GenerateRouteAsync(int routeId);
     Task<bool>                          TryGenerateRouteAsync(int routeId);
+    Task<TransitRouteResponseDto?>      ClearRouteGeometryAsync(int routeId);
+
 }

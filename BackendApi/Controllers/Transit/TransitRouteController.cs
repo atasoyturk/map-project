@@ -69,4 +69,11 @@ public sealed class TransitRouteController : ApiControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
+    [HttpDelete("{id:int}/route-geometry")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> ClearRouteGeometry(int id)
+    {
+        var result = await _service.ClearRouteGeometryAsync(id);
+        return result is null ? NotFound() : Ok(result);
+    }
 }

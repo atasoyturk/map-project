@@ -20,6 +20,7 @@ using BackendApi.Services.Search;
 using BackendApi.Services.Annotation;
 using BackendApi.Services.Poi;
 using BackendApi.Services.Transit;
+using BackendApi.Hubs;
 
 using Microsoft.Extensions.Options;
 
@@ -57,6 +58,20 @@ builder.Services
             ValidateAudience         = true,
             ValidateLifetime         = true,
             ClockSkew                = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path        = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/route-simulation"))
+                    context.Token = accessToken;
+
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -120,6 +135,7 @@ builder.Services.AddScoped<IPoiService,         PoiService>();
 builder.Services.AddScoped<IOsrmService, OsrmService>();
 builder.Services.AddScoped<ITransitRouteService, TransitRouteService>();
 builder.Services.AddScoped<ITransitStopService,  TransitStopService>();
+builder.Services.AddSingleton<IRouteSimulationService, RouteSimulationService>();
 
 // GeoServer Settings
 builder.Services
@@ -152,6 +168,7 @@ builder.Services
 builder.Services.AddHttpClient("Osrm");
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
@@ -169,5 +186,6 @@ app.UseCors("ReactPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<RouteSimulationHub>("/hubs/route-simulation");
 
 app.Run();

@@ -131,12 +131,13 @@ public sealed class TransitRouteService : ITransitRouteService
 
         var coordinates = stops.Select(s => s.Geometry.Coordinate);
 
-        var (success, routeGeometry, error) = await _osrmService.GetRouteAsync(coordinates);
+        var (success, routeGeometry, durationSeconds, error) = await _osrmService.GetRouteAsync(coordinates);
         if (!success || routeGeometry is null)
             throw new InvalidOperationException(error ?? "Rota oluşturulamadı.");
 
-        entity.RouteGeometry = routeGeometry;
-        entity.ModifiedDate  = DateTime.UtcNow;
+        entity.RouteGeometry   = routeGeometry;
+        entity.DurationSeconds = durationSeconds;
+        entity.ModifiedDate    = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return ToDto(entity);
@@ -148,8 +149,9 @@ public sealed class TransitRouteService : ITransitRouteService
             .FirstOrDefaultAsync(r => r.Id == routeId && !r.IsDeleted);
         if (entity is null) return null;
 
-        entity.RouteGeometry = null;
-        entity.ModifiedDate  = DateTime.UtcNow;
+        entity.RouteGeometry   = null;
+        entity.DurationSeconds = null;
+        entity.ModifiedDate    = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return ToDto(entity);

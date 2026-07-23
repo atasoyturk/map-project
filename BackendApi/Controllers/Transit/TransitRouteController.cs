@@ -84,27 +84,27 @@ public sealed class TransitRouteController : ApiControllerBase
 
     [HttpPost("{id:int}/simulation/start")]
     [RequirePermission("transit_route_manage")]
-    public async Task<IActionResult> StartSimulation(int id)
+    public async Task<IActionResult> StartSimulation(int id, [FromBody] SimulationVehicleIdsDto request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var (success, error) = await _simulationService.StartAsync(id, userId.Value);
-        return success ? NoContent() : Conflict(error);
+        var result = await _simulationService.StartAsync(id, request.VehicleIds, userId.Value);
+        return Ok(result);
     }
 
     [HttpPost("{id:int}/simulation/stop")]
     [RequirePermission("transit_route_manage")]
-    public async Task<IActionResult> StopSimulation(int id)
+    public async Task<IActionResult> StopSimulation(int id, [FromBody] SimulationVehicleIdsDto request)
     {
-        var (success, error) = await _simulationService.StopAsync(id);
-        return success ? NoContent() : NotFound(error);
+        var result = await _simulationService.StopAsync(id, request.VehicleIds);
+        return Ok(result);
     }
 
     [HttpGet("{id:int}/simulation/status")]
     public IActionResult GetSimulationStatus(int id)
     {
         var status = _simulationService.GetStatus(id);
-        return status is null ? NoContent() : Ok(status);
+        return Ok(status);
     }
 }

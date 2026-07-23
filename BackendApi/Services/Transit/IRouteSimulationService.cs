@@ -4,7 +4,7 @@ namespace BackendApi.Services.Transit;
 
 public interface IRouteSimulationService
 {
-    Task<(bool Success, string? Error)> StartAsync(int routeId, int startedByUserId);
-    Task<(bool Success, string? Error)> StopAsync(int routeId);
-    VehiclePositionDto? GetStatus(int routeId);
+    Task<SimulationActionResponseDto> StartAsync(int routeId, int[] vehicleIds, int startedByUserId);
+    Task<SimulationActionResponseDto> StopAsync(int routeId, int[] vehicleIds);
+    IEnumerable<VehiclePositionDto>   GetStatus(int routeId);
 }

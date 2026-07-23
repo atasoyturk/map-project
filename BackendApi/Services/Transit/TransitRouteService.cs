@@ -9,9 +9,16 @@ namespace BackendApi.Services.Transit;
 public sealed class TransitRouteService : ITransitRouteService
 {
     private readonly AppDbContext _context;
+    private readonly IOsrmService                 _osrmService;
+    private readonly ILogger<TransitRouteService>  _logger;
 
-    public TransitRouteService(AppDbContext context) => _context = context;
-
+    public TransitRouteService(AppDbContext context, IOsrmService osrmService, ILogger<TransitRouteService> logger)
+    {
+        _context     = context;
+        _osrmService = osrmService;
+        _logger      = logger;
+    }
+    
     public async Task<TransitRouteResponseDto> CreateAsync(TransitRouteRequestDto request, int userId)
     {
         var entity = new TransitRoute
@@ -77,7 +84,11 @@ public sealed class TransitRouteService : ITransitRouteService
 
         var stopDtos = stops.Select(TransitStopService.ToDto).ToList();
 
-        return new TransitRouteDetailDto(entity.Id, entity.Name, entity.Color, entity.UserId, entity.CreatedDate, stopDtos);
+        return new TransitRouteDetailDto(
+            entity.Id, entity.Name, entity.Color, entity.UserId, entity.CreatedDate,
+            entity.RouteGeometry is null ? null : GeometryConverter.ToWkt(entity.RouteGeometry),
+            stopDtos);
+
     }
 
     public async Task<bool> ReorderStopsAsync(int routeId, int[] stopIdsInOrder)
@@ -98,9 +109,56 @@ public sealed class TransitRouteService : ITransitRouteService
         }
 
         await _context.SaveChangesAsync();
+        
+        await TryGenerateRouteAsync(routeId);
+
         return true;
     }
 
+    public async Task<TransitRouteResponseDto?> GenerateRouteAsync(int routeId)
+    {
+        var entity = await _context.TransitRoutes
+            .FirstOrDefaultAsync(r => r.Id == routeId && !r.IsDeleted);
+        if (entity is null) return null;
+
+        var stops = await _context.TransitStops
+            .Where(s => s.TransitRouteId == routeId && !s.IsDeleted)
+            .OrderBy(s => s.SortOrder)
+            .ToListAsync();
+
+        if (stops.Count < 2)
+            throw new ArgumentException("Rota oluşturmak için en az 2 durak gereklidir.");
+
+        var coordinates = stops.Select(s => s.Geometry.Coordinate);
+
+        var (success, routeGeometry, error) = await _osrmService.GetRouteAsync(coordinates);
+        if (!success || routeGeometry is null)
+            throw new InvalidOperationException(error ?? "Rota oluşturulamadı.");
+
+        entity.RouteGeometry = routeGeometry;
+        entity.ModifiedDate  = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return ToDto(entity);
+    }
+
+    public async Task<bool> TryGenerateRouteAsync(int routeId)
+    {
+        try
+        {
+            var result = await GenerateRouteAsync(routeId);
+            return result is not null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Route geometry could not be regenerated for TransitRoute {RouteId}", routeId);
+            return false;
+        }
+    }
+
     private static TransitRouteResponseDto ToDto(TransitRoute r) =>
-        new(r.Id, r.Name, r.Color, r.UserId, r.CreatedDate);
+        new(r.Id, r.Name, r.Color, r.UserId, r.CreatedDate,
+            r.RouteGeometry is null ? null : GeometryConverter.ToWkt(r.RouteGeometry));
 }
+
+    

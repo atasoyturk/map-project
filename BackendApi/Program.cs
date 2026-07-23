@@ -117,6 +117,7 @@ builder.Services.AddScoped<IGeoServerService, GeoServerService>();
 builder.Services.AddScoped<IAnnotationService, AnnotationService>();
 builder.Services.AddScoped<IPoiCategoryService, PoiCategoryService>();
 builder.Services.AddScoped<IPoiService,         PoiService>();
+builder.Services.AddScoped<IOsrmService, OsrmService>();
 builder.Services.AddScoped<ITransitRouteService, TransitRouteService>();
 builder.Services.AddScoped<ITransitStopService,  TransitStopService>();
 

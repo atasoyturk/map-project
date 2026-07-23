@@ -10,4 +10,6 @@ public interface ITransitRouteService
     Task<IEnumerable<TransitRouteResponseDto>> GetAllAsync();
     Task<TransitRouteDetailDto?>        GetDetailAsync(int id);
     Task<bool>                          ReorderStopsAsync(int routeId, int[] stopIdsInOrder);
+    Task<TransitRouteResponseDto?>      GenerateRouteAsync(int routeId);
+    Task<bool>                          TryGenerateRouteAsync(int routeId);
 }

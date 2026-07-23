@@ -60,4 +60,13 @@ public sealed class TransitRouteController : ApiControllerBase
         var result = await _service.ReorderStopsAsync(id, request.StopIdsInOrder);
         return result ? NoContent() : NotFound();
     }
+
+    [HttpPost("{id:int}/generate-route")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> GenerateRoute(int id)
+    {
+        var result = await _service.GenerateRouteAsync(id);
+        return result is null ? NotFound() : Ok(result);
+    }
+
 }

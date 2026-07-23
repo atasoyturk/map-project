@@ -11,7 +11,8 @@ public sealed record TransitRouteResponseDto(
     string   Name,
     string   Color,
     int?     UserId,
-    DateTime CreatedDate);
+    DateTime CreatedDate,
+    string?  RouteWktGeometry);
 
 public sealed record TransitRouteDetailDto(
     int      Id,
@@ -19,6 +20,7 @@ public sealed record TransitRouteDetailDto(
     string   Color,
     int?     UserId,
     DateTime CreatedDate,
+    string?  RouteWktGeometry,
     IList<TransitStopResponseDto> Stops);
 
 public sealed record ReorderStopsDto(

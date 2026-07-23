@@ -12,11 +12,16 @@ public sealed class TransitStopService : ITransitStopService
 {
     private readonly AppDbContext          _context;
     private readonly IGeoPermissionService _geoPermissionService;
+    private readonly ITransitRouteService  _transitRouteService;
 
-    public TransitStopService(AppDbContext context, IGeoPermissionService geoPermissionService)
+    public TransitStopService(
+        AppDbContext          context,
+        IGeoPermissionService geoPermissionService,
+        ITransitRouteService  transitRouteService)
     {
         _context              = context;
         _geoPermissionService = geoPermissionService;
+        _transitRouteService  = transitRouteService;
     }
 
     public async Task<TransitStopResponseDto> CreateAsync(TransitStopRequestDto request, int userId, IEnumerable<string> roles)
@@ -44,6 +49,7 @@ public sealed class TransitStopService : ITransitStopService
 
         _context.TransitStops.Add(entity);
         await _context.SaveChangesAsync();
+        await _transitRouteService.TryGenerateRouteAsync(entity.TransitRouteId);
 
         return ToDto(entity);
     }
@@ -62,6 +68,8 @@ public sealed class TransitStopService : ITransitStopService
             .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId && !s.IsDeleted);
         if (entity is null) return null;
 
+        var oldRouteId = entity.TransitRouteId;
+
         entity.Name           = request.Name;
         entity.Geometry       = (Point)geometry;
         entity.TransitRouteId = request.TransitRouteId;
@@ -69,6 +77,11 @@ public sealed class TransitStopService : ITransitStopService
         entity.ModifiedUserId = userId;
 
         await _context.SaveChangesAsync();
+        await _transitRouteService.TryGenerateRouteAsync(entity.TransitRouteId);
+        
+        if (oldRouteId != entity.TransitRouteId)
+            await _transitRouteService.TryGenerateRouteAsync(oldRouteId);
+        
         return ToDto(entity);
     }
 
@@ -80,6 +93,9 @@ public sealed class TransitStopService : ITransitStopService
 
         entity.SoftDelete(userId);
         await _context.SaveChangesAsync();
+
+        await _transitRouteService.TryGenerateRouteAsync(entity.TransitRouteId);
+
         return true;
     }
 

@@ -14,3 +14,20 @@ public sealed record CompanyResponseDto(
 
 public sealed record AssignRouteToCompanyDto(
     [Required] int TransitRouteId);
+
+public sealed record CompanyStatsDto(
+    int    CompanyId,
+    string CompanyName,
+    int    VehicleCount,
+    int    RouteCount,
+    int    CompletedShipmentCount);
+
+public sealed record ShipmentRecordDto(
+    int      Id,
+    int      TransitRouteId,
+    string   RouteName,
+    int      VehicleId,
+    string   PlateNumber,
+    string   CompanyName,
+    DateTime StartedAtUtc,
+    DateTime CompletedAtUtc);

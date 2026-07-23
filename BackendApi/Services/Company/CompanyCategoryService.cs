@@ -1,5 +1,6 @@
 using BackendApi.Data;
 using BackendApi.DTOs.Company;
+using BackendApi.DTOs.Transit;
 using BackendApi.Helpers;
 using CompanyCategoryEntity = BackendApi.Entities.Company.CompanyCategory;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,25 @@ public sealed class CompanyCategoryService : ICompanyCategoryService
         entity.SoftDelete(userId);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<IEnumerable<TransitRouteResponseDto>> GetRoutesByCategoryAsync(int categoryId)
+    {
+        var companyIds = _context.Companies
+            .Where(c => c.CompanyCategoryId == categoryId && !c.IsDeleted)
+            .Select(c => c.Id);
+
+        var routes = await _context.CompanyRoutes
+            .Where(cr => companyIds.Contains(cr.CompanyId))
+            .Include(cr => cr.TransitRoute)
+            .Where(cr => !cr.TransitRoute.IsDeleted)
+            .Select(cr => cr.TransitRoute)
+            .Distinct()
+            .ToListAsync();
+
+        return routes.Select(r => new TransitRouteResponseDto(
+            r.Id, r.Name, r.Color, r.UserId, r.CreatedDate,
+            r.RouteGeometry is null ? null : GeometryConverter.ToWkt(r.RouteGeometry)));
     }
 
     private static CompanyCategoryResponseDto ToDto(CompanyCategoryEntity entity) =>

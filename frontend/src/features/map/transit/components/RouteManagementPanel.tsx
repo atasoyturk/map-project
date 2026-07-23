@@ -7,17 +7,23 @@ import {
   createTransitRoute, deleteTransitRoute,
   getTransitRouteDetail, reorderTransitStops, generateTransitRoute, clearTransitRoute,
 } from "../../../../shared/api/transitService";
+import {
+  getAllCompanyCategories, getAllCompanies,
+} from "../../../../shared/api/companyService";
 import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
+import type { CompanyCategoryResponseDto, CompanyResponseDto } from "../../../company/types";
 
+type FilterMode = "" | "unassigned";
 
-interface RouteManagementPanelProps {
+ interface RouteManagementPanelProps {
   routes:            TransitRouteResponseDto[];
   reloadRoutes:      () => void;
   onClose:           () => void;
   onAddStopToRoute:  (routeId: number) => void;
   routeLineLayer:    VectorLayer<VectorSource> | null;
 }
+
 export function RouteManagementPanel({
   routes, reloadRoutes, onClose, onAddStopToRoute, routeLineLayer,
 }: RouteManagementPanelProps) {
@@ -26,6 +32,14 @@ export function RouteManagementPanel({
   const [generatingRouteId, setGeneratingRouteId] = useState<number | null>(null);
   const [routeGenError,     setRouteGenError]     = useState<string | null>(null);
   const [hiddenRouteIds,    setHiddenRouteIds]     = useState<Set<number>>(new Set());
+
+  const [categories, setCategories] = useState<CompanyCategoryResponseDto[]>([]);
+  const [companies,  setCompanies]  = useState<CompanyResponseDto[]>([]);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | FilterMode>("");
+  const [selectedCompanyId,  setSelectedCompanyId]  = useState<number | FilterMode>("");
+  const [filteredRouteIds,   setFilteredRouteIds]   = useState<Set<number> | null>(null);
+  const [isFiltering,        setIsFiltering]        = useState(false);
 
   const [newName,  setNewName]  = useState("");
   const [newColor, setNewColor] = useState("#3b82f6");
@@ -153,6 +167,93 @@ export function RouteManagementPanel({
     dragOverItemId.current = stopId;
   }
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const [catRes, compRes] = await Promise.all([
+          getAllCompanyCategories(apiFetch),
+          getAllCompanies(apiFetch),
+        ]);
+        if (catRes.ok) setCategories(await catRes.json());
+        if (compRes.ok) setCompanies(await compRes.json());
+      } catch { }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategoryId === "" && selectedCompanyId === "") {
+      setFilteredRouteIds(new Set());
+      return;
+    }
+
+    let cancelled = false;
+    setIsFiltering(true);
+
+    (async () => {
+      try {
+        const idSets: Set<number>[] = [];
+
+        if (selectedCategoryId === "unassigned" || selectedCompanyId === "unassigned") {
+          const res = await apiFetch("/api/company/routes/unassigned");
+          if (res.ok) {
+            const data: TransitRouteResponseDto[] = await res.json();
+            idSets.push(new Set(data.map((r) => r.id)));
+          }
+        } else {
+          if (selectedCategoryId !== "") {
+            const res = await apiFetch(`/api/company-category/${selectedCategoryId}/routes`);
+            if (res.ok) {
+              const data: TransitRouteResponseDto[] = await res.json();
+              idSets.push(new Set(data.map((r) => r.id)));
+            }
+          }
+          if (selectedCompanyId !== "") {
+            const res = await apiFetch(`/api/company/${selectedCompanyId}/routes`);
+            if (res.ok) {
+              const data: TransitRouteResponseDto[] = await res.json();
+              idSets.push(new Set(data.map((r) => r.id)));
+            }
+          }
+        }
+
+        if (cancelled) return;
+
+        const intersection = idSets.reduce((acc, set) =>
+          acc === null ? set : new Set([...acc].filter((id) => set.has(id))), null as Set<number> | null);
+
+        setFilteredRouteIds(intersection ?? new Set());
+      } catch {
+        if (!cancelled) setFilteredRouteIds(new Set());
+      } finally {
+        if (!cancelled) setIsFiltering(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedCategoryId, selectedCompanyId]);
+
+  function handleCategoryChange(value: string) {
+    if (value === "unassigned") {
+      setSelectedCategoryId("unassigned");
+      setSelectedCompanyId("");
+    } else {
+      setSelectedCategoryId(value === "" ? "" : Number(value));
+    }
+  }
+
+  function handleCompanyChange(value: string) {
+    if (value === "unassigned") {
+      setSelectedCompanyId("unassigned");
+      setSelectedCategoryId("");
+    } else {
+      setSelectedCompanyId(value === "" ? "" : Number(value));
+    }
+  }
+
+  const visibleRoutes = filteredRouteIds
+    ? routes.filter((r) => filteredRouteIds.has(r.id))
+    : [];
+
 
   async function handleDrop(routeId: number) {
     const fromId = dragItemId.current;
@@ -218,6 +319,37 @@ export function RouteManagementPanel({
       </div>
 
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
+        <select
+          value={selectedCategoryId}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+          style={{
+            flex: 1, padding: "7px 8px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 12, color: "#0f172a",
+          }}
+        >
+          <option value="">Kategori seçin...</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+          <option value="unassigned">— Atanmamış —</option>
+        </select>
+        <select
+          value={selectedCompanyId}
+          onChange={(e) => handleCompanyChange(e.target.value)}
+          style={{
+            flex: 1, padding: "7px 8px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 12, color: "#0f172a",
+          }}
+        >
+          <option value="">Şirket seçin...</option>
+          {companies.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+          <option value="unassigned">— Atanmamış —</option>
+        </select>
+      </div>
+
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
         <input
           type="text"
           placeholder="Yeni güzergah adı..."
@@ -252,13 +384,21 @@ export function RouteManagementPanel({
       )}
 
       <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
-        {routes.length === 0 ? (
+        {isFiltering ? (
           <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
-            Henüz güzergah yok.
+            Yükleniyor...
+          </p>
+        ) : selectedCategoryId === "" && selectedCompanyId === "" ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
+            Güzergahları görüntülemek için bir kategori veya şirket seçin.
+          </p>
+        ) : visibleRoutes.length === 0 ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
+            Bu filtreye uyan güzergah yok.
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {routes.map((route) => {
+            {visibleRoutes.map((route) => {
               const isExpanded = expandedId === route.id;
               const detail     = detailById[route.id];
               const stopCount  = detail?.stops.length;

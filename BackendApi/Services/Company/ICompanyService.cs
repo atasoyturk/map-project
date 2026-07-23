@@ -15,4 +15,7 @@ public interface ICompanyService
     Task<bool>                                  RemoveRouteAsync(int companyId, int transitRouteId);
     Task<IEnumerable<TransitRouteResponseDto>>  GetRoutesByCompanyAsync(int companyId);
     Task<IEnumerable<CompanyResponseDto>>       GetCompaniesByRouteAsync(int transitRouteId);
+    Task<IEnumerable<CompanyStatsDto>>    GetStatsAsync();
+    Task<IEnumerable<ShipmentRecordDto>>  GetShipmentRecordsAsync(int? transitRouteId);
+    Task<IEnumerable<TransitRouteResponseDto>> GetUnassignedRoutesAsync();
 }

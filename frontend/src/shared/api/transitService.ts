@@ -72,12 +72,18 @@ export function clearTransitRoute(apiFetch: ApiFetch, routeId: number) {
   });
 }
 
-export function startRouteSimulation(apiFetch: ApiFetch, routeId: number) {
-  return apiFetch(`/api/transit-route/${routeId}/simulation/start`, { method: "POST" });
+export function startRouteSimulation(apiFetch: ApiFetch, routeId: number, vehicleIds: number[]) {
+  return apiFetch(`/api/transit-route/${routeId}/simulation/start`, {
+    method: "POST",
+    body:   JSON.stringify({ vehicleIds }),
+  });
 }
 
-export function stopRouteSimulation(apiFetch: ApiFetch, routeId: number) {
-  return apiFetch(`/api/transit-route/${routeId}/simulation/stop`, { method: "POST" });
+export function stopRouteSimulation(apiFetch: ApiFetch, routeId: number, vehicleIds: number[]) {
+  return apiFetch(`/api/transit-route/${routeId}/simulation/stop`, {
+    method: "POST",
+    body:   JSON.stringify({ vehicleIds }),
+  });
 }
 
 export function getRouteSimulationStatus(apiFetch: ApiFetch, routeId: number) {

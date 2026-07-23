@@ -31,4 +31,8 @@ public sealed class CompanyCategoryController : ApiControllerBase
         var result = await _service.DeleteAsync(id, userId.Value);
         return result ? NoContent() : NotFound();
     }
+
+    [HttpGet("{id:int}/routes")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> GetRoutes(int id) => Ok(await _service.GetRoutesByCategoryAsync(id));
 }

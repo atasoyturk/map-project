@@ -27,6 +27,7 @@ import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { createRouteSimulationConnection } from "../../../../shared/api/signalR";
 import { RouteInfoPopup } from "./RouteInfoPopup";
 import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
+import { VehicleSelectionModal } from "./VehicleSelectionModal";
 
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
@@ -121,7 +122,8 @@ export function TransitModule({
   useTransitRouteLines(routeLineSourceRef.current, transitRoutes);
 
   const {
-    trackedRouteId, vehiclePosition, startTracking, stopTracking, startSimulation, stopSimulation,
+    trackedRouteId, vehiclePositions, startTracking, stopTracking,
+    startSimulation, stopSimulation, fetchRunningVehicleIds,
   } = useRouteSimulation(connectionRef.current, apiFetch);
 
   const { selected: vehicleSelected, clear: clearVehicleSelected } = useVehicleClick({
@@ -136,33 +138,47 @@ export function TransitModule({
     roles.includes("Admin") || roles.includes("Takım Lideri") || roles.includes("Ulaşım Operatörü");
 
   const [routeActionBusy, setRouteActionBusy] = useState(false);
-
-  async function handleStartSimulation(routeId: number) {
-    setRouteActionBusy(true);
-    try {
-      const res = await startSimulation(routeId);
-      if (!res.ok) {
-        const message = await res.text().catch(() => "Simülasyon başlatılamadı.");
-        onToast({ message, type: "error" });
-        return;
-      }
-      await startTracking(routeId);
-    } catch {
-      onToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-    } finally {
-      setRouteActionBusy(false);
-    }
-  }
+  const [vehicleModal, setVehicleModal] = useState<{ routeId: number; mode: "start" | "stop" } | null>(null);
+  const [modalRunningIds, setModalRunningIds] = useState<Set<number>>(new Set());
 
   async function handleStopSimulation(routeId: number) {
+    const runningIds = await fetchRunningVehicleIds(routeId);
+    setModalRunningIds(runningIds);
+    setVehicleModal({ routeId, mode: "stop" });
+  }
+
+  function handleStartSimulation(routeId: number) {
+    setModalRunningIds(new Set());
+    setVehicleModal({ routeId, mode: "start" });
+  }
+
+  async function handleVehicleModalConfirm(vehicleIds: number[]) {
+    if (!vehicleModal) return;
+    const { routeId, mode } = vehicleModal;
+
     setRouteActionBusy(true);
     try {
-      const res = await stopSimulation(routeId);
-      if (!res.ok) {
-        onToast({ message: "Simülasyon durdurulamadı.", type: "error" });
-        return;
+      const results = mode === "start"
+        ? await startSimulation(routeId, vehicleIds)
+        : await stopSimulation(routeId, vehicleIds);
+
+      const failed = results.filter((r) => !r.success);
+      if (failed.length > 0) {
+        onToast({
+          message: `${failed.length} araç için işlem başarısız: ${failed.map((f) => f.error).join(", ")}`,
+          type: "error",
+        });
       }
-      if (trackedRouteId === routeId) stopTracking();
+
+      const succeeded = results.some((r) => r.success);
+      if (succeeded) {
+        const runningIds = await fetchRunningVehicleIds(routeId);
+        setSelectedRouteRunning(runningIds.size > 0);
+        if (runningIds.size > 0) await startTracking(routeId);
+        else if (trackedRouteId === routeId) stopTracking();
+      }
+
+      setVehicleModal(null);
     } catch {
       onToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
     } finally {
@@ -193,17 +209,21 @@ export function TransitModule({
     const source = vehicleSourceRef.current;
     source.clear();
 
-    if (!vehiclePosition || vehiclePosition.completed) return;
+    for (const position of vehiclePositions.values()) {
+      if (position.completed) continue;
 
-    const feature = new Feature({
-      geometry: new Point(fromLonLat([vehiclePosition.longitude, vehiclePosition.latitude])),
-    });
-    feature.set("routeId", vehiclePosition.routeId);
-    feature.set("progressPercentage", vehiclePosition.progressPercentage);
-    feature.setStyle(buildVehicleStyle());
+      const feature = new Feature({
+        geometry: new Point(fromLonLat([position.longitude, position.latitude])),
+      });
+      feature.set("routeId", position.routeId);
+      feature.set("vehicleId", position.vehicleId);
+      feature.set("plateNumber", position.plateNumber);
+      feature.set("progressPercentage", position.progressPercentage);
+      feature.setStyle(buildVehicleStyle());
 
-    source.addFeature(feature);
-  }, [vehiclePosition]);
+      source.addFeature(feature);
+    }
+  }, [vehiclePositions]);
 
   useTransitStopDraw({
     map,
@@ -336,16 +356,23 @@ export function TransitModule({
         />
       )}
 
-      {vehicleSelected && vehiclePosition && (
-        <VehicleInfoPopup
-          x={vehicleSelected.x}
-          y={vehicleSelected.y}
-          routeName={transitRoutes.find((r) => r.id === vehiclePosition.routeId)?.name ?? ""}
-          progressPercentage={vehiclePosition.progressPercentage}
-          onClose={clearVehicleSelected}
-          onStopTracking={() => { stopTracking(); clearVehicleSelected(); }}
-        />
-      )}
+      {vehicleSelected && (() => {
+        const vehicleId = vehicleSelected.feature.get("vehicleId");
+        const position   = vehiclePositions.get(vehicleId);
+        if (!position) return null;
+
+        return (
+          <VehicleInfoPopup
+            x={vehicleSelected.x}
+            y={vehicleSelected.y}
+            routeName={transitRoutes.find((r) => r.id === position.routeId)?.name ?? ""}
+            plateNumber={position.plateNumber}
+            progressPercentage={position.progressPercentage}
+            onClose={clearVehicleSelected}
+            onStopTracking={() => { stopTracking(); clearVehicleSelected(); }}
+          />
+        );
+      })()}
 
       {routeSelected && (
         <RouteInfoPopup
@@ -361,6 +388,16 @@ export function TransitModule({
           onStop={() => { handleStopSimulation(routeSelected.routeId); setSelectedRouteRunning(false); }}
           onTrack={() => startTracking(routeSelected.routeId)}
           onStopTracking={() => stopTracking()}
+        />
+      )}
+
+      {vehicleModal && (
+        <VehicleSelectionModal
+          routeId={vehicleModal.routeId}
+          mode={vehicleModal.mode}
+          runningVehicleIds={modalRunningIds}
+          onClose={() => setVehicleModal(null)}
+          onConfirm={handleVehicleModalConfirm}
         />
       )}
     </>

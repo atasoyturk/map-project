@@ -6,17 +6,26 @@ import {
 
 export interface VehiclePosition {
   routeId:             number;
+  vehicleId:           number;
+  plateNumber:         string;
   latitude:            number;
   longitude:           number;
   progressPercentage:  number;
   completed:           boolean;
 }
 
+export interface VehicleActionResult {
+  vehicleId:   number;
+  plateNumber: string;
+  success:     boolean;
+  error:       string | null;
+}
+
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
 export function useRouteSimulation(connection: HubConnection | null, apiFetch: ApiFetch) {
-  const [trackedRouteId,  setTrackedRouteId]  = useState<number | null>(null);
-  const [vehiclePosition, setVehiclePosition] = useState<VehiclePosition | null>(null);
+  const [trackedRouteId, setTrackedRouteId] = useState<number | null>(null);
+  const [vehiclePositions, setVehiclePositions] = useState<Map<number, VehiclePosition>>(new Map());
   const trackedRouteIdRef = useRef<number | null>(null);
 
   useEffect(() => { trackedRouteIdRef.current = trackedRouteId; }, [trackedRouteId]);
@@ -26,12 +35,23 @@ export function useRouteSimulation(connection: HubConnection | null, apiFetch: A
 
     function handlePosition(dto: VehiclePosition) {
       if (dto.routeId !== trackedRouteIdRef.current) return;
-      setVehiclePosition(dto);
+
+      setVehiclePositions((prev) => {
+        const next = new Map(prev);
+        if (dto.completed) next.delete(dto.vehicleId);
+        else next.set(dto.vehicleId, dto);
+        return next;
+      });
     }
 
-    function handleStopped(payload: { routeId: number }) {
+    function handleStopped(payload: { routeId: number; vehicleId: number }) {
       if (payload.routeId !== trackedRouteIdRef.current) return;
-      setVehiclePosition(null);
+
+      setVehiclePositions((prev) => {
+        const next = new Map(prev);
+        next.delete(payload.vehicleId);
+        return next;
+      });
     }
 
     connection.on("VehiclePositionUpdated", handlePosition);
@@ -52,12 +72,13 @@ export function useRouteSimulation(connection: HubConnection | null, apiFetch: A
 
     await connection.invoke("JoinRoute", routeId);
     setTrackedRouteId(routeId);
+    setVehiclePositions(new Map());
 
     try {
       const res = await getRouteSimulationStatus(apiFetch, routeId);
       if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data) setVehiclePosition(data);
+        const data: VehiclePosition[] = await res.json().catch(() => []);
+        setVehiclePositions(new Map(data.map((p) => [p.vehicleId, p])));
       }
     } catch { /* durum bilgisi alınamadı, canlı güncellemeler yine de gelmeye devam eder */ }
   }, [connection, apiFetch]);
@@ -67,18 +88,44 @@ export function useRouteSimulation(connection: HubConnection | null, apiFetch: A
       await connection.invoke("LeaveRoute", trackedRouteId).catch(() => {});
     }
     setTrackedRouteId(null);
-    setVehiclePosition(null);
+    setVehiclePositions(new Map());
   }, [connection, trackedRouteId]);
 
   const startSimulation = useCallback(
-    (routeId: number) => startRouteSimulation(apiFetch, routeId),
+    async (routeId: number, vehicleIds: number[]): Promise<VehicleActionResult[]> => {
+      const res = await startRouteSimulation(apiFetch, routeId, vehicleIds);
+      if (!res.ok) return vehicleIds.map((id) => ({ vehicleId: id, plateNumber: "", success: false, error: "İstek başarısız oldu." }));
+      const data = await res.json();
+      return data.results as VehicleActionResult[];
+    },
     [apiFetch],
   );
 
   const stopSimulation = useCallback(
-    (routeId: number) => stopRouteSimulation(apiFetch, routeId),
+    async (routeId: number, vehicleIds: number[]): Promise<VehicleActionResult[]> => {
+      const res = await stopRouteSimulation(apiFetch, routeId, vehicleIds);
+      if (!res.ok) return vehicleIds.map((id) => ({ vehicleId: id, plateNumber: "", success: false, error: "İstek başarısız oldu." }));
+      const data = await res.json();
+      return data.results as VehicleActionResult[];
+    },
     [apiFetch],
   );
 
-  return { trackedRouteId, vehiclePosition, startTracking, stopTracking, startSimulation, stopSimulation };
+  const fetchRunningVehicleIds = useCallback(async (routeId: number): Promise<Set<number>> => {
+    try {
+      const res = await getRouteSimulationStatus(apiFetch, routeId);
+      if (!res.ok) return new Set();
+      const data: VehiclePosition[] = await res.json();
+      return new Set(data.map((p) => p.vehicleId));
+    } catch {
+      return new Set();
+    }
+  }, [apiFetch]);
+
+  return {
+    trackedRouteId, vehiclePositions,
+    startTracking, stopTracking,
+    startSimulation, stopSimulation,
+    fetchRunningVehicleIds,
+  };
 }

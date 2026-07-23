@@ -2,13 +2,14 @@ interface VehicleInfoPopupProps {
   x: number;
   y: number;
   routeName:           string;
+  plateNumber:         string;
   progressPercentage:  number;
   onClose:             () => void;
   onStopTracking:      () => void;
 }
 
 export function VehicleInfoPopup({
-  x, y, routeName, progressPercentage, onClose, onStopTracking,
+  x, y, routeName, plateNumber, progressPercentage, onClose, onStopTracking,
 }: VehicleInfoPopupProps) {
   return (
     <div style={{
@@ -17,7 +18,10 @@ export function VehicleInfoPopup({
       boxShadow: "0 8px 24px rgba(0,0,0,0.18)", minWidth: 200,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{routeName}</span>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{plateNumber}</div>
+          <div style={{ fontSize: 11, color: "#94a3b8" }}>{routeName}</div>
+        </div>
         <button
           onClick={onClose}
           style={{ border: "none", background: "transparent", color: "#94a3b8", fontSize: 14, cursor: "pointer" }}

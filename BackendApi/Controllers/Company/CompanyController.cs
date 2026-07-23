@@ -45,6 +45,11 @@ public sealed class CompanyController : ApiControllerBase
     [RequirePermission("transit_route_manage")]
     public async Task<IActionResult> GetRoutes(int id) => Ok(await _service.GetRoutesByCompanyAsync(id));
 
+    [HttpGet("by-route/{transitRouteId:int}")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> GetCompaniesByRoute(int transitRouteId)
+        => Ok(await _service.GetCompaniesByRouteAsync(transitRouteId));
+
     [HttpPost("{id:int}/routes")]
     [RequirePermission("admin_access")]
     public async Task<IActionResult> AssignRoute(int id, [FromBody] AssignRouteToCompanyDto request)
@@ -60,4 +65,17 @@ public sealed class CompanyController : ApiControllerBase
         var result = await _service.RemoveRouteAsync(id, transitRouteId);
         return result ? NoContent() : NotFound();
     }
+
+    [HttpGet("stats")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> GetStats() => Ok(await _service.GetStatsAsync());
+
+    [HttpGet("shipments")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> GetShipments([FromQuery] int? transitRouteId)
+        => Ok(await _service.GetShipmentRecordsAsync(transitRouteId));
+
+    [HttpGet("routes/unassigned")]
+    [RequirePermission("transit_route_manage")]
+    public async Task<IActionResult> GetUnassignedRoutes() => Ok(await _service.GetUnassignedRoutesAsync());
 }

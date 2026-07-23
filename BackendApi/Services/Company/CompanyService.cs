@@ -118,6 +118,54 @@ public sealed class CompanyService : ICompanyService
             r.RouteGeometry is null ? null : GeometryConverter.ToWkt(r.RouteGeometry)));
     }
 
+    public async Task<IEnumerable<TransitRouteResponseDto>> GetUnassignedRoutesAsync()
+    {
+        var assignedRouteIds = _context.CompanyRoutes.Select(cr => cr.TransitRouteId);
+
+        var routes = await _context.TransitRoutes
+            .Where(r => !r.IsDeleted && !assignedRouteIds.Contains(r.Id))
+            .ToListAsync();
+
+        return routes.Select(r => new TransitRouteResponseDto(
+            r.Id, r.Name, r.Color, r.UserId, r.CreatedDate,
+            r.RouteGeometry is null ? null : GeometryConverter.ToWkt(r.RouteGeometry)));
+    }
+
+    public async Task<IEnumerable<CompanyStatsDto>> GetStatsAsync()
+    {
+        var stats = await (from c in _context.Companies
+            where !c.IsDeleted
+            select new CompanyStatsDto(
+                c.Id,
+                c.Name,
+                _context.Vehicles.Count(v => v.CompanyId == c.Id && !v.IsDeleted),
+                _context.CompanyRoutes.Count(cr => cr.CompanyId == c.Id),
+                _context.ShipmentRecords.Count(s =>
+                    _context.Vehicles.Any(v => v.Id == s.VehicleId && v.CompanyId == c.Id))))
+            .ToListAsync();
+
+        return stats;
+    }
+
+    public async Task<IEnumerable<ShipmentRecordDto>> GetShipmentRecordsAsync(int? transitRouteId)
+    {
+        IQueryable<Entities.Transit.ShipmentRecord> query = _context.ShipmentRecords;
+
+        if (transitRouteId.HasValue)
+            query = query.Where(s => s.TransitRouteId == transitRouteId.Value);
+
+        var records = await (from s in query
+            join r in _context.TransitRoutes on s.TransitRouteId equals r.Id
+            join v in _context.Vehicles on s.VehicleId equals v.Id
+            join c in _context.Companies on v.CompanyId equals c.Id
+            orderby s.CompletedAtUtc descending
+            select new ShipmentRecordDto(
+                s.Id, r.Id, r.Name, v.Id, v.PlateNumber, c.Name, s.StartedAtUtc, s.CompletedAtUtc))
+            .ToListAsync();
+
+        return records;
+    }
+
     public async Task<IEnumerable<CompanyResponseDto>> GetCompaniesByRouteAsync(int transitRouteId)
     {
         var companies = await _context.CompanyRoutes

@@ -452,10 +452,11 @@ export function CompanyManagement() {
                 <p style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", margin: "0 0 8px" }}>
                   {s.companyName}
                 </p>
-                <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0" }}>Araç: {s.vehicleCount}</p>
+                <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0" }}>Tır: {s.tirCount}</p>
+                <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0" }}>Otobüs: {s.otobusCount}</p>
                 <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0" }}>Güzergah: {s.routeCount}</p>
                 <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0" }}>
-                  Tamamlanan Sevkiyat: {s.completedShipmentCount}
+                  Tamamlanan Güzergah: {s.completedShipmentCount}
                 </p>
               </div>
             ))}

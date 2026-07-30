@@ -5,6 +5,7 @@ namespace BackendApi.Entities.Company;
 [Table("tbl_vehicle")]
 public sealed class Vehicle : BaseEntity
 {
-    public string PlateNumber { get; set; } = string.Empty;
-    public int    CompanyId   { get; set; }
+    public string      PlateNumber { get; set; } = string.Empty;
+    public int         CompanyId   { get; set; }
+    public VehicleType VehicleType { get; set; } = VehicleType.Tir;
 }

@@ -109,151 +109,151 @@ namespace BackendApi.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4917),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7366),
                             Description = "Nokta oluşturma yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4917),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7367),
                             Name = "point_create"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4920),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7369),
                             Description = "Çizgi oluşturma yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4920),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7369),
                             Name = "line_create"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4921),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7371),
                             Description = "Poligon oluşturma yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4922),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7371),
                             Name = "polygon_create"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4923),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7372),
                             Description = "Admin paneli erişim yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4923),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7372),
                             Name = "admin_access"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4924),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7373),
                             Description = "Not/işaret ekleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4924),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7374),
                             Name = "annotation_create"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4925),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7375),
                             Description = "Not geçmişini görüntüleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4925),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7375),
                             Name = "annotation_read"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4926),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7376),
                             Description = "POI oluşturma/güncelleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4926),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7376),
                             Name = "poi_create"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4927),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7378),
                             Description = "POI görüntüleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4928),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7378),
                             Name = "poi_read"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4928),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7379),
                             Description = "POI kategori ağacını yönetme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4929),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7379),
                             Name = "poi_category_manage"
                         },
                         new
                         {
                             Id = 10,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4930),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7380),
                             Description = "Durak oluşturma/güncelleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4930),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7380),
                             Name = "transit_stop_create"
                         },
                         new
                         {
                             Id = 11,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4931),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7381),
                             Description = "Durak/güzergah görüntüleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4931),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7381),
                             Name = "transit_stop_read"
                         },
                         new
                         {
                             Id = 12,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4932),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7382),
                             Description = "Güzergah yönetme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4932),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7382),
                             Name = "transit_route_manage"
                         },
                         new
                         {
                             Id = 13,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4933),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7383),
                             Description = "Alan tarama analizi yapma yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4933),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7384),
                             Name = "area_scan"
                         },
                         new
                         {
                             Id = 14,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4934),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7385),
                             Description = "Konum analizi yapma yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4934),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7385),
                             Name = "location_analysis"
                         },
                         new
                         {
                             Id = 15,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4935),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7386),
                             Description = "Isı haritası görüntüleme yetkisi",
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4935),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7386),
                             Name = "heatmap_view"
                         });
                 });
@@ -293,64 +293,64 @@ namespace BackendApi.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4707),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7074),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4711),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7077),
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4713),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7082),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4713),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7082),
                             Name = "Çalışan"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4714),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7083),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4714),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7083),
                             Name = "Stajyer"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4715),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7084),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4716),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7085),
                             Name = "Takım Lideri"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4717),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7086),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4717),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7086),
                             Name = "POI Operatörü"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4718),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7087),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4718),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7087),
                             Name = "Kullanıcı"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4719),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7088),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(4719),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7088),
                             Name = "Ulaşım Operatörü"
                         });
                 });
@@ -832,6 +832,9 @@ namespace BackendApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("VehicleType")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
@@ -1139,48 +1142,48 @@ namespace BackendApi.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5099),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7556),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5100),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7556),
                             Name = "Yeme İçme"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5101),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7557),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5101),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7558),
                             Name = "Restoran",
                             ParentCategoryId = 1
                         },
                         new
                         {
                             Id = 3,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5102),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7559),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5102),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7559),
                             Name = "Kafe",
                             ParentCategoryId = 1
                         },
                         new
                         {
                             Id = 4,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5103),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7560),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5103),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7560),
                             Name = "Turizm"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5104),
+                            CreatedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7561),
                             IsActive = true,
                             IsDeleted = false,
-                            ModifiedDate = new DateTime(2026, 7, 24, 8, 4, 50, 356, DateTimeKind.Utc).AddTicks(5104),
+                            ModifiedDate = new DateTime(2026, 7, 30, 13, 54, 9, 976, DateTimeKind.Utc).AddTicks(7561),
                             Name = "Müze",
                             ParentCategoryId = 4
                         });

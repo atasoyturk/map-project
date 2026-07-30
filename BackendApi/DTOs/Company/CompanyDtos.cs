@@ -18,7 +18,8 @@ public sealed record AssignRouteToCompanyDto(
 public sealed record CompanyStatsDto(
     int    CompanyId,
     string CompanyName,
-    int    VehicleCount,
+    int    TirCount,
+    int    OtobusCount,
     int    RouteCount,
     int    CompletedShipmentCount);
 

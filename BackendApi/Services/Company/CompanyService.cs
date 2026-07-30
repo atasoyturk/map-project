@@ -5,6 +5,7 @@ using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 using CompanyEntity = BackendApi.Entities.Company.Company;
 using CompanyRouteEntity = BackendApi.Entities.Company.CompanyRoute;
+using BackendApi.Entities.Company;
 
 namespace BackendApi.Services.Company;
 
@@ -138,7 +139,8 @@ public sealed class CompanyService : ICompanyService
             select new CompanyStatsDto(
                 c.Id,
                 c.Name,
-                _context.Vehicles.Count(v => v.CompanyId == c.Id && !v.IsDeleted),
+                _context.Vehicles.Count(v => v.CompanyId == c.Id && !v.IsDeleted && v.VehicleType == VehicleType.Tir),
+                _context.Vehicles.Count(v => v.CompanyId == c.Id && !v.IsDeleted && v.VehicleType == VehicleType.Otobus),
                 _context.CompanyRoutes.Count(cr => cr.CompanyId == c.Id),
                 _context.ShipmentRecords.Count(s =>
                     _context.Vehicles.Any(v => v.Id == s.VehicleId && v.CompanyId == c.Id))))

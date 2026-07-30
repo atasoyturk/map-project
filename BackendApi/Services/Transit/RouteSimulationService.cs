@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.LinearReferencing;
 using ShipmentRecordEntity = BackendApi.Entities.Transit.ShipmentRecord;
+using BackendApi.Entities.Company;
 
 namespace BackendApi.Services.Transit;
 
@@ -16,6 +17,7 @@ public sealed class RouteSimulationService : IRouteSimulationService
     private const double DurationScaleFactor  = 360;
     private const double MinSimulationSeconds = 3;
     private const int    TickIntervalMs       = 250;
+    private const double MaxBusSpeedKmh = 50;
 
     private readonly IServiceScopeFactory                _scopeFactory;
     private readonly IHubContext<RouteSimulationHub>     _hubContext;
@@ -48,8 +50,6 @@ public sealed class RouteSimulationService : IRouteSimulationService
                 vehicleIds.Select(id => new VehicleActionResultDto(id, "", false, routeError)).ToList());
         }
 
-        var scaledDuration = Math.Max(route.DurationSeconds.Value / DurationScaleFactor, MinSimulationSeconds);
-
         var eligibleVehicleIds = await context.CompanyRoutes
             .Where(cr => cr.TransitRouteId == routeId)
             .Join(context.Vehicles, cr => cr.CompanyId, v => v.CompanyId, (cr, v) => v.Id)
@@ -80,6 +80,25 @@ public sealed class RouteSimulationService : IRouteSimulationService
                 continue;
             }
 
+            IReadOnlyList<SpeedSchedulePoint>? speedSchedule = null;
+            double totalRealSeconds = route.DurationSeconds.Value;
+
+            if (vehicle.VehicleType == VehicleType.Otobus)
+            {
+                var stops = await context.TransitStops
+                    .Where(s => s.TransitRouteId == routeId && !s.IsDeleted)
+                    .OrderBy(s => s.SortOrder)
+                    .ToListAsync();
+
+                if (stops.Count >= 2)
+                {
+                    speedSchedule   = BuildSpeedSchedule(lineString, stops.Select(s => s.Geometry.Coordinate));
+                    totalRealSeconds = speedSchedule[^1].ElapsedSeconds;
+                }
+            }
+
+            var scaledDuration = Math.Max(totalRealSeconds / DurationScaleFactor, MinSimulationSeconds);
+
             var state = new RouteSimulationState
             {
                 RouteId         = routeId,
@@ -89,6 +108,7 @@ public sealed class RouteSimulationService : IRouteSimulationService
                 StartedAtUtc    = DateTime.UtcNow,
                 DurationSeconds = scaledDuration,
                 RouteGeometry   = lineString,
+                SpeedSchedule   = speedSchedule,
             };
 
             var cts     = new CancellationTokenSource();
@@ -134,6 +154,30 @@ public sealed class RouteSimulationService : IRouteSimulationService
         _running.Values
             .Where(r => r.State.RouteId == routeId)
             .Select(r => ComputePosition(r.State));
+    
+    private static IReadOnlyList<SpeedSchedulePoint> BuildSpeedSchedule(
+        LineString routeGeometry, IEnumerable<Coordinate> stopCoordinates)
+    {
+        var indexedLine   = new LengthIndexedLine(routeGeometry);
+        var maxSpeedMps   = (MaxBusSpeedKmh * 1000) / 3600.0;
+
+        var stopDistances = stopCoordinates
+            .Select(c => indexedLine.Project(c))
+            .OrderBy(d => d)
+            .ToList();
+
+        var schedule = new List<SpeedSchedulePoint> { new(stopDistances[0], 0) };
+
+        for (var i = 1; i < stopDistances.Count; i++)
+        {
+            var segmentMeters  = stopDistances[i] - stopDistances[i - 1];
+            var segmentSeconds = segmentMeters / maxSpeedMps;
+            schedule.Add(new SpeedSchedulePoint(
+                stopDistances[i], schedule[^1].ElapsedSeconds + segmentSeconds));
+        }
+
+        return schedule;
+    }
 
     private async Task RunSimulationLoopAsync(RunningSimulation running, CancellationToken token)
     {
@@ -194,16 +238,54 @@ public sealed class RouteSimulationService : IRouteSimulationService
 
     private static VehiclePositionDto ComputePosition(RouteSimulationState state)
     {
-        var indexedLine = new LengthIndexedLine(state.RouteGeometry);
-        var totalLength = state.RouteGeometry.Length;
+        var indexedLine    = new LengthIndexedLine(state.RouteGeometry);
+        var elapsedRealSeconds = (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds * DurationScaleFactor;
 
-        var elapsedSeconds = (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds;
-        var fraction        = Math.Clamp(elapsedSeconds / state.DurationSeconds, 0, 1);
-        var position         = indexedLine.ExtractPoint(fraction * totalLength);
+        double distanceMeters;
+        double fraction;
+
+        if (state.SpeedSchedule is { Count: > 1 } schedule)
+        {
+            var totalRealSeconds = schedule[^1].ElapsedSeconds;
+            var clampedElapsed   = Math.Clamp(elapsedRealSeconds, 0, totalRealSeconds);
+
+            distanceMeters = InterpolateDistance(schedule, clampedElapsed);
+            fraction        = totalRealSeconds > 0 ? clampedElapsed / totalRealSeconds : 1;
+        }
+        else
+        {
+            var fractionOfDuration = Math.Clamp(
+                (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds / state.DurationSeconds, 0, 1);
+            distanceMeters = fractionOfDuration * state.RouteGeometry.Length;
+            fraction        = fractionOfDuration;
+        }
+
+        var position = indexedLine.ExtractPoint(distanceMeters);
 
         return new VehiclePositionDto(
             state.RouteId, state.VehicleId, state.PlateNumber,
             position.Y, position.X, Math.Round(fraction * 100, 1), fraction >= 1);
+    }
+
+    /// Verilen (ölçeksiz, gerçek) geçen süreye karşılık gelen mesafeyi, takvimdeki
+    /// iki nokta arasında doğrusal enterpolasyonla bulur.
+    private static double InterpolateDistance(IReadOnlyList<SpeedSchedulePoint> schedule, double elapsedSeconds)
+    {
+        for (var i = 1; i < schedule.Count; i++)
+        {
+            if (elapsedSeconds > schedule[i].ElapsedSeconds) continue;
+
+            var prev = schedule[i - 1];
+            var curr = schedule[i];
+            var segmentDuration = curr.ElapsedSeconds - prev.ElapsedSeconds;
+
+            if (segmentDuration <= 0) return curr.DistanceMeters;
+
+            var t = (elapsedSeconds - prev.ElapsedSeconds) / segmentDuration;
+            return prev.DistanceMeters + t * (curr.DistanceMeters - prev.DistanceMeters);
+        }
+
+        return schedule[^1].DistanceMeters;
     }
 
     private Task BroadcastAsync<T>(int routeId, string method, T payload) =>

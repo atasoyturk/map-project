@@ -213,7 +213,7 @@ export function CompanyManagement() {
             color: "#10b981", fontSize: 13, fontWeight: 500, cursor: "pointer",
           }}
         >
-          Tamamlanan Sevkiyatları Görüntüle
+          Tamamlanan Güzergahları Görüntüle
         </button>
       </div>
 

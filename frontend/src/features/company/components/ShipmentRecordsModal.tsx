@@ -56,7 +56,7 @@ export function ShipmentRecordsModal({ transitRouteId, title, onClose }: Shipmen
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "0 0 16px" }}>
-          {title ?? "Tamamlanan Sevkiyatlar"}
+          {title ?? "Tamamlanan Güzergahlar"}
         </h2>
 
         {error && <p style={{ fontSize: 12, color: "#dc2626", margin: "0 0 12px" }}>{error}</p>}
@@ -64,7 +64,7 @@ export function ShipmentRecordsModal({ transitRouteId, title, onClose }: Shipmen
         {isLoading ? (
           <p style={{ fontSize: 13, color: "#94a3b8" }}>Yükleniyor...</p>
         ) : records.length === 0 ? (
-          <p style={{ fontSize: 13, color: "#94a3b8" }}>Henüz tamamlanan sevkiyat yok.</p>
+          <p style={{ fontSize: 13, color: "#94a3b8" }}>Henüz tamamlanan güzergah yok.</p>
         ) : (
           <div style={{ overflowY: "auto", marginBottom: 20 }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>

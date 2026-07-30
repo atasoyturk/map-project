@@ -1,21 +1,17 @@
 interface RouteInfoPopupProps {
   x: number;
   y: number;
-  routeName:          string;
-  canManage:           boolean;
+  routeName:           string;
   isSimulationRunning: boolean;
   isTrackingThisRoute: boolean;
-  isBusy:              boolean;
   onClose:             () => void;
-  onStart:             () => void;
-  onStop:              () => void;
   onTrack:             () => void;
   onStopTracking:      () => void;
 }
 
 export function RouteInfoPopup({
-  x, y, routeName, canManage, isSimulationRunning, isTrackingThisRoute, isBusy,
-  onClose, onStart, onStop, onTrack, onStopTracking,
+  x, y, routeName, isSimulationRunning, isTrackingThisRoute,
+  onClose, onTrack, onStopTracking,
 }: RouteInfoPopupProps) {
   return (
     <div style={{
@@ -33,35 +29,7 @@ export function RouteInfoPopup({
         </button>
       </div>
 
-      {canManage && (
-        <div style={{ marginBottom: 8 }}>
-          {isSimulationRunning ? (
-            <button
-              onClick={onStop}
-              disabled={isBusy}
-              style={{
-                width: "100%", padding: "7px 0", borderRadius: 6, border: "none",
-                background: "#ef4444", color: "#ffffff", fontSize: 12, fontWeight: 600, cursor: "pointer",
-              }}
-            >
-              Sevkiyatı Durdur
-            </button>
-          ) : (
-            <button
-              onClick={onStart}
-              disabled={isBusy}
-              style={{
-                width: "100%", padding: "7px 0", borderRadius: 6, border: "none",
-                background: "#0f172a", color: "#ffffff", fontSize: 12, fontWeight: 600, cursor: "pointer",
-              }}
-            >
-              Sevkiyat Başlat
-            </button>
-          )}
-        </div>
-      )}
-
-      {isSimulationRunning && (
+      {isSimulationRunning ? (
         isTrackingThisRoute ? (
           <button
             onClick={onStopTracking}
@@ -84,9 +52,7 @@ export function RouteInfoPopup({
             Takip Et
           </button>
         )
-      )}
-
-      {!isSimulationRunning && !canManage && (
+      ) : (
         <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Şu anda çalışan bir sevkiyat yok.</p>
       )}
     </div>

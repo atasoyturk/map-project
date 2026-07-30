@@ -24,6 +24,12 @@ function toInfo(feature: Feature): SelectedFeatureInfo | null {
   };
 }
 
+// Cluster katmanındaki tıklamalar gerçek noktayı değil, onu saran "cluster wrapper"
+function expandFeature(feature: Feature): Feature[] {
+  const clustered = feature.get("features") as Feature[] | undefined;
+  return clustered ?? [feature];
+}
+
 export function useMapClick({ map, enabled, onFeaturesFound }: UseMapClickOptions) {
   const modifyRef     = useRef<Modify | null>(null);
   const selectedRef   = useRef(new Collection<Feature>());
@@ -45,8 +51,10 @@ export function useMapClick({ map, enabled, onFeaturesFound }: UseMapClickOption
     function handleClick(e: any) {
       const found: SelectedFeatureInfo[] = [];
       map!.forEachFeatureAtPixel(e.pixel, (f) => {
-        const info = toInfo(f as Feature);
-        if (info) found.push(info);
+        for (const inner of expandFeature(f as Feature)) {
+          const info = toInfo(inner);
+          if (info) found.push(info);
+        }
       });
       onFeaturesFound(found);
 

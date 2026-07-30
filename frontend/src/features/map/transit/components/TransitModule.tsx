@@ -27,7 +27,6 @@ import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { createRouteSimulationConnection } from "../../../../shared/api/signalR";
 import { RouteInfoPopup } from "./RouteInfoPopup";
 import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
-import { VehicleSelectionModal } from "./VehicleSelectionModal";
 
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
@@ -75,7 +74,6 @@ export function TransitModule({
 
   useEffect(() => { if (!flowActive) setLockedRouteId(null); }, [flowActive]);
 
-  // SignalR bağlantısının component unmount olduğunda düzgün kapatılması
   useEffect(() => {
     const connection = connectionRef.current;
     return () => { connection.stop(); };
@@ -119,7 +117,7 @@ export function TransitModule({
 
   useTransitStopLoader(map, stopSourceRef.current, apiFetch);
   const { routes: transitRoutes, reload: reloadTransitRoutes } = useTransitRoutes(apiFetch);
-  useTransitRouteLines(routeLineSourceRef.current, transitRoutes);
+  useTransitRouteLines(map, routeLineSourceRef.current, transitRoutes);
 
   const {
     trackedRouteId, vehiclePositions, startTracking, stopTracking,
@@ -134,57 +132,6 @@ export function TransitModule({
     map, routeLineLayer, enabled: otherFlowsIdle && !flowActive,
   });
 
-  const canManageTransitRoutes =
-    roles.includes("Admin") || roles.includes("Takım Lideri") || roles.includes("Ulaşım Operatörü");
-
-  const [routeActionBusy, setRouteActionBusy] = useState(false);
-  const [vehicleModal, setVehicleModal] = useState<{ routeId: number; mode: "start" | "stop" } | null>(null);
-  const [modalRunningIds, setModalRunningIds] = useState<Set<number>>(new Set());
-
-  async function handleStopSimulation(routeId: number) {
-    const runningIds = await fetchRunningVehicleIds(routeId);
-    setModalRunningIds(runningIds);
-    setVehicleModal({ routeId, mode: "stop" });
-  }
-
-  function handleStartSimulation(routeId: number) {
-    setModalRunningIds(new Set());
-    setVehicleModal({ routeId, mode: "start" });
-  }
-
-  async function handleVehicleModalConfirm(vehicleIds: number[]) {
-    if (!vehicleModal) return;
-    const { routeId, mode } = vehicleModal;
-
-    setRouteActionBusy(true);
-    try {
-      const results = mode === "start"
-        ? await startSimulation(routeId, vehicleIds)
-        : await stopSimulation(routeId, vehicleIds);
-
-      const failed = results.filter((r) => !r.success);
-      if (failed.length > 0) {
-        onToast({
-          message: `${failed.length} araç için işlem başarısız: ${failed.map((f) => f.error).join(", ")}`,
-          type: "error",
-        });
-      }
-
-      const succeeded = results.some((r) => r.success);
-      if (succeeded) {
-        const runningIds = await fetchRunningVehicleIds(routeId);
-        setSelectedRouteRunning(runningIds.size > 0);
-        if (runningIds.size > 0) await startTracking(routeId);
-        else if (trackedRouteId === routeId) stopTracking();
-      }
-
-      setVehicleModal(null);
-    } catch {
-      onToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
-    } finally {
-      setRouteActionBusy(false);
-    }
-  }
 
   const [selectedRouteRunning, setSelectedRouteRunning] = useState(false);
 
@@ -356,6 +303,11 @@ export function TransitModule({
           onClose={onRouteManagementClose}
           onAddStopToRoute={handleAddStopToRoute}
           routeLineLayer={routeLineLayer}
+          startSimulation={startSimulation}
+          stopSimulation={stopSimulation}
+          fetchRunningVehicleIds={fetchRunningVehicleIds}
+          startTracking={startTracking}
+          onToast={onToast}
         />
       )}
 
@@ -382,27 +334,14 @@ export function TransitModule({
           x={routeSelected.x}
           y={routeSelected.y}
           routeName={transitRoutes.find((r) => r.id === routeSelected.routeId)?.name ?? ""}
-          canManage={canManageTransitRoutes}
           isSimulationRunning={selectedRouteRunning}
           isTrackingThisRoute={trackedRouteId === routeSelected.routeId}
-          isBusy={routeActionBusy}
           onClose={clearRouteSelected}
-          onStart={() => handleStartSimulation(routeSelected.routeId)}
-          onStop={() => handleStopSimulation(routeSelected.routeId)}
           onTrack={() => startTracking(routeSelected.routeId)}
           onStopTracking={() => stopTracking()}
         />
       )}
-
-      {vehicleModal && (
-        <VehicleSelectionModal
-          routeId={vehicleModal.routeId}
-          mode={vehicleModal.mode}
-          runningVehicleIds={modalRunningIds}
-          onClose={() => setVehicleModal(null)}
-          onConfirm={handleVehicleModalConfirm}
-        />
-      )}
+      
     </>
   );
 }

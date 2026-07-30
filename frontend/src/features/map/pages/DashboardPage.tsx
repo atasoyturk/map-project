@@ -3,6 +3,7 @@ import Map                         from "ol/Map";
 import Feature                      from "ol/Feature";
 
 import VectorSource                from "ol/source/Vector";
+import Cluster                     from "ol/source/Cluster";
 import VectorLayer                 from "ol/layer/Vector";
 import HeatmapLayer                from "ol/layer/Heatmap";
 import Point from "ol/geom/Point";
@@ -165,9 +166,11 @@ export function DashboardPage() {
     enabled: interactionsIdle && !isPlainUser,
   });
 
+  const canCreateAnnotation = roles.includes("Admin") || roles.includes("Takım Lideri");
+
   const { pending: pendingNote, clear: clearPendingNote } = useAnnotationContextMenu({
     map,
-    enabled: interactionsIdle && !isPlainUser,
+    enabled: interactionsIdle && !isPlainUser && canCreateAnnotation,
   });
 
   const { selected: annotationSelected, clear: clearAnnotationSelected } = useAnnotationClick({
@@ -310,6 +313,14 @@ export function DashboardPage() {
     } catch {
       setToast({ message: "Sunucuya bağlanılamadı.", type: "error" });
     }
+  }
+
+  function getFeatureSource(type: string): VectorSource | null {
+    if (!layers) return null;
+    if (type === "point")   return (layers.pointLayer.getSource() as Cluster)?.getSource() ?? null;
+    if (type === "line")    return layers.lineLayer.getSource();
+    if (type === "polygon") return layers.polygonLayer.getSource();
+    return null;
   }
 
   function handleClearLocationAnalysis() {
@@ -500,12 +511,10 @@ export function DashboardPage() {
             setSelected(null);
           }}
           onDelete={() => {
-            const id = annotationSelected?.feature.get("id") ?? annotationSelected?.feature.getId();
-            if (id) {
-              handleDeleteAnnotation(id);
-            } else {
-              setToast({ message: "Not ID'si bulunamadı.", type: "error" });
-            }
+            const source = getFeatureSource(selected.type);
+            if (source) source.removeFeature(selected.feature);
+            setSelected(null);
+            setCandidates([]);
           }}
         />
       )}

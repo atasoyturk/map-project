@@ -8,24 +8,31 @@ import {
   getTransitRouteDetail, reorderTransitStops, generateTransitRoute, clearTransitRoute,
 } from "../../../../shared/api/transitService";
 import {
-  getAllCompanyCategories, getAllCompanies,
+  getAllCompanyCategories, getAllCompanies, getCompaniesByRoute, getVehiclesByCompany,
 } from "../../../../shared/api/companyService";
 import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
-import type { CompanyCategoryResponseDto, CompanyResponseDto } from "../../../company/types";
+import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../../company/types";
+import type { VehicleActionResult } from "../hooks/useRouteSimulation";
 
 type FilterMode = "" | "unassigned";
 
- interface RouteManagementPanelProps {
-  routes:            TransitRouteResponseDto[];
-  reloadRoutes:      () => void;
-  onClose:           () => void;
-  onAddStopToRoute:  (routeId: number) => void;
-  routeLineLayer:    VectorLayer<VectorSource> | null;
+interface RouteManagementPanelProps {
+  routes:                  TransitRouteResponseDto[];
+  reloadRoutes:            () => void;
+  onClose:                 () => void;
+  onAddStopToRoute:        (routeId: number) => void;
+  routeLineLayer:          VectorLayer<VectorSource> | null;
+  startSimulation:         (routeId: number, vehicleIds: number[]) => Promise<VehicleActionResult[]>;
+  stopSimulation:          (routeId: number, vehicleIds: number[]) => Promise<VehicleActionResult[]>;
+  fetchRunningVehicleIds:  (routeId: number) => Promise<Set<number>>;
+  startTracking:           (routeId: number) => Promise<void>;
+  onToast:                 (toast: { message: string; type: "success" | "error" }) => void;
 }
 
 export function RouteManagementPanel({
   routes, reloadRoutes, onClose, onAddStopToRoute, routeLineLayer,
+  startSimulation, stopSimulation, fetchRunningVehicleIds, startTracking, onToast,
 }: RouteManagementPanelProps) {
   const { apiFetch } = useAuth();
 
@@ -49,6 +56,11 @@ export function RouteManagementPanel({
   const [expandedId,   setExpandedId]   = useState<number | null>(null);
   const [detailById,   setDetailById]   = useState<Record<number, TransitRouteDetailDto>>({});
   const [isReordering, setIsReordering] = useState<number | null>(null);
+  const [vehiclesByRoute,           setVehiclesByRoute]           = useState<Record<number, VehicleResponseDto[]>>({});
+  const [runningIdsByRoute,         setRunningIdsByRoute]         = useState<Record<number, Set<number>>>({});
+  const [selectedVehicleIdsByRoute, setSelectedVehicleIdsByRoute] = useState<Record<number, Set<number>>>({});
+  const [shipmentBusyRouteId,       setShipmentBusyRouteId]       = useState<number | null>(null);
+  const [shipmentError,             setShipmentError]             = useState<string | null>(null);
 
   const dragItemId     = useRef<number | null>(null);
   const dragOverItemId = useRef<number | null>(null);
@@ -146,7 +158,88 @@ export function RouteManagementPanel({
   async function toggleExpand(routeId: number) {
     if (expandedId === routeId) { setExpandedId(null); return; }
     setExpandedId(routeId);
-    await loadDetail(routeId);
+    await Promise.all([loadDetail(routeId), loadShipmentData(routeId)]);
+  }
+
+  async function loadShipmentData(routeId: number) {
+    try {
+      const companiesRes = await getCompaniesByRoute(apiFetch, routeId);
+      if (companiesRes.ok) {
+        const companiesData: { id: number }[] = await companiesRes.json();
+        const vehicleLists = await Promise.all(
+          companiesData.map(async (c) => {
+            const res = await getVehiclesByCompany(apiFetch, c.id);
+            return res.ok ? (await res.json() as VehicleResponseDto[]) : [];
+          }),
+        );
+        setVehiclesByRoute((prev) => ({ ...prev, [routeId]: vehicleLists.flat() }));
+      }
+
+      const runningIds = await fetchRunningVehicleIds(routeId);
+      setRunningIdsByRoute((prev) => ({ ...prev, [routeId]: runningIds }));
+    } catch { }
+  }
+
+  function toggleVehicleSelection(routeId: number, vehicleId: number) {
+    setSelectedVehicleIdsByRoute((prev) => {
+      const current = new Set(prev[routeId] ?? []);
+      current.has(vehicleId) ? current.delete(vehicleId) : current.add(vehicleId);
+      return { ...prev, [routeId]: current };
+    });
+  }
+
+  async function handleStartSelected(routeId: number) {
+    const selected = Array.from(selectedVehicleIdsByRoute[routeId] ?? []);
+    if (selected.length === 0) return;
+
+    setShipmentBusyRouteId(routeId);
+    setShipmentError(null);
+    try {
+      const results = await startSimulation(routeId, selected);
+      const failed   = results.filter((r) => !r.success);
+      const succeeded = results.some((r) => r.success);
+
+      if (failed.length > 0) {
+        setShipmentError(`${failed.length} araç başlatılamadı: ${failed.map((f) => f.error).join(", ")}`);
+      } else {
+        onToast({ message: "Sevkiyat başlatıldı.", type: "success" });
+      }
+
+      if (succeeded) await startTracking(routeId);
+
+      const runningIds = await fetchRunningVehicleIds(routeId);
+      setRunningIdsByRoute((prev) => ({ ...prev, [routeId]: runningIds }));
+      setSelectedVehicleIdsByRoute((prev) => ({ ...prev, [routeId]: new Set() }));
+    } catch {
+      setShipmentError("Sunucuya bağlanılamadı.");
+    } finally {
+      setShipmentBusyRouteId(null);
+    }
+  }
+
+  async function handleStopSelected(routeId: number) {
+    const selected = Array.from(selectedVehicleIdsByRoute[routeId] ?? []);
+    if (selected.length === 0) return;
+
+    setShipmentBusyRouteId(routeId);
+    setShipmentError(null);
+    try {
+      const results = await stopSimulation(routeId, selected);
+      const failed  = results.filter((r) => !r.success);
+      if (failed.length > 0) {
+        setShipmentError(`${failed.length} araç durdurulamadı: ${failed.map((f) => f.error).join(", ")}`);
+      } else {
+        onToast({ message: "Sevkiyat durduruldu.", type: "success" });
+      }
+
+      const runningIds = await fetchRunningVehicleIds(routeId);
+      setRunningIdsByRoute((prev) => ({ ...prev, [routeId]: runningIds }));
+      setSelectedVehicleIdsByRoute((prev) => ({ ...prev, [routeId]: new Set() }));
+    } catch {
+      setShipmentError("Sunucuya bağlanılamadı.");
+    } finally {
+      setShipmentBusyRouteId(null);
+    }
   }
 
   async function loadDetail(routeId: number) {
@@ -517,6 +610,83 @@ export function RouteManagementPanel({
                           Sil
                         </button>
                       </div>
+
+                      {route.routeWktGeometry && (
+                        <div style={{ borderTop: "1px solid #e2e8f0", marginTop: 12, paddingTop: 10 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", letterSpacing: ".5px" }}>
+                            SEVKİYAT
+                          </span>
+
+                          {shipmentError && (
+                            <p style={{ fontSize: 11, color: "#dc2626", margin: "6px 0 0" }}>{shipmentError}</p>
+                          )}
+
+                          {!vehiclesByRoute[route.id] || vehiclesByRoute[route.id].length === 0 ? (
+                            <p style={{ fontSize: 12, color: "#94a3b8", margin: "6px 0 0" }}>
+                              Bu güzergaha atanmış şirketlerin aracı yok.
+                            </p>
+                          ) : (
+                            <>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 4, margin: "8px 0" }}>
+                                {vehiclesByRoute[route.id].map((vehicle) => {
+                                  const isRunning  = runningIdsByRoute[route.id]?.has(vehicle.id) ?? false;
+                                  const isSelected = selectedVehicleIdsByRoute[route.id]?.has(vehicle.id) ?? false;
+                                  return (
+                                    <label
+                                      key={vehicle.id}
+                                      style={{
+                                        display: "flex", alignItems: "center", gap: 8,
+                                        padding: "6px 8px", borderRadius: 6,
+                                        background: "#ffffff", border: "1px solid #e2e8f0",
+                                        fontSize: 12, color: "#374151", cursor: "pointer",
+                                      }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => toggleVehicleSelection(route.id, vehicle.id)}
+                                      />
+                                      <span style={{ flex: 1 }}>{vehicle.plateNumber}</span>
+                                      <span style={{
+                                        fontSize: 10, fontWeight: 600, padding: "1px 8px", borderRadius: 20,
+                                        background: isRunning ? "#dcfce7" : "#f1f5f9",
+                                        color:      isRunning ? "#16a34a" : "#94a3b8",
+                                      }}>
+                                        {isRunning ? "Çalışıyor" : "Boşta"}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button
+                                  onClick={() => handleStartSelected(route.id)}
+                                  disabled={shipmentBusyRouteId === route.id || (selectedVehicleIdsByRoute[route.id]?.size ?? 0) === 0}
+                                  style={{
+                                    flex: 1, padding: "6px 0", borderRadius: 6, border: "none",
+                                    background: "#0f172a", color: "#ffffff", fontSize: 12, fontWeight: 500,
+                                    cursor: "pointer", opacity: shipmentBusyRouteId === route.id ? 0.6 : 1,
+                                  }}
+                                >
+                                  Seçilenleri Başlat
+                                </button>
+                                <button
+                                  onClick={() => handleStopSelected(route.id)}
+                                  disabled={shipmentBusyRouteId === route.id || (selectedVehicleIdsByRoute[route.id]?.size ?? 0) === 0}
+                                  style={{
+                                    flex: 1, padding: "6px 0", borderRadius: 6, border: "none",
+                                    background: "#ef4444", color: "#ffffff", fontSize: 12, fontWeight: 500,
+                                    cursor: "pointer", opacity: shipmentBusyRouteId === route.id ? 0.6 : 1,
+                                  }}
+                                >
+                                  Seçilenleri Durdur
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

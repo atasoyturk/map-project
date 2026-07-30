@@ -290,7 +290,6 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 2, PermissionId = 1 },
             new RolePermission { RoleId = 2, PermissionId = 2 },
             new RolePermission { RoleId = 2, PermissionId = 3 },
-            new RolePermission { RoleId = 2, PermissionId = 5 },   
             new RolePermission { RoleId = 2, PermissionId = 6 },
             new RolePermission { RoleId = 2, PermissionId = 7 },   
             new RolePermission { RoleId = 2, PermissionId = 8 },   
@@ -305,7 +304,9 @@ public sealed class AppDbContext : DbContext
             new RolePermission { RoleId = 3, PermissionId = 1 },    
             new RolePermission { RoleId = 3, PermissionId = 2 },   
             new RolePermission { RoleId = 3, PermissionId = 3 },   
-            new RolePermission { RoleId = 3, PermissionId = 5 }    
+            new RolePermission { RoleId = 3, PermissionId = 5 },
+            new RolePermission { RoleId = 3, PermissionId = 6 },   
+            new RolePermission { RoleId = 3, PermissionId = 8 }   
         );
 
         // Takım Lideri 
@@ -326,8 +327,9 @@ public sealed class AppDbContext : DbContext
         );
         // POI Operatorü
         modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 5, PermissionId = 6 },    // annotation_read
             new RolePermission { RoleId = 5, PermissionId = 7 },   // poi_create
-            new RolePermission { RoleId = 5, PermissionId = 8 }    // poi_read — category_manage nto exist
+            new RolePermission { RoleId = 5, PermissionId = 8 }    // poi_read
         );
 
         // Kullanıcı
@@ -338,9 +340,11 @@ public sealed class AppDbContext : DbContext
 
         // Ulaşım Operatörü
         modelBuilder.Entity<RolePermission>().HasData(
+            new RolePermission { RoleId = 7, PermissionId = 6 },  // annotation_read
+            new RolePermission { RoleId = 7, PermissionId = 8 },   // poi_read
             new RolePermission { RoleId = 7, PermissionId = 10 }, // transit_stop_create
             new RolePermission { RoleId = 7, PermissionId = 11 }, // transit_stop_read
-            new RolePermission { RoleId = 7, PermissionId = 12 }  // transit_route_manage
+            new RolePermission { RoleId = 7, PermissionId = 12 }// transit_route_manage
         );
 
         modelBuilder.Entity<PoiCategory>().HasData(

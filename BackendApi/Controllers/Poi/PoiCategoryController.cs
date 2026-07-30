@@ -13,7 +13,6 @@ public sealed class PoiCategoryController : ApiControllerBase
     public PoiCategoryController(IPoiCategoryService service) => _service = service;
 
     [HttpGet("tree")]
-    [RequirePermission("poi_read")]
     public async Task<IActionResult> GetTree() => Ok(await _service.GetTreeAsync());
 
     [HttpPost]

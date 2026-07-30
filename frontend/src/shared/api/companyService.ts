@@ -71,7 +71,7 @@ export function getVehiclesByCompany(apiFetch: ApiFetch, companyId: number) {
   return apiFetch(`/api/vehicle/by-company/${companyId}`);
 }
 
-export function createVehicle(apiFetch: ApiFetch, data: { plateNumber: string; companyId: number }) {
+export function createVehicle(apiFetch: ApiFetch, data: { plateNumber: string; companyId: number; vehicleType: number }) {
   return apiFetch("/api/vehicle", {
     method: "POST",
     body:   JSON.stringify(data),

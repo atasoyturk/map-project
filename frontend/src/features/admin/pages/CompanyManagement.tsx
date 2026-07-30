@@ -9,6 +9,7 @@ import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto
 import { CompanyRoutesModal } from "../components/CompanyRoutesModal";
 import { getCompanyStats } from "../../../shared/api/companyService";
 import { ShipmentRecordsModal } from "../../company/components/ShipmentRecordsModal";
+import { VehicleType, VEHICLE_TYPE_LABELS } from "../../company/types";
 import type { CompanyStatsDto } from "../../company/types";
 
 export function CompanyManagement() {
@@ -40,6 +41,7 @@ export function CompanyManagement() {
   const [vehicles,          setVehicles]          = useState<VehicleResponseDto[]>([]);
   const [newPlateNumber,    setNewPlateNumber]    = useState("");
   const [newVehicleCompanyId, setNewVehicleCompanyId] = useState<number | "">("");
+  const [newVehicleType,    setNewVehicleType]    = useState<number>(VehicleType.Tir);
   const [isSavingVehicle,   setIsSavingVehicle]   = useState(false);
 
   const { apiFetch } = useAuth();
@@ -131,7 +133,7 @@ export function CompanyManagement() {
     setIsSavingVehicle(true);
     try {
       const res = await createVehicle(apiFetch, {
-        plateNumber: newPlateNumber.trim(), companyId: newVehicleCompanyId,
+        plateNumber: newPlateNumber.trim(), companyId: newVehicleCompanyId, vehicleType: newVehicleType,
       });
       if (!res.ok) {
         const message = res.status === 409 ? await res.text() : "Araç eklenemedi.";
@@ -140,6 +142,7 @@ export function CompanyManagement() {
       }
       setNewPlateNumber("");
       setNewVehicleCompanyId("");
+      setNewVehicleType(VehicleType.Tir);
       fetchVehicles();
     } catch {
       setError("Sunucuya bağlanılamadı.");
@@ -195,9 +198,10 @@ export function CompanyManagement() {
         <div style={{ display: "flex", gap: 24 }}>
           <SummaryStat label="Kategori"  value={categories.length} />
           <SummaryStat label="Şirket"    value={companies.length} />
-          <SummaryStat label="Araç"      value={vehicles.length} />
+          <SummaryStat label="Tır"       value={vehicles.filter((v) => v.vehicleType === VehicleType.Tir).length} />
+          <SummaryStat label="Otobüs"    value={vehicles.filter((v) => v.vehicleType === VehicleType.Otobus).length} />
           <SummaryStat
-            label="Tamamlanan Sevkiyat"
+            label="Tamamlanan Güzergah"
             value={stats.reduce((sum, s) => sum + s.completedShipmentCount, 0)}
           />
         </div>
@@ -497,6 +501,17 @@ export function CompanyManagement() {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+        <select
+          value={newVehicleType}
+          onChange={(e) => setNewVehicleType(Number(e.target.value))}
+          style={{
+            padding: "8px 12px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 13, color: "#0f172a",
+          }}
+        >
+          <option value={VehicleType.Tir}>Tır</option>
+          <option value={VehicleType.Otobus}>Otobüs</option>
+        </select>
         <button
           onClick={handleCreateVehicle}
           disabled={isSavingVehicle || !newPlateNumber.trim() || newVehicleCompanyId === ""}
@@ -517,6 +532,7 @@ export function CompanyManagement() {
             <tr style={{ background: "#f8fafc" }}>
               <th style={thStyle}>ID</th>
               <th style={thStyle}>Plaka</th>
+              <th style={thStyle}>Tip</th>
               <th style={thStyle}>Şirket</th>
               <th style={thStyle}>İşlem</th>
             </tr>
@@ -526,6 +542,7 @@ export function CompanyManagement() {
               <tr key={vehicle.id} style={{ borderTop: "1px solid #f1f5f9" }}>
                 <td style={tdStyle}>{vehicle.id}</td>
                 <td style={tdStyle}>{vehicle.plateNumber}</td>
+                <td style={tdStyle}>{VEHICLE_TYPE_LABELS[vehicle.vehicleType]}</td>
                 <td style={tdStyle}>{vehicle.companyName}</td>
                 <td style={tdStyle}>
                   <button

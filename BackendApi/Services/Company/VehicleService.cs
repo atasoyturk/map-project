@@ -27,6 +27,7 @@ public sealed class VehicleService : IVehicleService
         {
             PlateNumber = request.PlateNumber,
             CompanyId   = request.CompanyId,
+            VehicleType = request.VehicleType,
         };
 
         _context.Vehicles.Add(entity);
@@ -50,7 +51,7 @@ public sealed class VehicleService : IVehicleService
         var vehicles = await (from v in _context.Vehicles
             join c in _context.Companies on v.CompanyId equals c.Id
             where !v.IsDeleted
-            select new VehicleResponseDto(v.Id, v.PlateNumber, c.Id, c.Name))
+            select new VehicleResponseDto(v.Id, v.PlateNumber, c.Id, c.Name, v.VehicleType))
             .ToListAsync();
 
         return vehicles;
@@ -61,7 +62,7 @@ public sealed class VehicleService : IVehicleService
         var vehicles = await (from v in _context.Vehicles
             join c in _context.Companies on v.CompanyId equals c.Id
             where !v.IsDeleted && v.CompanyId == companyId
-            select new VehicleResponseDto(v.Id, v.PlateNumber, c.Id, c.Name))
+            select new VehicleResponseDto(v.Id, v.PlateNumber, c.Id, c.Name, v.VehicleType))
             .ToListAsync();
 
         return vehicles;
@@ -74,6 +75,6 @@ public sealed class VehicleService : IVehicleService
             .Select(c => c.Name)
             .FirstOrDefaultAsync() ?? string.Empty;
 
-        return new VehicleResponseDto(entity.Id, entity.PlateNumber, entity.CompanyId, companyName);
+        return new VehicleResponseDto(entity.Id, entity.PlateNumber, entity.CompanyId, companyName, entity.VehicleType);
     }
 }

@@ -141,6 +141,7 @@ builder.Services.AddSingleton<IRouteSimulationService, RouteSimulationService>()
 builder.Services.AddScoped<ICompanyCategoryService, CompanyCategoryService>();
 builder.Services.AddScoped<ICompanyService,         CompanyService>();
 builder.Services.AddScoped<IVehicleService,         VehicleService>();
+builder.Services.AddScoped<ITripPlanningService,    TripPlanningService>();
 
 // GeoServer Settings
 builder.Services

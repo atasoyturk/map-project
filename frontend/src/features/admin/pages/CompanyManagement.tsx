@@ -49,6 +49,9 @@ export function CompanyManagement() {
   const [editVehicleCompanyId, setEditVehicleCompanyId] = useState<number | "">("");
   const [editVehicleType,    setEditVehicleType]    = useState<number>(VehicleType.Tir);
 
+  const [filterVehicleCompanyId, setFilterVehicleCompanyId] = useState<number | "">("");
+  const [filterVehicleType,      setFilterVehicleType]      = useState<number | "">("");
+
   const { apiFetch } = useAuth();
 
   async function fetchCategories() {
@@ -214,6 +217,12 @@ export function CompanyManagement() {
       fetchCategories();
     } catch { }
   }
+
+  const visibleVehicles = filterVehicleCompanyId === "" && filterVehicleType === ""
+    ? []
+    : vehicles.filter((v) =>
+        (filterVehicleCompanyId === "" || v.companyId === filterVehicleCompanyId) &&
+        (filterVehicleType === "" || v.vehicleType === filterVehicleType));
 
   return (
     <div>
@@ -502,6 +511,34 @@ export function CompanyManagement() {
         Araç Filosu
       </h2>
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <select
+          value={filterVehicleCompanyId}
+          onChange={(e) => setFilterVehicleCompanyId(e.target.value === "" ? "" : Number(e.target.value))}
+          style={{
+            flex: 1, padding: "7px 8px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 12, color: "#0f172a",
+          }}
+        >
+          <option value="">Şirket seçin...</option>
+          {companies.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select
+          value={filterVehicleType}
+          onChange={(e) => setFilterVehicleType(e.target.value === "" ? "" : Number(e.target.value))}
+          style={{
+            flex: 1, padding: "7px 8px", borderRadius: 8,
+            border: "1px solid #e2e8f0", fontSize: 12, color: "#0f172a",
+          }}
+        >
+          <option value="">Tip seçin...</option>
+          <option value={VehicleType.Tir}>Tır</option>
+          <option value={VehicleType.Otobus}>Otobüs</option>
+        </select>
+      </div>
+
       <div style={{
         background: "#ffffff", borderRadius: 12,
         border: "1px solid #e2e8f0", padding: 16,
@@ -557,6 +594,15 @@ export function CompanyManagement() {
       </div>
 
       <div style={{ background: "#ffffff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: 32 }}>
+        {filterVehicleCompanyId === "" && filterVehicleType === "" ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0", margin: 0 }}>
+            Araçları görüntülemek için bir şirket veya tip seçin.
+          </p>
+        ) : visibleVehicles.length === 0 ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0", margin: 0 }}>
+            Bu filtreye uyan araç yok.
+          </p>
+        ) : (
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "#f8fafc" }}>
@@ -568,7 +614,7 @@ export function CompanyManagement() {
             </tr>
           </thead>
           <tbody>
-            {vehicles.map((vehicle) => (
+            {visibleVehicles.map((vehicle) => (
               <tr key={vehicle.id} style={{ borderTop: "1px solid #f1f5f9" }}>
                 <td style={tdStyle}>{vehicle.id}</td>
                 <td style={tdStyle}>
@@ -658,6 +704,7 @@ export function CompanyManagement() {
             ))}
           </tbody>
         </table>
+        )}
       </div>
 
       {routesModalCompany && (

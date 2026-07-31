@@ -3,7 +3,7 @@ import { useAuth } from "../../auth/context/AuthContext";
 import {
   getAllCompanyCategories, createCompanyCategory, deleteCompanyCategory,
   getAllCompanies, createCompany, updateCompany, deleteCompany,
-  getAllVehicles, createVehicle, deleteVehicle,
+  getAllVehicles, createVehicle, updateVehicle, deleteVehicle,
 } from "../../../shared/api/companyService";
 import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../company/types";
 import { CompanyRoutesModal } from "../components/CompanyRoutesModal";
@@ -43,6 +43,11 @@ export function CompanyManagement() {
   const [newVehicleCompanyId, setNewVehicleCompanyId] = useState<number | "">("");
   const [newVehicleType,    setNewVehicleType]    = useState<number>(VehicleType.Tir);
   const [isSavingVehicle,   setIsSavingVehicle]   = useState(false);
+
+  const [editingVehicleId,   setEditingVehicleId]   = useState<number | null>(null);
+  const [editPlateNumber,    setEditPlateNumber]    = useState("");
+  const [editVehicleCompanyId, setEditVehicleCompanyId] = useState<number | "">("");
+  const [editVehicleType,    setEditVehicleType]    = useState<number>(VehicleType.Tir);
 
   const { apiFetch } = useAuth();
 
@@ -158,6 +163,31 @@ export function CompanyManagement() {
       if (!res.ok) { setError("Araç silinemedi."); return; }
       fetchVehicles();
     } catch { }
+  }
+
+  function startEditVehicle(vehicle: VehicleResponseDto) {
+    setEditingVehicleId(vehicle.id);
+    setEditPlateNumber(vehicle.plateNumber);
+    setEditVehicleCompanyId(vehicle.companyId);
+    setEditVehicleType(vehicle.vehicleType);
+  }
+
+  async function handleUpdateVehicle() {
+    if (editingVehicleId === null || !editPlateNumber.trim() || editVehicleCompanyId === "") return;
+    try {
+      const res = await updateVehicle(apiFetch, editingVehicleId, {
+        plateNumber: editPlateNumber.trim(), companyId: editVehicleCompanyId, vehicleType: editVehicleType,
+      });
+      if (!res.ok) {
+        const message = res.status === 409 ? await res.text() : "Araç güncellenemedi.";
+        setError(message);
+        return;
+      }
+      setEditingVehicleId(null);
+      fetchVehicles();
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    }
   }
 
   async function handleCreateCategory() {
@@ -541,20 +571,88 @@ export function CompanyManagement() {
             {vehicles.map((vehicle) => (
               <tr key={vehicle.id} style={{ borderTop: "1px solid #f1f5f9" }}>
                 <td style={tdStyle}>{vehicle.id}</td>
-                <td style={tdStyle}>{vehicle.plateNumber}</td>
-                <td style={tdStyle}>{VEHICLE_TYPE_LABELS[vehicle.vehicleType]}</td>
-                <td style={tdStyle}>{vehicle.companyName}</td>
                 <td style={tdStyle}>
-                  <button
-                    onClick={() => handleDeleteVehicle(vehicle.id)}
-                    style={{
-                      padding: "4px 10px", borderRadius: 6,
-                      border: "1px solid rgba(239,68,68,.3)", background: "rgba(239,68,68,.05)",
-                      color: "#ef4444", fontSize: 12, cursor: "pointer",
-                    }}
-                  >
-                    Sil
-                  </button>
+                  {editingVehicleId === vehicle.id ? (
+                    <input
+                      type="text"
+                      value={editPlateNumber}
+                      onChange={(e) => setEditPlateNumber(e.target.value)}
+                      style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    />
+                  ) : vehicle.plateNumber}
+                </td>
+                <td style={tdStyle}>
+                  {editingVehicleId === vehicle.id ? (
+                    <select
+                      value={editVehicleType}
+                      onChange={(e) => setEditVehicleType(Number(e.target.value))}
+                      style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    >
+                      <option value={VehicleType.Tir}>Tır</option>
+                      <option value={VehicleType.Otobus}>Otobüs</option>
+                    </select>
+                  ) : VEHICLE_TYPE_LABELS[vehicle.vehicleType]}
+                </td>
+                <td style={tdStyle}>
+                  {editingVehicleId === vehicle.id ? (
+                    <select
+                      value={editVehicleCompanyId}
+                      onChange={(e) => setEditVehicleCompanyId(Number(e.target.value))}
+                      style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    >
+                      {companies.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  ) : vehicle.companyName}
+                </td>
+                <td style={tdStyle}>
+                  {editingVehicleId === vehicle.id ? (
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        onClick={handleUpdateVehicle}
+                        style={{
+                          padding: "4px 10px", borderRadius: 6, border: "none",
+                          background: "#0f172a", color: "#ffffff", fontSize: 12, cursor: "pointer",
+                        }}
+                      >
+                        Kaydet
+                      </button>
+                      <button
+                        onClick={() => setEditingVehicleId(null)}
+                        style={{
+                          padding: "4px 10px", borderRadius: 6,
+                          border: "1px solid #e2e8f0", background: "#f8fafc",
+                          color: "#64748b", fontSize: 12, cursor: "pointer",
+                        }}
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        onClick={() => startEditVehicle(vehicle)}
+                        style={{
+                          padding: "4px 10px", borderRadius: 6,
+                          border: "1px solid rgba(59,130,246,.3)", background: "rgba(59,130,246,.05)",
+                          color: "#3b82f6", fontSize: 12, cursor: "pointer",
+                        }}
+                      >
+                        Düzenle
+                      </button>
+                      <button
+                        onClick={() => handleDeleteVehicle(vehicle.id)}
+                        style={{
+                          padding: "4px 10px", borderRadius: 6,
+                          border: "1px solid rgba(239,68,68,.3)", background: "rgba(239,68,68,.05)",
+                          color: "#ef4444", fontSize: 12, cursor: "pointer",
+                        }}
+                      >
+                        Sil
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

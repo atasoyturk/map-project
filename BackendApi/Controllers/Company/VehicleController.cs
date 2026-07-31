@@ -25,6 +25,14 @@ public sealed class VehicleController : ApiControllerBase
     public async Task<IActionResult> Create([FromBody] VehicleRequestDto request)
         => Created(string.Empty, await _service.CreateAsync(request));
 
+    [HttpPut("{id:int}")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> Update(int id, [FromBody] VehicleRequestDto request)
+    {
+        var result = await _service.UpdateAsync(id, request);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     [HttpDelete("{id:int}")]
     [RequirePermission("admin_access")]
     public async Task<IActionResult> Delete(int id)

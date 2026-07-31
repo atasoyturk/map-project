@@ -36,6 +36,28 @@ public sealed class VehicleService : IVehicleService
         return await ToDtoAsync(entity);
     }
 
+    public async Task<VehicleResponseDto?> UpdateAsync(int id, VehicleRequestDto request)
+    {
+        var entity = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted);
+        if (entity is null) return null;
+
+        if (!await _context.Companies.AnyAsync(c => c.Id == request.CompanyId && !c.IsDeleted))
+            throw new ArgumentException("Geçersiz şirket.");
+
+        var plateExists = await _context.Vehicles
+            .AnyAsync(v => v.Id != id && v.PlateNumber == request.PlateNumber && !v.IsDeleted);
+        if (plateExists)
+            throw new InvalidOperationException("Bu plaka zaten kayıtlı.");
+
+        entity.PlateNumber = request.PlateNumber;
+        entity.CompanyId   = request.CompanyId;
+        entity.VehicleType = request.VehicleType;
+        entity.ModifiedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return await ToDtoAsync(entity);
+    }
+
     public async Task<bool> DeleteAsync(int id, int userId)
     {
         var entity = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted);

@@ -97,6 +97,7 @@ export function DashboardPage() {
 
   const [tripPlanningOpen, setTripPlanningOpen] = useState(false);
   const [tripPickMode,     setTripPickMode]     = useState<"start" | "end" | null>(null);
+  const [tripSearchTarget, setTripSearchTarget] = useState<"start" | "end" | null>(null);
   const [tripStartPoint,   setTripStartPoint]   = useState<{ lon: number; lat: number } | null>(null);
   const [tripEndPoint,     setTripEndPoint]     = useState<{ lon: number; lat: number } | null>(null);
   const [tripResult,       setTripResult]       = useState<TripPlanResultDto | null>(null);
@@ -189,6 +190,9 @@ export function DashboardPage() {
     searchMarkerSourceRef.current.addFeature(
       new Feature({ geometry: new Point(fromLonLat([lon, lat])) })
     );
+
+    if (tripSearchTarget === "start") { setTripStartPoint({ lon, lat }); setTripSearchTarget(null); }
+    else if (tripSearchTarget === "end") { setTripEndPoint({ lon, lat }); setTripSearchTarget(null); }
   }
 
   // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
@@ -502,7 +506,7 @@ export function DashboardPage() {
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
-        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} />
+        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} active={tripSearchTarget !== null} />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
 
         {!isPlainUser && pendingNote && !showNoteModal && (
@@ -559,9 +563,18 @@ export function DashboardPage() {
 
       {tripPlanningOpen && (
         <TripPlanningPanel
-          onClose={() => { setTripPlanningOpen(false); setTripPickMode(null); }}
+          onClose={() => {
+            setTripPlanningOpen(false);
+            setTripPickMode(null);
+            setTripSearchTarget(null);
+            setTripStartPoint(null);
+            setTripEndPoint(null);
+            setTripResult(null);
+          }}
           pickMode={tripPickMode}
           onPickModeChange={setTripPickMode}
+          searchTarget={tripSearchTarget}
+          onSearchTargetChange={setTripSearchTarget}
           startPoint={tripStartPoint}
           endPoint={tripEndPoint}
           onResult={setTripResult}

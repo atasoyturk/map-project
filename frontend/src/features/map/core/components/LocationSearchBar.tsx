@@ -6,9 +6,10 @@ import { searchAddress, type AddressSearchResult } from "../../../admin/api/nomi
 interface LocationSearchBarProps {
   map: OlMap | null;
   onLocationSelected: (lon: number, lat: number) => void;
+  active?: boolean;
 }
 
-export function LocationSearchBar({ map, onLocationSelected }: LocationSearchBarProps) {
+export function LocationSearchBar({ map, onLocationSelected, active }: LocationSearchBarProps) {
   const [query,       setQuery]       = useState("");
   const [results,     setResults]     = useState<AddressSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -67,11 +68,11 @@ export function LocationSearchBar({ map, onLocationSelected }: LocationSearchBar
           style={{
             flex: 1, boxSizing: "border-box",
             padding: "6px 10px", borderRadius: 8,
-            border: "1px solid rgba(226,232,240,0.6)", fontSize: 12,
+            border: active ? "2px solid #22c55e" : "1px solid rgba(226,232,240,0.6)", fontSize: 12,
             color: "#0f172a", outline: "none",
             background: "rgba(255,255,255,0.55)",
             backdropFilter: "blur(4px)",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            boxShadow: active ? "0 0 0 3px rgba(34,197,94,0.15)" : "0 2px 8px rgba(0,0,0,0.08)",
           }}
         />
         <button

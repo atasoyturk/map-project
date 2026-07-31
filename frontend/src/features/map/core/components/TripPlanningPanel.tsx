@@ -10,12 +10,14 @@ interface TripPoint {
 }
 
 interface TripPlanningPanelProps {
-  onClose:           () => void;
-  pickMode:          PickMode;
-  onPickModeChange:  (mode: PickMode) => void;
-  startPoint:        TripPoint | null;
-  endPoint:          TripPoint | null;
-  onResult:          (result: TripPlanResultDto | null) => void;
+  onClose:            () => void;
+  pickMode:           PickMode;
+  onPickModeChange:   (mode: PickMode) => void;
+  searchTarget:       PickMode;
+  onSearchTargetChange: (target: PickMode) => void;
+  startPoint:         TripPoint | null;
+  endPoint:           TripPoint | null;
+  onResult:           (result: TripPlanResultDto | null) => void;
 }
 
 function formatDuration(seconds: number): string {
@@ -29,7 +31,7 @@ function formatDistance(meters: number): string {
 }
 
 export function TripPlanningPanel({
-  onClose, pickMode, onPickModeChange, startPoint, endPoint, onResult,
+  onClose, pickMode, onPickModeChange, searchTarget, onSearchTargetChange, startPoint, endPoint, onResult,
 }: TripPlanningPanelProps) {
   const { apiFetch } = useAuth();
 
@@ -82,31 +84,77 @@ export function TripPlanningPanel({
       </div>
 
       <div style={{ padding: 16, borderBottom: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: 8 }}>
-        <button
-          onClick={() => onPickModeChange(pickMode === "start" ? null : "start")}
-          style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-            borderRadius: 8, border: pickMode === "start" ? "2px solid #3b82f6" : "1px solid #e2e8f0",
-            background: pickMode === "start" ? "rgba(59,130,246,.05)" : "#ffffff",
-            fontSize: 13, color: "#0f172a", cursor: "pointer", textAlign: "left",
-          }}
-        >
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
-          {startPoint ? `Başlangıç: ${startPoint.lat.toFixed(5)}, ${startPoint.lon.toFixed(5)}` : "Başlangıç noktası seçin (haritaya tıklayın)"}
-        </button>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "#374151" }}>
+              {startPoint ? `${startPoint.lat.toFixed(5)}, ${startPoint.lon.toFixed(5)}` : "Başlangıç noktası"}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={() => { onPickModeChange(pickMode === "start" ? null : "start"); onSearchTargetChange(null); }}
+              style={{
+                flex: 1, padding: "6px 0", borderRadius: 6,
+                border: pickMode === "start" ? "2px solid #3b82f6" : "1px solid #e2e8f0",
+                background: pickMode === "start" ? "rgba(59,130,246,.05)" : "#ffffff",
+                fontSize: 12, color: "#0f172a", cursor: "pointer",
+              }}
+            >
+              Haritada Seç
+            </button>
+            <button
+              onClick={() => { onSearchTargetChange(searchTarget === "start" ? null : "start"); onPickModeChange(null); }}
+              style={{
+                flex: 1, padding: "6px 0", borderRadius: 6,
+                border: searchTarget === "start" ? "2px solid #22c55e" : "1px solid #e2e8f0",
+                background: searchTarget === "start" ? "rgba(34,197,94,.05)" : "#ffffff",
+                fontSize: 12, color: "#0f172a", cursor: "pointer",
+              }}
+            >
+              Konum Ara
+            </button>
+          </div>
+        </div>
 
-        <button
-          onClick={() => onPickModeChange(pickMode === "end" ? null : "end")}
-          style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-            borderRadius: 8, border: pickMode === "end" ? "2px solid #3b82f6" : "1px solid #e2e8f0",
-            background: pickMode === "end" ? "rgba(59,130,246,.05)" : "#ffffff",
-            fontSize: 13, color: "#0f172a", cursor: "pointer", textAlign: "left",
-          }}
-        >
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", flexShrink: 0 }} />
-          {endPoint ? `Bitiş: ${endPoint.lat.toFixed(5)}, ${endPoint.lon.toFixed(5)}` : "Bitiş noktası seçin (haritaya tıklayın)"}
-        </button>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "#374151" }}>
+              {endPoint ? `${endPoint.lat.toFixed(5)}, ${endPoint.lon.toFixed(5)}` : "Bitiş noktası"}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={() => { onPickModeChange(pickMode === "end" ? null : "end"); onSearchTargetChange(null); }}
+              style={{
+                flex: 1, padding: "6px 0", borderRadius: 6,
+                border: pickMode === "end" ? "2px solid #3b82f6" : "1px solid #e2e8f0",
+                background: pickMode === "end" ? "rgba(59,130,246,.05)" : "#ffffff",
+                fontSize: 12, color: "#0f172a", cursor: "pointer",
+              }}
+            >
+              Haritada Seç
+            </button>
+            <button
+              onClick={() => { onSearchTargetChange(searchTarget === "end" ? null : "end"); onPickModeChange(null); }}
+              style={{
+                flex: 1, padding: "6px 0", borderRadius: 6,
+                border: searchTarget === "end" ? "2px solid #22c55e" : "1px solid #e2e8f0",
+                background: searchTarget === "end" ? "rgba(34,197,94,.05)" : "#ffffff",
+                fontSize: 12, color: "#0f172a", cursor: "pointer",
+              }}
+            >
+              Konum Ara
+            </button>
+          </div>
+        </div>
+
+        {searchTarget && (
+          <p style={{ fontSize: 11, color: "#16a34a", margin: 0 }}>
+            Sol alttaki arama kutusunu kullanın.
+          </p>
+        )}
 
         <button
           onClick={handlePlan}

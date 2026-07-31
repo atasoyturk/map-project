@@ -42,6 +42,7 @@ import { LocationAnalysisPanel } from "../core/components/LocationAnalysisPanel"
 import { getLocationAnalysis } from "../core/api/analysisService";
 
 import { Toast }                    from "../../../shared/components/Toast";
+import { LocationSearchBar }        from "../core/components/LocationSearchBar";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
@@ -79,13 +80,11 @@ export function DashboardPage() {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [toast,         setToast]         = useState<ToastState | null>(null);
 
-  // --- POI modülünün dışa açtığı (Navbar/LayerControl/PoiSearchBar için gereken) minimal durum ---
   const [poiDrawActive, setPoiDrawActive] = useState(false);
   const [poiFormOpen,   setPoiFormOpen]   = useState(false);
   const [poiFeatures,   setPoiFeatures]   = useState<Feature[]>([]);
   const [poiLayer,      setPoiLayer]      = useState<VectorLayer<VectorSource> | null>(null);
 
-  // --- Transit modülünün dışa açtığı (Navbar için gereken) minimal durum ---
   const [stopDrawActive,      setStopDrawActive]      = useState(false);
   const [stopFormOpen,        setStopFormOpen]        = useState(false);
   const [routeManagementOpen, setRouteManagementOpen] = useState(false);
@@ -96,6 +95,7 @@ export function DashboardPage() {
 
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
+  const searchMarkerSourceRef = useRef(new VectorSource());
 
   const categories = useCategoryTree(apiFetch);
   const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
@@ -150,6 +150,34 @@ export function DashboardPage() {
       map.removeLayer(heatmapLayer);
     };
   }, [map, locAnalysisPoints]);
+
+  useEffect(() => {
+    if (!map) return;
+    const layer = new VectorLayer({
+      source: searchMarkerSourceRef.current,
+      style: new Style({
+        image: new Icon({
+          anchor: [0.5, 1],
+          anchorXUnits: "fraction",
+          anchorYUnits: "fraction",
+          src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%233b82f6" stroke="%231e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
+          scale: 0.5,
+        }),
+      }),
+      zIndex: 200,
+    });
+
+    map.addLayer(layer);
+
+    return () => { map.removeLayer(layer); };
+  }, [map]);
+
+  function handleLocationSelected(lon: number, lat: number) {
+    searchMarkerSourceRef.current.clear();
+    searchMarkerSourceRef.current.addFeature(
+      new Feature({ geometry: new Point(fromLonLat([lon, lat])) })
+    );
+  }
 
   // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
   useAnnotationLoader(map, annotationSourceRef.current, apiFetch, !isPlainUser);
@@ -448,6 +476,7 @@ export function DashboardPage() {
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
+        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
 
         {!isPlainUser && pendingNote && !showNoteModal && (

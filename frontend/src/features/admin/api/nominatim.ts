@@ -21,3 +21,19 @@ export async function searchRegions(query: string): Promise<NominatimResult[]> {
     (r) => r.geojson && (r.geojson.type === "Polygon" || r.geojson.type === "MultiPolygon")
   );
 }
+
+export interface AddressSearchResult {
+  place_id:     number;
+  display_name: string;
+  lat:          string;
+  lon:          string;
+}
+
+export async function searchAddress(query: string): Promise<AddressSearchResult[]> {
+  const url = `${NOMINATIM_URL}?format=jsonv2&limit=5&accept-language=tr&q=${encodeURIComponent(query.trim())}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Arama başarısız oldu.");
+
+  return res.json();
+}

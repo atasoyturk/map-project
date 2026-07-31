@@ -78,6 +78,13 @@ export function createVehicle(apiFetch: ApiFetch, data: { plateNumber: string; c
   });
 }
 
+export function updateVehicle(apiFetch: ApiFetch, id: number, data: { plateNumber: string; companyId: number; vehicleType: number }) {
+  return apiFetch(`/api/vehicle/${id}`, {
+    method: "PUT",
+    body:   JSON.stringify(data),
+  });
+}
+
 export function deleteVehicle(apiFetch: ApiFetch, id: number) {
   return apiFetch(`/api/vehicle/${id}`, { method: "DELETE" });
 }

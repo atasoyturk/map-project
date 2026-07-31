@@ -46,6 +46,12 @@ import { LocationSearchBar }        from "../core/components/LocationSearchBar";
 import { buildStyle }               from "../../../utils/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
+
+import { TripPlanningPanel } from "../core/components/TripPlanningPanel";
+import { useTripPointClick } from "../core/hooks/useTripPointClick";
+import { useTripRouteLayer } from "../core/hooks/useTripRouteLayer";
+import type { TripPlanResultDto } from "../../../shared/api/tripPlanningService";
+
 import { Style, Icon } from "ol/style";
 import WKT from "ol/format/WKT";
 import { Fill, Stroke} from "ol/style";
@@ -88,6 +94,12 @@ export function DashboardPage() {
   const [stopDrawActive,      setStopDrawActive]      = useState(false);
   const [stopFormOpen,        setStopFormOpen]        = useState(false);
   const [routeManagementOpen, setRouteManagementOpen] = useState(false);
+
+  const [tripPlanningOpen, setTripPlanningOpen] = useState(false);
+  const [tripPickMode,     setTripPickMode]     = useState<"start" | "end" | null>(null);
+  const [tripStartPoint,   setTripStartPoint]   = useState<{ lon: number; lat: number } | null>(null);
+  const [tripEndPoint,     setTripEndPoint]     = useState<{ lon: number; lat: number } | null>(null);
+  const [tripResult,       setTripResult]       = useState<TripPlanResultDto | null>(null);
 
   const { token, apiFetch, roles, userId } = useAuth();
 
@@ -216,6 +228,18 @@ export function DashboardPage() {
       setCandidates(found);
     },
   });
+
+  useTripPointClick({
+    map,
+    enabled: tripPickMode !== null,
+    onPick: (lon, lat) => {
+      if (tripPickMode === "start") setTripStartPoint({ lon, lat });
+      else if (tripPickMode === "end") setTripEndPoint({ lon, lat });
+      setTripPickMode(null);
+    },
+  });
+
+  useTripRouteLayer(map, tripResult, tripStartPoint, tripEndPoint);
 
   useEffect(() => {
     if (!map || isPlainUser) return;
@@ -402,6 +426,8 @@ export function DashboardPage() {
         stopFormOpen={stopFormOpen}
         routeManagementOpen={routeManagementOpen}
         onRouteManagementToggle={() => setRouteManagementOpen((p) => !p)}
+        tripPlanningOpen={tripPlanningOpen}
+        onTripPlanningToggle={() => setTripPlanningOpen((p) => !p)}
       />
       <div style={{ position: "relative", flex: 1 }}>
         <MapView onMapReady={setMap} height="100vh" />
@@ -530,6 +556,17 @@ export function DashboardPage() {
         routeManagementOpen={routeManagementOpen}
         onRouteManagementClose={() => setRouteManagementOpen(false)}
       />
+
+      {tripPlanningOpen && (
+        <TripPlanningPanel
+          onClose={() => { setTripPlanningOpen(false); setTripPickMode(null); }}
+          pickMode={tripPickMode}
+          onPickModeChange={setTripPickMode}
+          startPoint={tripStartPoint}
+          endPoint={tripEndPoint}
+          onResult={setTripResult}
+        />
+      )}
 
       {!isPlainUser && selected && (
         <InfoPopup

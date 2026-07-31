@@ -38,6 +38,8 @@ interface NavbarProps {
   stopFormOpen:          boolean;
   routeManagementOpen:   boolean;
   onRouteManagementToggle: () => void;
+  tripPlanningOpen:        boolean;
+  onTripPlanningToggle:    () => void;
 }
 
 
@@ -70,6 +72,8 @@ export function Navbar({
   stopFormOpen,
   routeManagementOpen,
   onRouteManagementToggle,
+  tripPlanningOpen,
+  onTripPlanningToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -525,6 +529,23 @@ export function Navbar({
               Güzergah Yönetimi
             </button>
           )}
+
+          <button
+            onClick={onTripPlanningToggle}
+            disabled={toolsLocked}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: tripPlanningOpen ? "#22c55e" : "rgba(255,255,255,.15)",
+              background:  tripPlanningOpen ? "rgba(34,197,94,.2)" : "transparent",
+              color:       tripPlanningOpen ? "#86efac" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   toolsLocked ? "not-allowed" : "pointer",
+              opacity:  toolsLocked ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Yol Tarifi
+          </button>
         </div>
 
         <button

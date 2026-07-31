@@ -15,7 +15,8 @@ public sealed class RouteSimulationService : IRouteSimulationService
 {
     // 1 saatlik gerçek seyahat süresi ~10 sn simülasyona karşılık geliyo
     private const double DurationScaleFactor  = 360;
-    private const double MinSimulationSeconds = 3;
+    private const double MinSimulationSeconds = 15;
+    private const double MaxSimulationSeconds = 90;
     private const int    TickIntervalMs       = 250;
     private const double MaxBusSpeedKmh = 50;
 
@@ -92,12 +93,19 @@ public sealed class RouteSimulationService : IRouteSimulationService
 
                 if (stops.Count >= 2)
                 {
-                    speedSchedule   = BuildSpeedSchedule(lineString, stops.Select(s => s.Geometry.Coordinate));
-                    totalRealSeconds = speedSchedule[^1].ElapsedSeconds;
+                    var rawSchedule = BuildSpeedSchedule(lineString, stops.Select(s => s.Geometry.Coordinate));
+                    totalRealSeconds = rawSchedule[^1].ElapsedSeconds;
+
+                    var scaledTotal = Math.Clamp(totalRealSeconds / DurationScaleFactor, MinSimulationSeconds, MaxSimulationSeconds);
+                    var scaleRatio  = totalRealSeconds > 0 ? scaledTotal / totalRealSeconds : 1;
+
+                    speedSchedule = rawSchedule
+                        .Select(p => p with { ElapsedSeconds = p.ElapsedSeconds * scaleRatio })
+                        .ToList();
                 }
             }
 
-            var scaledDuration = Math.Max(totalRealSeconds / DurationScaleFactor, MinSimulationSeconds);
+            var scaledDuration = Math.Clamp(totalRealSeconds / DurationScaleFactor, MinSimulationSeconds, MaxSimulationSeconds);
 
             var state = new RouteSimulationState
             {
@@ -238,24 +246,24 @@ public sealed class RouteSimulationService : IRouteSimulationService
 
     private static VehiclePositionDto ComputePosition(RouteSimulationState state)
     {
-        var indexedLine    = new LengthIndexedLine(state.RouteGeometry);
-        var elapsedRealSeconds = (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds * DurationScaleFactor;
+        var indexedLine     = new LengthIndexedLine(state.RouteGeometry);
+        var elapsedSeconds  = (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds;
 
         double distanceMeters;
         double fraction;
 
         if (state.SpeedSchedule is { Count: > 1 } schedule)
         {
-            var totalRealSeconds = schedule[^1].ElapsedSeconds;
-            var clampedElapsed   = Math.Clamp(elapsedRealSeconds, 0, totalRealSeconds);
+            
+            var totalScaledSeconds = schedule[^1].ElapsedSeconds;
+            var clampedElapsed     = Math.Clamp(elapsedSeconds, 0, totalScaledSeconds);
 
             distanceMeters = InterpolateDistance(schedule, clampedElapsed);
-            fraction        = totalRealSeconds > 0 ? clampedElapsed / totalRealSeconds : 1;
+            fraction        = totalScaledSeconds > 0 ? clampedElapsed / totalScaledSeconds : 1;
         }
         else
         {
-            var fractionOfDuration = Math.Clamp(
-                (DateTime.UtcNow - state.StartedAtUtc).TotalSeconds / state.DurationSeconds, 0, 1);
+            var fractionOfDuration = Math.Clamp(elapsedSeconds / state.DurationSeconds, 0, 1);
             distanceMeters = fractionOfDuration * state.RouteGeometry.Length;
             fraction        = fractionOfDuration;
         }

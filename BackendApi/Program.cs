@@ -142,6 +142,7 @@ builder.Services.AddScoped<ICompanyCategoryService, CompanyCategoryService>();
 builder.Services.AddScoped<ICompanyService,         CompanyService>();
 builder.Services.AddScoped<IVehicleService,         VehicleService>();
 builder.Services.AddScoped<ITripPlanningService,    TripPlanningService>();
+builder.Services.AddScoped<IThematicMapService,      ThematicMapService>();
 
 // GeoServer Settings
 builder.Services

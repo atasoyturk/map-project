@@ -81,4 +81,64 @@ public sealed class OsrmService : IOsrmService
             return (false, null, null, "Sunucu hatası.");
         }
     }
+
+    public async Task<(bool Success, IReadOnlyList<Coordinate>? Coordinates, IReadOnlyList<double>? CumulativeDurations, string? Error)>
+        GetRouteWithCumulativeDurationsAsync(Coordinate from, Coordinate to)
+    {
+        try
+        {
+            var client = _httpClientFactory.CreateClient("Osrm");
+
+            var coordinateSegment =
+                $"{from.X.ToString(CultureInfo.InvariantCulture)},{from.Y.ToString(CultureInfo.InvariantCulture)};" +
+                $"{to.X.ToString(CultureInfo.InvariantCulture)},{to.Y.ToString(CultureInfo.InvariantCulture)}";
+
+            var url = $"{_settings.BaseUrl}/route/v1/{_settings.Profile}/{coordinateSegment}" +
+                       "?overview=full&geometries=geojson&annotations=duration";
+
+            var response = await client.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return (false, null, null, "OSRM servisinden rota alınamadı.");
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var json = JsonDocument.Parse(content);
+
+            var code = json.RootElement.GetProperty("code").GetString();
+            if (code != "Ok")
+                return (false, null, null, "Belirtilen noktalar arasında rota bulunamadı.");
+
+            var routeElement = json.RootElement.GetProperty("routes")[0];
+
+            var coordinatesJson = routeElement.GetProperty("geometry").GetProperty("coordinates");
+            var coordinates = coordinatesJson
+                .EnumerateArray()
+                .Select(pt => new Coordinate(pt[0].GetDouble(), pt[1].GetDouble()))
+                .ToList();
+
+            // annotations.duration, segment başına süredir (koordinat sayısından 1 az) —
+            // kümülatif hale getirmek için biriktiriyoruz. İlk nokta için kümülatif süre 0.
+            var segmentDurations = routeElement
+                .GetProperty("legs")[0]
+                .GetProperty("annotation")
+                .GetProperty("duration")
+                .EnumerateArray()
+                .Select(d => d.GetDouble())
+                .ToList();
+
+            var cumulative = new List<double> { 0 };
+            var running = 0.0;
+            foreach (var segmentDuration in segmentDurations)
+            {
+                running += segmentDuration;
+                cumulative.Add(running);
+            }
+
+            return (true, coordinates, cumulative, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OSRM cumulative-duration request failed");
+            return (false, null, null, "Sunucu hatası.");
+        }
+    }
 }

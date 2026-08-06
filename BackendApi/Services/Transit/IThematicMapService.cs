@@ -4,5 +4,5 @@ namespace BackendApi.Services.Transit;
 
 public interface IThematicMapService
 {
-    Task<IsochroneResultDto> GetIsochroneAsync(double centerLon, double centerLat);
+    Task<IsochroneResultDto> GetIsochroneAsync(double centerLon, double centerLat, IReadOnlyList<int> minutesThresholds);
 }

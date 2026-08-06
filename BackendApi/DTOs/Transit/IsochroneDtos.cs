@@ -4,7 +4,8 @@ namespace BackendApi.DTOs.Transit;
 
 public sealed record IsochroneRequestDto(
     [Required] double CenterLon,
-    [Required] double CenterLat);
+    [Required] double CenterLat,
+    [Required, MinLength(1), MaxLength(10)] int[] MinutesThresholds);
 
 public sealed record IsochroneBandDto(
     int    MinutesThreshold,

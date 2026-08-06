@@ -16,7 +16,7 @@ public sealed class ThematicMapController : ApiControllerBase
     [RequirePermission("transit_stop_read")]
     public async Task<IActionResult> GetIsochrone([FromBody] IsochroneRequestDto request)
     {
-        var result = await _service.GetIsochroneAsync(request.CenterLon, request.CenterLat);
+        var result = await _service.GetIsochroneAsync(request.CenterLon, request.CenterLat, request.MinutesThresholds);
         return Ok(result);
     }
 }

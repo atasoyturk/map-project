@@ -52,6 +52,10 @@ import { useTripPointClick } from "../core/hooks/useTripPointClick";
 import { useTripRouteLayer } from "../core/hooks/useTripRouteLayer";
 import type { TripPlanResultDto } from "../../../shared/api/tripPlanningService";
 
+import { ThematicMapPanel } from "../core/components/ThematicMapPanel";
+import { useIsochroneLayer } from "../core/hooks/useIsochroneLayer";
+import type { IsochroneResultDto } from "../../../shared/api/thematicMapService";
+
 import { Style, Icon } from "ol/style";
 import WKT from "ol/format/WKT";
 import { Fill, Stroke} from "ol/style";
@@ -101,6 +105,12 @@ export function DashboardPage() {
   const [tripStartPoint,   setTripStartPoint]   = useState<{ lon: number; lat: number } | null>(null);
   const [tripEndPoint,     setTripEndPoint]     = useState<{ lon: number; lat: number } | null>(null);
   const [tripResult,       setTripResult]       = useState<TripPlanResultDto | null>(null);
+
+  const [thematicMapOpen,  setThematicMapOpen]  = useState(false);
+  const [thematicPickMode, setThematicPickMode] = useState<"center" | null>(null);
+  const [thematicSearchTarget, setThematicSearchTarget] = useState<"center" | null>(null);
+  const [thematicCenterPoint,  setThematicCenterPoint]  = useState<{ lon: number; lat: number } | null>(null);
+  const [thematicResult,       setThematicResult]       = useState<IsochroneResultDto | null>(null);
 
   const { token, apiFetch, roles, userId } = useAuth();
 
@@ -193,6 +203,7 @@ export function DashboardPage() {
 
     if (tripSearchTarget === "start") { setTripStartPoint({ lon, lat }); setTripSearchTarget(null); }
     else if (tripSearchTarget === "end") { setTripEndPoint({ lon, lat }); setTripSearchTarget(null); }
+    else if (thematicSearchTarget === "center") { setThematicCenterPoint({ lon, lat }); setThematicSearchTarget(null); }
   }
 
   // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
@@ -244,6 +255,17 @@ export function DashboardPage() {
   });
 
   useTripRouteLayer(map, tripResult, tripStartPoint, tripEndPoint);
+
+  useTripPointClick({
+    map,
+    enabled: thematicPickMode !== null,
+    onPick: (lon, lat) => {
+      setThematicCenterPoint({ lon, lat });
+      setThematicPickMode(null);
+    },
+  });
+
+  useIsochroneLayer(map, thematicResult);
 
   useEffect(() => {
     if (!map || isPlainUser) return;
@@ -432,6 +454,8 @@ export function DashboardPage() {
         onRouteManagementToggle={() => setRouteManagementOpen((p) => !p)}
         tripPlanningOpen={tripPlanningOpen}
         onTripPlanningToggle={() => setTripPlanningOpen((p) => !p)}
+        thematicMapOpen={thematicMapOpen}
+        onThematicMapToggle={() => setThematicMapOpen((p) => !p)}
       />
       <div style={{ position: "relative", flex: 1 }}>
         <MapView onMapReady={setMap} height="100vh" />
@@ -506,7 +530,7 @@ export function DashboardPage() {
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
-        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} active={tripSearchTarget !== null} />
+        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} active={tripSearchTarget !== null || thematicSearchTarget !== null} />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
 
         {!isPlainUser && pendingNote && !showNoteModal && (
@@ -578,6 +602,24 @@ export function DashboardPage() {
           startPoint={tripStartPoint}
           endPoint={tripEndPoint}
           onResult={setTripResult}
+        />
+      )}
+
+      {thematicMapOpen && (
+        <ThematicMapPanel
+          onClose={() => {
+            setThematicMapOpen(false);
+            setThematicPickMode(null);
+            setThematicSearchTarget(null);
+            setThematicCenterPoint(null);
+            setThematicResult(null);
+          }}
+          pickMode={thematicPickMode}
+          onPickModeChange={setThematicPickMode}
+          searchTarget={thematicSearchTarget}
+          onSearchTargetChange={setThematicSearchTarget}
+          centerPoint={thematicCenterPoint}
+          onResult={setThematicResult}
         />
       )}
 

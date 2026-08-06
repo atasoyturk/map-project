@@ -40,6 +40,8 @@ interface NavbarProps {
   onRouteManagementToggle: () => void;
   tripPlanningOpen:        boolean;
   onTripPlanningToggle:    () => void;
+  thematicMapOpen:         boolean;
+  onThematicMapToggle:     () => void;
 }
 
 
@@ -74,6 +76,8 @@ export function Navbar({
   onRouteManagementToggle,
   tripPlanningOpen,
   onTripPlanningToggle,
+  thematicMapOpen,
+  onThematicMapToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -545,6 +549,23 @@ export function Navbar({
             }}
           >
             Yol Tarifi
+          </button>
+
+          <button
+            onClick={onThematicMapToggle}
+            disabled={toolsLocked}
+            style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid",
+              borderColor: thematicMapOpen ? "#f59e0b" : "rgba(255,255,255,.15)",
+              background:  thematicMapOpen ? "rgba(245,158,11,.2)" : "transparent",
+              color:       thematicMapOpen ? "#fcd34d" : "#94a3b8",
+              fontSize: 13, fontWeight: 500,
+              cursor:   toolsLocked ? "not-allowed" : "pointer",
+              opacity:  toolsLocked ? 0.5 : 1,
+              transition: "all .15s",
+            }}
+          >
+            Tematik Harita
           </button>
         </div>
 

@@ -7,9 +7,10 @@ interface LocationSearchBarProps {
   map: OlMap | null;
   onLocationSelected: (lon: number, lat: number) => void;
   active?: boolean;
+  onQueryCleared?: () => void;
 }
 
-export function LocationSearchBar({ map, onLocationSelected, active }: LocationSearchBarProps) {
+export function LocationSearchBar({ map, onLocationSelected, active, onQueryCleared }: LocationSearchBarProps) {
   const [query,       setQuery]       = useState("");
   const [results,     setResults]     = useState<AddressSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -63,7 +64,11 @@ export function LocationSearchBar({ map, onLocationSelected, active }: LocationS
           type="text"
           placeholder="Adres veya konum ara..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setQuery(value);
+            if (!value.trim()) onQueryCleared?.();
+          }}
           onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
           style={{
             flex: 1, boxSizing: "border-box",

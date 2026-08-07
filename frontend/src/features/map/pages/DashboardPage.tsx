@@ -183,8 +183,8 @@ export function DashboardPage() {
           anchor: [0.5, 1],
           anchorXUnits: "fraction",
           anchorYUnits: "fraction",
-          src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%233b82f6" stroke="%231e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
-          scale: 0.5,
+          src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23030c21" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
+          scale: 0.7,
         }),
       }),
       zIndex: 200,
@@ -530,7 +530,12 @@ export function DashboardPage() {
         {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
-        <LocationSearchBar map={map} onLocationSelected={handleLocationSelected} active={tripSearchTarget !== null || thematicSearchTarget !== null} />
+        <LocationSearchBar
+          map={map}
+          onLocationSelected={handleLocationSelected}
+          active={tripSearchTarget !== null || thematicSearchTarget !== null}
+          onQueryCleared={() => searchMarkerSourceRef.current.clear()}
+        />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
 
         {!isPlainUser && pendingNote && !showNoteModal && (

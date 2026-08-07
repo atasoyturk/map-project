@@ -57,8 +57,8 @@ export function LocationSearchBar({ map, onLocationSelected, active }: LocationS
   }
 
   return (
-    <div style={{ position: "absolute", bottom: 12, left: 12, zIndex: 10, width: 220 }}>
-      <div style={{ display: "flex", gap: 6 }}>
+    <div style={{ position: "absolute", bottom: 12, left: 12, zIndex: 10, width: 320 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         <input
           type="text"
           placeholder="Adres veya konum ara..."
@@ -67,8 +67,8 @@ export function LocationSearchBar({ map, onLocationSelected, active }: LocationS
           onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
           style={{
             flex: 1, boxSizing: "border-box",
-            padding: "6px 10px", borderRadius: 8,
-            border: active ? "2px solid #22c55e" : "1px solid rgba(226,232,240,0.6)", fontSize: 12,
+            padding: "9px 14px", borderRadius: 10,
+            border: active ? "2px solid #22c55e" : "1px solid rgba(226,232,240,0.6)", fontSize: 14,
             color: "#0f172a", outline: "none",
             background: "rgba(255,255,255,0.55)",
             backdropFilter: "blur(4px)",
@@ -79,8 +79,8 @@ export function LocationSearchBar({ map, onLocationSelected, active }: LocationS
           onClick={handleSearch}
           disabled={isSearching || !query.trim()}
           style={{
-            padding: "6px 12px", borderRadius: 8,
-            border: "1px solid rgba(226,232,240,0.6)", fontSize: 12, fontWeight: 600,
+            padding: "9px 16px", borderRadius: 10,
+            border: "1px solid rgba(226,232,240,0.6)", fontSize: 14, fontWeight: 600,
             color: isSearching || !query.trim() ? "#94a3b8" : "#0f172a",
             background: "rgba(255,255,255,0.55)",
             backdropFilter: "blur(4px)",

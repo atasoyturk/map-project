@@ -1,4 +1,3 @@
-import { useEdgeVisibility } from "../hooks/useEdgeVisibility";
 import type { DrawType } from "../types";
 import { useEffect } from "react";
 
@@ -14,12 +13,9 @@ interface BottomToolbarProps {
   onSelect:    (type: DrawType) => void;
   onCancel:    () => void;
   disabled:    boolean;
-  keepVisible: boolean;
 }
 
-export function BottomToolbar({ activeType, onSelect, onCancel, disabled, keepVisible }: BottomToolbarProps) {
-  const visible = useEdgeVisibility("bottom", keepVisible);
-
+export function BottomToolbar({ activeType, onSelect, onCancel, disabled }: BottomToolbarProps) {
   useEffect(() => {
     if (!activeType) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -32,7 +28,7 @@ export function BottomToolbar({ activeType, onSelect, onCancel, disabled, keepVi
   return (
     <nav style={{
       position:     "fixed",
-      bottom:       visible ? 20 : -80,
+      bottom:       20,
       left:         "50%",
       transform:    "translateX(-50%)",
       display:      "flex",
@@ -43,7 +39,6 @@ export function BottomToolbar({ activeType, onSelect, onCancel, disabled, keepVi
       borderRadius: 12,
       padding:      "8px 12px",
       zIndex:       1000,
-      transition:   "bottom .25s ease",
     }}>
       {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
         <button

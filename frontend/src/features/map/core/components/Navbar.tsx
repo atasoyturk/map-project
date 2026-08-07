@@ -11,7 +11,6 @@ import { AttributeModal } from "./AttributeModal";
 import { Toast }      from "../../../../shared/components/Toast";
 import type { DrawType, PendingGeometry } from "../types";
 import { createGeoFeature, validateGeometry } from "../api/geoService";
-import { useEdgeVisibility } from "../hooks/useEdgeVisibility";
 import { BottomToolbar } from "./BottomToolbar";
 import { NavDropdown } from "./NavDropdown";
 
@@ -87,6 +86,18 @@ export function Navbar({
   const [analysisResult,  setAnalysisResult]  = useState<number | null>(null);
   const [teamModeActive,  setTeamModeActive]  = useState(false);
   const [openDropdowns,   setOpenDropdowns]   = useState<Set<string>>(new Set());
+  const [menuOpen,        setMenuOpen]        = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   function handleDropdownOpenChange(label: string, open: boolean) {
     setOpenDropdowns((prev) => {
@@ -280,31 +291,27 @@ export function Navbar({
   }
   const isAdmin = roles.includes("Admin");
 
-  const keepBottomVisible = !isPlainUser && (!!pendingGeometry || !!activeType);
-  const keepTopVisible = !isPlainUser && (
+  const isExpanded = menuOpen || !isPlainUser && (
     analysisActive || heatmapActive || poiDrawActive || poiFormOpen ||
     locAnalysisActive || queryPanelOpen || layerControlOpen || openDropdowns.size > 0
   );
 
-  const topVisible = useEdgeVisibility("top", keepTopVisible);
-
   if (isPlainUser) {
     return (
-      <nav style={{
-        position:     "fixed",
-        top:          topVisible ? 12 : -80,
-        left:         "50%",
-        transform:    "translateX(-50%)",
-        display:      "flex",
-        alignItems:   "center",
-        gap:          16,
-        background:   "#030c21",
-        border:       "1px solid rgba(255,255,255,.08)",
-        borderRadius: 12,
-        padding:      "8px 16px",
-        zIndex:       1000,
-        transition:   "top .25s ease",
-      }}>
+      <nav
+        ref={navRef as React.RefObject<HTMLElement>}
+        style={{
+          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+          zIndex: 1000,
+          display:      "flex",
+          alignItems:   "center",
+          gap:          8,
+          background:   "#030c21",
+          border:       "1px solid rgba(255,255,255,.08)",
+          borderRadius: 12,
+          padding:      "8px 16px",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
           <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14, letterSpacing: ".3px" }}>
@@ -312,6 +319,23 @@ export function Navbar({
           </span>
         </div>
 
+        <button
+          onClick={() => setMenuOpen((p) => !p)}
+          style={{
+            border: "none", background: "transparent", color: "#94a3b8",
+            fontSize: 13, fontWeight: 500, cursor: "pointer", padding: 0,
+          }}
+        >
+          Menü
+        </button>
+
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          maxWidth:  menuOpen ? 500 : 0,
+          opacity:   menuOpen ? 1 : 0,
+          overflow: menuOpen ? "visible" : "hidden",
+          transition: "max-width .6s ease, opacity .4s ease",
+        }}>
         <button
           onClick={onTripPlanningToggle}
           style={{
@@ -335,7 +359,7 @@ export function Navbar({
             fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all .15s",
           }}
         >
-          Tematik Harita
+          Hizmet Alanı
         </button>
 
         <button
@@ -350,27 +374,27 @@ export function Navbar({
         >
           Çıkış Yap
         </button>
+        </div>
       </nav>
     );
   }
 
   return (
     <>
-      <nav style={{
-        position:     "fixed",
-        top:          topVisible ? 12 : -80,
-        left:         "50%",
-        transform:    "translateX(-50%)",
-        display:      "flex",
-        alignItems:   "center",
-        gap:          10,
-        background:   "#030c21",
-        border:       "1px solid rgba(255,255,255,.08)",
-        borderRadius: 12,
-        padding:      "8px 16px",
-        zIndex:       1000,
-        transition:   "top .25s ease",
-      }}>
+      <nav
+        ref={navRef as React.RefObject<HTMLElement>}
+        style={{
+          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+          zIndex: 1000,
+          display:      "flex",
+          alignItems:   "center",
+          gap:          8,
+          background:   "#030c21",
+          border:       "1px solid rgba(255,255,255,.08)",
+          borderRadius: 12,
+          padding:      "8px 16px",
+        }}
+      >
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6" }} />
@@ -379,6 +403,23 @@ export function Navbar({
           </span>
         </div>
 
+        <button
+          onClick={() => setMenuOpen((p) => !p)}
+          style={{
+            border: "none", background: "transparent", color: "#94a3b8",
+            fontSize: 13, fontWeight: 500, cursor: "pointer", padding: 0,
+          }}
+        >
+          Menü
+        </button>
+
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          maxWidth:  isExpanded ? 900 : 0,
+          opacity:   isExpanded ? 1 : 0,
+          overflow: isExpanded ? "visible" : "hidden",
+          transition: "max-width .6s ease, opacity .4s ease",
+        }}>
         {isAdmin && (
           <button
             onClick={() => navigate("/admin")}
@@ -398,7 +439,7 @@ export function Navbar({
         <NavDropdown
           label="Analiz"
           disabled={toolsLocked}
-          hasActiveItem={analysisActive || locAnalysisActive || heatmapActive || layerControlOpen || thematicMapOpen}
+          hasActiveItem={analysisActive || locAnalysisActive || heatmapActive || thematicMapOpen}
           onOpenChange={(open) => handleDropdownOpenChange("Analiz", open)}
         >
           {canUseAnalysisTools && (
@@ -411,9 +452,6 @@ export function Navbar({
               Konum Analizi
             </button>
           )}
-          <button onClick={onLayerControlToggle} disabled={toolsLocked} style={navItemStyle(layerControlOpen, "#3b82f6", "#93c5fd", toolsLocked)}>
-            Filtre
-          </button>
           {canUseAnalysisTools && (
             <button
               onClick={onHeatmapToggle}
@@ -424,7 +462,7 @@ export function Navbar({
             </button>
           )}
           <button onClick={onThematicMapToggle} disabled={toolsLocked} style={navItemStyle(thematicMapOpen, "#f59e0b", "#fcd34d", toolsLocked)}>
-            Tematik Harita
+            Hizmet Alanı
           </button>
         </NavDropdown>
 
@@ -444,10 +482,10 @@ export function Navbar({
 
         {(canManageTransitStops || canManageTransitRoutes) && (
           <NavDropdown
-            label="Toplu Taşıma"
+            label="Güzergah"
             disabled={toolsLocked}
             hasActiveItem={stopDrawActive || routeManagementOpen || tripPlanningOpen}
-            onOpenChange={(open) => handleDropdownOpenChange("Toplu Taşıma", open)}
+            onOpenChange={(open) => handleDropdownOpenChange("Güzergah", open)}
           >
             {canManageTransitStops && (
               <button
@@ -472,11 +510,14 @@ export function Navbar({
         <NavDropdown
           label="Görünüm"
           disabled={toolsLocked}
-          hasActiveItem={queryPanelOpen || poiDrawActive || teamModeActive}
+          hasActiveItem={queryPanelOpen || poiDrawActive || teamModeActive || layerControlOpen}
           onOpenChange={(open) => handleDropdownOpenChange("Görünüm", open)}
         >
           <button onClick={onQueryPanelToggle} disabled={toolsLocked} style={navItemStyle(queryPanelOpen, "#6366f1", "#a5b4fc", toolsLocked)}>
             Geçmiş
+          </button>
+          <button onClick={onLayerControlToggle} disabled={toolsLocked} style={navItemStyle(layerControlOpen, "#3b82f6", "#93c5fd", toolsLocked)}>
+            Filtre
           </button>
           {canManagePoi && (
             <button
@@ -508,6 +549,7 @@ export function Navbar({
         >
           Çıkış Yap
         </button>
+        </div>
       </nav>
 
       <BottomToolbar
@@ -515,7 +557,6 @@ export function Navbar({
         onSelect={handleSelect}
         onCancel={() => { onActiveTypeChange(null); setToast(null); }}
         disabled={toolsLocked}
-        keepVisible={keepBottomVisible}
       />
 
       {pendingGeometry && (

@@ -3,7 +3,7 @@ import { Feature }   from "ol";
 import Map           from "ol/Map";
 import VectorSource  from "ol/source/Vector";
 import { GeoJSON }   from "ol/format";
-import { Style }     from "ol/style";
+import type { StyleLike } from "ol/style/Style";
 import { getGeoFeatures } from "../api/geoService";
 
 interface FeatureLoaderOptions {
@@ -12,7 +12,7 @@ interface FeatureLoaderOptions {
   lineSource:   VectorSource;
   polygonSource:VectorSource;
   apiFetch:     (path: string, options?: RequestInit) => Promise<Response>;
-  buildStyle:   (color: string, name: string) => Style;
+  buildStyle:   (color: string, name: string) => StyleLike;
   viewMode:     "own" | "team";
 }
 
@@ -23,7 +23,7 @@ async function loadLayer(
   typeName:    string,
   source:      VectorSource,
   type:        "point" | "line" | "polygon",
-  buildStyle:  (color: string, name: string) => Style,
+  buildStyle:  (color: string, name: string) => StyleLike,
   viewMode:    "own" | "team",
 ): Promise<void> {
   const res = await getGeoFeatures(apiFetch, typeName, viewMode);

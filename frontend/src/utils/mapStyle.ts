@@ -10,9 +10,30 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export function buildStyle(color: string, name: string): Style {
+function resolutionForZoom(zoom: number): number {
+  return 156543.03392804097 / Math.pow(2, zoom);
+}
+
+const STOP_LABEL_MIN_ZOOM     = 8;
+const GEOMETRY_LABEL_MIN_ZOOM = 12;
+
+const STOP_LABEL_MAX_RESOLUTION     = resolutionForZoom(STOP_LABEL_MIN_ZOOM);
+const GEOMETRY_LABEL_MAX_RESOLUTION = resolutionForZoom(GEOMETRY_LABEL_MIN_ZOOM);
+
+function buildStyleWithLabelThreshold(color: string, name: string, labelMaxResolution: number) {
   const c = color || "#3b82f6";
-  return new Style({
+
+  const baseStyle = new Style({
+    fill:   new Fill({ color: hexToRgba(c, 0.2) }),
+    stroke: new Stroke({ color: c, width: 2 }),
+    image:  new Circle({
+      radius: 6,
+      fill:   new Fill({ color: c }),
+      stroke: new Stroke({ color: "#ffffff", width: 2 }),
+    }),
+  });
+
+  const labelStyle = new Style({
     fill:   new Fill({ color: hexToRgba(c, 0.2) }),
     stroke: new Stroke({ color: c, width: 2 }),
     image:  new Circle({
@@ -29,6 +50,18 @@ export function buildStyle(color: string, name: string): Style {
       overflow: true,
     }) : undefined,
   });
+
+  return function styleFn(_feature: FeatureLike, resolution: number): Style {
+    return resolution <= labelMaxResolution ? labelStyle : baseStyle;
+  };
+}
+
+export function buildStyle(color: string, name: string) {
+  return buildStyleWithLabelThreshold(color, name, GEOMETRY_LABEL_MAX_RESOLUTION);
+}
+
+export function buildStopStyle(color: string, name: string) {
+  return buildStyleWithLabelThreshold(color, name, STOP_LABEL_MAX_RESOLUTION);
 }
 
 const ROUTE_ARROW_COUNT = 4;

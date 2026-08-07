@@ -46,12 +46,17 @@ export function useDrawing({
     const pointLayer    = new VectorLayer({
       source: clusterSource,
       zIndex: 1,
-      style:  (feature) => {
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
+      style:  (feature, resolution) => {
         const features = feature.get("features") as Feature[];
         const size     = features.length;
 
         if (size === 1) {
           const originalStyle = features[0].getStyle();
+          if (typeof originalStyle === "function") {
+            return originalStyle(features[0], resolution) as Style;
+          }
           if (originalStyle) return originalStyle as Style;
           return new Style({
             image: new Circle({
@@ -76,8 +81,8 @@ export function useDrawing({
         });
       },
     });
-    const lineLayer    = new VectorLayer({ source: lineSource,    zIndex: 1 });
-    const polygonLayer = new VectorLayer({ source: polygonSource, zIndex: 1 });
+    const lineLayer    = new VectorLayer({ source: lineSource,    zIndex: 1, updateWhileAnimating: true, updateWhileInteracting: true });
+    const polygonLayer = new VectorLayer({ source: polygonSource, zIndex: 1, updateWhileAnimating: true, updateWhileInteracting: true });
 
     map.addLayer(pointLayer);
     map.addLayer(lineLayer);

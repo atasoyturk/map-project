@@ -133,6 +133,8 @@ export function DashboardPage() {
       source: annotationSourceRef.current,
       style:  annotationStyle,
       zIndex: 2,
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
     });
 
     map.addLayer(layer);
@@ -178,6 +180,8 @@ export function DashboardPage() {
     if (!map) return;
     const layer = new VectorLayer({
       source: searchMarkerSourceRef.current,
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
       style: new Style({
         image: new Icon({
           anchor: [0.5, 1],
@@ -510,6 +514,8 @@ export function DashboardPage() {
                   stroke: new Stroke({ color: "#3b82f6", width: 2 }),
                 }),
                 zIndex: 50,
+                updateWhileAnimating: true,
+                updateWhileInteracting: true,
               });
 
               map?.addLayer(layer);

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Feature }   from "ol";
 import VectorSource  from "ol/source/Vector";
 import { GeoJSON }   from "ol/format";
-import { buildStyle } from "../../../../utils/mapStyle";
+import { buildStopStyle } from "../../../../utils/mapStyle";
 import { getGeoFeatures } from "../../core/api/geoService";
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
@@ -43,7 +43,7 @@ export function useTransitStopLoader(map: unknown, source: VectorSource, apiFetc
           f.set("stopRouteName", routeName);
           f.set("stopUserId",    props["UserId"]      ?? props["userId"]      ?? null);
           f.set("stopCreatedDate", props["CreatedDate"] ?? props["createdDate"] ?? null);
-          f.setStyle(buildStyle(routeColor, name));
+          f.setStyle(buildStopStyle(routeColor, name));
 
           source.addFeature(f);
         }
@@ -72,6 +72,6 @@ export function transitStopToFeature(dto: TransitStopResponseDto, routeColor: st
   feature.set("stopRouteName",   routeName);
   feature.set("stopUserId",      dto.userId);
   feature.set("stopCreatedDate", dto.createdDate);
-  feature.setStyle(buildStyle(routeColor, dto.name));
+  feature.setStyle(buildStopStyle(routeColor, dto.name));
   return feature;
 }

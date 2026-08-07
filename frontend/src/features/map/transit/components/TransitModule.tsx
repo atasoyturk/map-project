@@ -81,7 +81,7 @@ export function TransitModule({
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: stopSourceRef.current, zIndex: 4 });
+    const layer = new VectorLayer({ source: stopSourceRef.current, zIndex: 4, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     stopLayerRef.current = layer;
 
@@ -93,7 +93,7 @@ export function TransitModule({
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: routeLineSourceRef.current, zIndex: 3 });
+    const layer = new VectorLayer({ source: routeLineSourceRef.current, zIndex: 3, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     setRouteLineLayer(layer);
 
@@ -105,7 +105,7 @@ export function TransitModule({
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: vehicleSourceRef.current, zIndex: 5 });
+    const layer = new VectorLayer({ source: vehicleSourceRef.current, zIndex: 5, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     setVehicleLayer(layer);
 

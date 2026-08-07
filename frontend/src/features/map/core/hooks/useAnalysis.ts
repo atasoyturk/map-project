@@ -33,6 +33,8 @@ export function useAnalysis({
     const layer = new VectorLayer({
       source: sourceRef.current,
       zIndex: 2,
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
       style: new Style({
         fill:   new Fill({ color: "rgba(234,179,8,0.15)" }),
         stroke: new Stroke({ color: "#eab308", width: 2, lineDash: [6, 4] }),

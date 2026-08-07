@@ -55,6 +55,8 @@ export function GeoPermissionMap({
 
     const drawLayer = new VectorLayer({
       source: sourceRef.current,
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
       style: new Style({
         fill:   new Fill({ color: "rgba(59,130,246,0.15)" }),
         stroke: new Stroke({ color: "#3b82f6", width: 2 }),

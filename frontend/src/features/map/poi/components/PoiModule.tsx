@@ -52,7 +52,7 @@ export function PoiModule({
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: poiSourceRef.current, zIndex: 3 });
+    const layer = new VectorLayer({ source: poiSourceRef.current, zIndex: 3, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     poiLayerRef.current = layer;
     onLayerReady(layer);

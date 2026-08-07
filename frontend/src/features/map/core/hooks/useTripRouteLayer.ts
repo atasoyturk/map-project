@@ -43,7 +43,7 @@ export function useTripRouteLayer(
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: sourceRef.current, zIndex: 150 });
+    const layer = new VectorLayer({ source: sourceRef.current, zIndex: 150, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     return () => { map.removeLayer(layer); };
   }, [map]);

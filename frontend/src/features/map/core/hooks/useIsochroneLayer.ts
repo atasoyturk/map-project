@@ -24,7 +24,7 @@ export function useIsochroneLayer(map: OlMap | null, result: IsochroneResultDto 
 
   useEffect(() => {
     if (!map) return;
-    const layer = new VectorLayer({ source: sourceRef.current, zIndex: 50 });
+    const layer = new VectorLayer({ source: sourceRef.current, zIndex: 50, updateWhileAnimating: true, updateWhileInteracting: true });
     map.addLayer(layer);
     return () => { map.removeLayer(layer); };
   }, [map]);

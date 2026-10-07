@@ -1,0 +1,44 @@
+# BackendApi — rules
+
+## Architecture
+Controller → Service (interface + implementation, registered in `Program.cs`) → `AppDbContext` (EF Core + NetTopologySuite).
+- Exception: Auth goes through `Repositories/` (`IUserRepository` / `UserRepository`) instead of using `AppDbContext` directly.
+- Folders are grouped by domain: `Controllers/<Domain>`, `Services/<Domain>`, `DTOs/<Domain>`, `Entities/<Domain>`.
+- Controllers stay thin: read user info, call the service, map the result to an HTTP response. No business logic or DB access.
+- Controllers inherit `ApiControllerBase` (`[Authorize]`, `GetUserId()`, `GetTeamId()`, `GetUserRoles()`, `HasAdminAccess()`).
+  Exception: `AuthController` (anonymous login/register) inherits `ControllerBase`.
+- Request/response shapes are DTOs (`sealed record` or `sealed class`). Never return entities from controllers.
+- New service → interface `IXService` + `XService`, register with `AddScoped` in `Program.cs`.
+  Exception: `RouteSimulationService` is a singleton; it must use `IServiceScopeFactory` for DB access.
+
+## Entities & data
+- All entities inherit `BaseEntity` (Id, IsActive, IsDeleted, CreatedDate, ModifiedDate, ModifiedUserId).
+- **Soft delete only**: use `entity.SoftDelete(userId)` (`Helpers/EntityExtensions.cs`). Every query filters `!IsDeleted`.
+- Exception: link tables (`UserRole`, `RolePermission`, `UserPermission`, `UserGeoPermission`, `RoleGeoPermission`, `CompanyRoute`) do not inherit `BaseEntity` and are hard-deleted; `Role` is hard-deleted too.
+- Table names use `[Table("tbl_...")]`.
+- Geometry: always parse WKT with `GeometryConverter.FromWkt` (has the 10,000-point limit) and output with `GeometryConverter.ToWkt`. SRID 4326 (lon, lat).
+
+## Authorization
+- Endpoint permissions: `[RequirePermission("permission_name")]`.
+  A new permission needs: seed entry in `AppDbContext`, policy in `Program.cs`, and role mapping — **ask first**.
+- Seeded roles: Admin, Çalışan, Stajyer, Takım Lideri, POI Operatörü, Kullanıcı, Ulaşım Operatörü.
+- Geographic limits: create/update of drawn features, POIs, stops and annotations must check
+  `IGeoPermissionService.IsWithinBoundaryAsync` / `EnsureWithinBoundaryAsync`.
+- Data visibility uses `GeoViewMode` (Own / Team / All) resolved by `GeoViewModeResolver`.
+  Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
+- GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist and get a CQL filter.
+
+## Errors
+- Throw, don't return error codes from services. `GlobalExceptionHandler` maps:
+  `ArgumentException`→400, `UnauthorizedAccessException`→403, `KeyNotFoundException`→404, `InvalidOperationException`→409, others→500.
+- Return `null` / `false` from services for "not found", and let the controller return `NotFound()`.
+- Error messages are in Turkish.
+
+## Config & secrets
+- Settings classes in `Settings/` with DataAnnotations + `ValidateOnStart`.
+- Secrets (JWT key, connection string, GeoServer credentials) live in **user-secrets**. Never write secrets into `appsettings.json` or code.
+
+## Key algorithms (read before changing)
+- `TripPlanningService`: graph of walk/bus/transfer edges + Dijkstra, Haversine distances.
+- `ThematicMapService`: isochrone with 16 OSRM rays + interpolation.
+- `RouteSimulationService`: time-scaled simulation, 250 ms tick, SignalR hub `/hubs/route-simulation`.

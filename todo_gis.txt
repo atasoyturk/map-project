@@ -1,0 +1,37 @@
+YAPILACAKLAR
+
+- Admin panelindeki Takım Yönetimi Sekmesinde İşlem kısmnda sadece "Sil" var oraya "Coğrafi Yetki" Butonu da eklenmeli. Yani takım bazlı coğrafi yetki de atanabilmeli. Demek istediğim ornegin X takımı Sadece İstanbulda çalısıyrorsa, X takımına ben İstanbul sınırlarını coğrafi yetki olarak atarsam, o takımdaki herkese (hangi rolde olursa olsun) direkt sınır atadığım için takımdaki herkese ayrı ayrı coğrafi yetki vermemiş olurum bu da zekice bi yaklaşım bence.
+
+Not ekledikten sonra o noktaya geri tıklayınca gözükmüyor not, nota tıklayınca ekranda popup açılmalı notu okumak için. Şunlardan da ayrıca emin olalım : admin tüm notları görebilir, onun dışında notların görünürlüğü takım bazlı olacak, ornegin bir kişi A takımında ise sadece A takımındaki kişilerin notlarını ve ayrıca admin notlarını gorebilr.
+
+
+--POİ kısmı sadece --
+
+- Kişi haritada gezerken hani herhangi bi geometrinin uzerine gelince hemen onun üzerinde kimin cizdigi, takımı ve saat kaçta cizdigi yazıyor ya, bi de aynı sekilde orada rolü de gözüksün.
+
+- operatör rolü sadece poi eklyebilr. yani navbarda sadece poi butonu gözüksün, ayrıca eklediği poiye tıkladığında çıkan popupda sil ve düzenle butonu da olsun yani sadece poi bilgileri gözükmesin o popup'da.
+
+operatörler de takım bazlı mı çalışır ? yani operatör olan bi kişi ornegin hangi takımda ise sadece onlar için mi poi işlemi yapar ? yoksa operatör takımsız bir eleman olup doğrudan tüm harita üzerinde istediği kadar yerin poi'lerini mi çıkarır ? Bu operator rolunu kurumsal GIS platformlarında nasıl calsııyorlar interntten detaylı sekile araştırr mıısn ?
+
+- Poi kategorileri genişletmem lazım  (yani yeme-içme ve turizm var bende şu an çok az biliyorsun) bunu için ui üzerinden benim eklemem yetiyor mu ? ve haritada eklendiğinde o yeşil noktada içinde hangi üst  kategori ise o emoji olsun.
+
+
+YAPILACAKLAR (CLAUDE.md incelemesinden çıkan teknik işler)
+
+- Swagger 404: Swashbuckle paketi kurulu ve launchSettings tarayıcıyı /swagger'a açıyor ama Program.cs'te AddSwaggerGen/UseSwagger yok. Ya ekle ya da paketi ve launchUrl'i kaldır.
+
+- Coğrafi sınır kontrolünde admin muafiyeti tutarsız: Point/Line/Polygon servislerinde isAdmin muafiyeti var; Poi, TransitStop ve Annotation servislerinde yok. Hangisinin doğru olduğuna karar ver ve tekleştir.
+
+- Backend adresi (http://localhost:5130) üç yerde sabit yazılı: shared/api/apiFetch.ts, shared/api/signalR.ts, map/pages/DashboardPage.tsx. Tek bir yere (ör. Vite env değişkeni) taşı.
+
+- GeoServerService: tbl_poi_active ve tbl_transit_stop_active katmanlarına CQL filtresi uygulanmıyor (BuildCqlFilter boş dönüyor). Bilinçli mi, yoksa takım/kullanıcı filtresi gerekli mi karar ver.
+
+- Soft delete tutarsızlığı: Point, Line, Polygon, Poi, Annotation servisleri ve AdminService (takım silme) SoftDelete(userId) helper'ı yerine elle IsDeleted = true yazıyor.
+
+- WKT çıktısı tutarsızlığı: TripPlanningService ve ThematicMapService GeometryConverter.ToWkt yerine doğrudan .AsText() kullanıyor.
+
+- apiFetch tutarsızlıkları: DashboardPage ısı haritası karolarını ham fetch ile çekiyor; RouteManagementPanel, TransitModule, PoiModule, RoleManagement ve GeoPermissionPage bileşen içinden doğrudan apiFetch("/api/...") çağırıyor (api/ servis dosyasına taşınmalı).
+
+- [Table("tbl_...")] tutarsızlığı: Auth entity'lerinde (User, Role, Permission, RolePermission, UserPermission, UserRole) [Table] attribute'u yok. Eklemek tablo adını değiştirebilir (migration gerekir), önce mevcut tablo adlarını kontrol et.
+
+- .gitignore'daki osrm-data/ satırı kalıntı: klasör yok, ayar genel OSRM sunucusunu gösteriyor. Yerel OSRM planı yoksa satırı sil.

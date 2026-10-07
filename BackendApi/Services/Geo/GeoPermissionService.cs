@@ -2,6 +2,7 @@ using BackendApi.Data;
 using BackendApi.DTOs.Geo;
 using BackendApi.Entities.Geo;
 using BackendApi.Helpers;
+using BackendApi.Services.Permission;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
@@ -9,17 +10,28 @@ namespace BackendApi.Services.Geo;
 
 public sealed class GeoPermissionService : IGeoPermissionService
 {
-    private readonly AppDbContext _context;
+    private const string AdminAccessPermission = "admin_access";
 
-    public GeoPermissionService(AppDbContext context) => _context = context;
+    private readonly AppDbContext       _context;
+    private readonly IPermissionService _permissionService;
+
+    public GeoPermissionService(AppDbContext context, IPermissionService permissionService)
+    {
+        _context           = context;
+        _permissionService = permissionService;
+    }
 
     //  Boundary validation 
 
     public async Task<bool> IsWithinBoundaryAsync(
         int                 userId,
         IEnumerable<string> roles,
+        bool                hasAdminAccess,
         Geometry            geometry)
     {
+        // Admins are exempt from geographic boundaries everywhere.
+        if (hasAdminAccess) return true;
+
         var userBoundaries = await _context.UserGeoPermissions
             .Where(ugp => ugp.UserId == userId)
             .Include(ugp => ugp.GeoPermission)
@@ -43,16 +55,16 @@ public sealed class GeoPermissionService : IGeoPermissionService
         return allBoundaries.Any(boundary => boundary.Contains(geometry));
     }
 
-    public async Task EnsureWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry, string errorMessage)
+    public async Task EnsureWithinBoundaryAsync(int userId, IEnumerable<string> roles, bool hasAdminAccess, Geometry geometry, string errorMessage)
     {
-        if (!await IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException(errorMessage);
     }
 
-    public async Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, string wktGeometry)
+    public async Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, bool hasAdminAccess, string wktGeometry)
     {
         var geometry = GeometryConverter.FromWkt(wktGeometry);
-        return await IsWithinBoundaryAsync(userId, roles, geometry);
+        return await IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry);
     }
 
     //  GeoPermission CRUD 
@@ -112,6 +124,9 @@ public sealed class GeoPermissionService : IGeoPermissionService
 
     public async Task<bool> AssignToUserAsync(int userId, int geoPermissionId)
     {
+        if (await _permissionService.HasPermissionAsync(userId, AdminAccessPermission))
+            throw new UnauthorizedAccessException("Admin yetkisine sahip kullanıcıya coğrafi sınır atanamaz.");
+
         var exists = await _context.UserGeoPermissions
             .AnyAsync(ugp => ugp.UserId == userId && ugp.GeoPermissionId == geoPermissionId);
 
@@ -153,6 +168,12 @@ public sealed class GeoPermissionService : IGeoPermissionService
 
     public async Task<bool> AssignToRoleAsync(int roleId, int geoPermissionId)
     {
+        var isAdminRole = await _context.RolePermissions
+            .AnyAsync(rp => rp.RoleId == roleId && rp.Permission.Name == AdminAccessPermission);
+
+        if (isAdminRole)
+            throw new UnauthorizedAccessException("Admin rolüne coğrafi sınır atanamaz.");
+
         var exists = await _context.RoleGeoPermissions
             .AnyAsync(rgp => rgp.RoleId == roleId && rgp.GeoPermissionId == geoPermissionId);
 

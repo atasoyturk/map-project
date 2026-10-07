@@ -6,9 +6,9 @@ namespace BackendApi.Services.Geo;
 public interface IGeoPermissionService
 {
     // Boundary validation
-    Task<bool> IsWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry);
-    Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, string wktGeometry);
-    Task       EnsureWithinBoundaryAsync(int userId, IEnumerable<string> roles, Geometry geometry, string errorMessage);
+    Task<bool> IsWithinBoundaryAsync(int userId, IEnumerable<string> roles, bool hasAdminAccess, Geometry geometry);
+    Task<bool> ValidateGeometryAsync(int userId, IEnumerable<string> roles, bool hasAdminAccess, string wktGeometry);
+    Task       EnsureWithinBoundaryAsync(int userId, IEnumerable<string> roles, bool hasAdminAccess, Geometry geometry, string errorMessage);
 
     // GeoPermission CRUD
     Task<GeoPermissionResponseDto>              CreateAsync(GeoPermissionRequestDto request);

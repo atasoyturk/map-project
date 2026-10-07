@@ -18,12 +18,12 @@ public sealed class AnnotationService : IAnnotationService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<AnnotationResponseDto> SaveAsync(AnnotationRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
+    public async Task<AnnotationResponseDto> SaveAsync(AnnotationRequestDto request, int userId, int? teamId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
         await _geoPermissionService.EnsureWithinBoundaryAsync(
-            userId, roles, geometry, "Bu alana not ekleme yetkiniz bulunmamaktadır");
+            userId, roles, hasAdminAccess, geometry, "Bu alana not ekleme yetkiniz bulunmamaktadır");
 
         var entity = new AnnotationEntity
         {

@@ -20,11 +20,11 @@ public sealed class PoiService : IPoiService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<PoiResponseDto> CreateAsync(PoiRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<PoiResponseDto> CreateAsync(PoiRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana POI ekleme yetkiniz bulunmamaktadır");
 
         if (!await _context.PoiCategories.AnyAsync(c => c.Id == request.CategoryId && !c.IsDeleted))
@@ -45,11 +45,11 @@ public sealed class PoiService : IPoiService
         return ToDto(entity);
     }
 
-    public async Task<PoiResponseDto?> UpdateAsync(int id, PoiRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<PoiResponseDto?> UpdateAsync(int id, PoiRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana POI ekleme yetkiniz bulunmamaktadır");
 
         if (!await _context.PoiCategories.AnyAsync(c => c.Id == request.CategoryId && !c.IsDeleted))

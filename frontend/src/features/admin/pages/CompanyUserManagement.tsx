@@ -90,6 +90,7 @@ export function CompanyUserManagement() {
                       </div>
                     </td>
                     <td style={tdStyle}>
+                      {!user.roles.includes("Admin") && (
                       <button
                         onClick={() => {
                           setGeoUserId(user.id);
@@ -105,6 +106,7 @@ export function CompanyUserManagement() {
                       >
                         Coğrafi Yetki
                       </button>
+                      )}
                     </td>
                   </tr>
                 ))}

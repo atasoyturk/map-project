@@ -99,7 +99,7 @@ public sealed class GeoPermissionController : ApiControllerBase
 
         var roles  = GetUserRoles();
         var result = await _geoPermissionService.ValidateGeometryAsync(
-            userId.Value, roles, request.WktGeometry);
+            userId.Value, roles, HasAdminAccess(), request.WktGeometry);
 
         return result ? Ok() : StatusCode(403, "Bu alan dışında çizim yapma yetkiniz bulunmamaktadır.");
     }

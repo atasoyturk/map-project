@@ -17,13 +17,11 @@ public sealed class PolygonService : IPolygonService
         _geoPermissionService = geoPermissionService;
     }
 
-    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles)
+    public async Task<PolygonResponseDto> SaveAsync(GeoRequestDto request, int userId, int? teamId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-        var isAdmin = roles.Contains("Admin");
 
-
-        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = new PolygonEntity
@@ -56,12 +54,12 @@ public sealed class PolygonService : IPolygonService
         return entities.Select(ToDto);
     }
 
-    public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
         var isAdmin = roles.Contains("Admin");
 
-        if (!isAdmin && !await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = await _context.Polygons

@@ -37,6 +37,7 @@ export function UserGeoPermissionModal({
   const [assignedPermissions, setAssignedPermissions] = useState<Set<number>>(new Set());
   const [isLoading,           setIsLoading]           = useState(true);
   const [isSaving,            setIsSaving]            = useState(false);
+  const [error,               setError]               = useState<string | null>(null);
   const [showDrawMap,         setShowDrawMap]         = useState(false);
   const [roleAssignedPermissions, setRoleAssignedPermissions] = useState<Set<number>>(new Set());
 
@@ -82,6 +83,7 @@ export function UserGeoPermissionModal({
   async function handleToggle(permissionId: number) {
     const isAssigned = assignedPermissions.has(permissionId);
     setIsSaving(true);
+    setError(null);
     try {
       if (isAssigned) {
         await removeGeoPermissionFromUser(apiFetch, userId, permissionId);
@@ -91,7 +93,11 @@ export function UserGeoPermissionModal({
           return next;
         });
       } else {
-        await assignGeoPermissionToUser(apiFetch, userId, permissionId);
+        const res = await assignGeoPermissionToUser(apiFetch, userId, permissionId);
+        if (!res.ok) {
+          setError(res.status === 403 ? await res.text() : "Coğrafi sınır atanamadı.");
+          return;
+        }
         setAssignedPermissions((prev) => new Set(prev).add(permissionId));
       }
     } catch {  }
@@ -106,8 +112,12 @@ export function UserGeoPermissionModal({
 
     const latest = all[all.length - 1];
     if (latest) {
-      await assignGeoPermissionToUser(apiFetch, userId, latest.id);
-      setAssignedPermissions((prev) => new Set(prev).add(latest.id));
+      const res = await assignGeoPermissionToUser(apiFetch, userId, latest.id);
+      if (res.ok) {
+        setAssignedPermissions((prev) => new Set(prev).add(latest.id));
+      } else {
+        setError(res.status === 403 ? await res.text() : "Coğrafi sınır atanamadı.");
+      }
     }
 
     setShowDrawMap(false);
@@ -236,6 +246,10 @@ export function UserGeoPermissionModal({
                 Haritayı Aç
               </button>
             </div>
+          )}
+
+          {error && (
+            <p style={{ color: "#ef4444", fontSize: 13, margin: "16px 0 0" }}>{error}</p>
           )}
 
           <button

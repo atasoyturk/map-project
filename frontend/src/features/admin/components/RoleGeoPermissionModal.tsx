@@ -29,6 +29,7 @@ export function RoleGeoPermissionModal({
   const [assignedPermissions, setAssignedPermissions] = useState<Set<number>>(new Set());
   const [isLoading,           setIsLoading]           = useState(true);
   const [isSaving,            setIsSaving]            = useState(false);
+  const [error,               setError]               = useState<string | null>(null);
 
   const { apiFetch } = useAuth();
 
@@ -56,6 +57,7 @@ export function RoleGeoPermissionModal({
   async function handleToggle(permissionId: number) {
     const isAssigned = assignedPermissions.has(permissionId);
     setIsSaving(true);
+    setError(null);
     try {
       if (isAssigned) {
         await removeGeoPermissionFromRole(apiFetch, roleId, permissionId);
@@ -65,7 +67,11 @@ export function RoleGeoPermissionModal({
           return next;
         });
       } else {
-        await assignGeoPermissionToRole(apiFetch, roleId, permissionId);
+        const res = await assignGeoPermissionToRole(apiFetch, roleId, permissionId);
+        if (!res.ok) {
+          setError(res.status === 403 ? await res.text() : "Coğrafi sınır atanamadı.");
+          return;
+        }
         setAssignedPermissions((prev) => new Set(prev).add(permissionId));
       }
     } catch {  }
@@ -142,6 +148,10 @@ export function RoleGeoPermissionModal({
               );
             })}
           </div>
+        )}
+
+        {error && (
+          <p style={{ color: "#ef4444", fontSize: 13, margin: "16px 0 0" }}>{error}</p>
         )}
 
         <button

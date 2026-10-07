@@ -52,7 +52,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _pointService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        var result = await _pointService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles(), HasAdminAccess());
         return Created(string.Empty, result);
     }
 
@@ -62,7 +62,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _pointService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        var result = await _pointService.UpdateAsync(id, request, userId.Value, GetUserRoles(), HasAdminAccess());
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -105,7 +105,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _lineService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        var result = await _lineService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles(), HasAdminAccess());
         return Created(string.Empty, result);
     }
 
@@ -115,7 +115,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _lineService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        var result = await _lineService.UpdateAsync(id, request, userId.Value, GetUserRoles(), HasAdminAccess());
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -158,7 +158,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _polygonService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        var result = await _polygonService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles(), HasAdminAccess());
         return Created(string.Empty, result);
     }
 
@@ -168,7 +168,7 @@ public sealed class GeoController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _polygonService.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        var result = await _polygonService.UpdateAsync(id, request, userId.Value, GetUserRoles(), HasAdminAccess());
         return result is null ? NotFound() : Ok(result);
     }
 

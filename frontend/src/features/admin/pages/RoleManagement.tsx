@@ -145,6 +145,7 @@ export function RoleManagement() {
                         >
                           Sil
                         </button>
+                        {role.name !== "Admin" && (
                         <button
                           onClick={() => {
                             setGeoRoleId(role.id);
@@ -164,6 +165,7 @@ export function RoleManagement() {
                         >
                           Coğrafi Yetki
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

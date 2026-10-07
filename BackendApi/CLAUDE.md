@@ -24,6 +24,8 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Seeded roles: Admin, Çalışan, Stajyer, Takım Lideri, POI Operatörü, Kullanıcı, Ulaşım Operatörü.
 - Geographic limits: create/update of drawn features, POIs, stops and annotations must check
   `IGeoPermissionService.IsWithinBoundaryAsync` / `EnsureWithinBoundaryAsync`.
+  Admins (`admin_access`, passed as `HasAdminAccess()`) are exempt; the exemption lives only in `GeoPermissionService` — do not add
+  admin checks at call sites. A boundary cannot be assigned to an admin user or to a role with `admin_access` (403).
 - Data visibility uses `GeoViewMode` (Own / Team / All) resolved by `GeoViewModeResolver`.
   Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
 - GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist and get a CQL filter.

@@ -185,7 +185,8 @@ export function UserManagement() {
                         >
                           Yetkiler
                         </button>
-                      
+
+                      {!user.roles.includes("Admin") && (
                         <button
                         onClick={() => {
                           setGeoUserId(user.id);
@@ -204,6 +205,7 @@ export function UserManagement() {
                       >
                         Özel Coğrafi Yetki
                       </button>
+                      )}
                       </div>
                     </td>
                   </tr>

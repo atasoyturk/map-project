@@ -20,7 +20,7 @@ YAPILACAKLAR (CLAUDE.md incelemesinden çıkan teknik işler)
 
 - Swagger 404: Swashbuckle paketi kurulu ve launchSettings tarayıcıyı /swagger'a açıyor ama Program.cs'te AddSwaggerGen/UseSwagger yok. Ya ekle ya da paketi ve launchUrl'i kaldır.
 
-- Coğrafi sınır kontrolünde admin muafiyeti tutarsız: Point/Line/Polygon servislerinde isAdmin muafiyeti var; Poi, TransitStop ve Annotation servislerinde yok. Hangisinin doğru olduğuna karar ver ve tekleştir.
+- Admin tespiti admin_access'e taşınmalı: Point/Line/Polygon (Update, Delete, GetById) ve Annotation (Delete) servislerindeki sahiplik kontrolleri hâlâ roles.Contains("Admin") kullanıyor; frontend admin panelinde de "Admin" rol adına göre buton gizleniyor. Coğrafi sınır muafiyeti artık admin_access üzerinden (GeoPermissionService).
 
 - Backend adresi (http://localhost:5130) üç yerde sabit yazılı: shared/api/apiFetch.ts, shared/api/signalR.ts, map/pages/DashboardPage.tsx. Tek bir yere (ör. Vite env değişkeni) taşı.
 

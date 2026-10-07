@@ -20,7 +20,7 @@ public sealed class AnnotationController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _annotationService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles());
+        var result = await _annotationService.SaveAsync(request, userId.Value, GetTeamId(), GetUserRoles(), HasAdminAccess());
         return Ok(result);
     }
 

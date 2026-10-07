@@ -31,7 +31,7 @@ public sealed class TransitStopController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _service.CreateAsync(request, userId.Value, GetUserRoles());
+        var result = await _service.CreateAsync(request, userId.Value, GetUserRoles(), HasAdminAccess());
         return Created(string.Empty, result);
     }
 
@@ -42,7 +42,7 @@ public sealed class TransitStopController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _service.UpdateAsync(id, request, userId.Value, GetUserRoles());
+        var result = await _service.UpdateAsync(id, request, userId.Value, GetUserRoles(), HasAdminAccess());
         return result is null ? NotFound() : Ok(result);
     }
 

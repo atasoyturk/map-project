@@ -24,11 +24,11 @@ public sealed class TransitStopService : ITransitStopService
         _transitRouteService  = transitRouteService;
     }
 
-    public async Task<TransitStopResponseDto> CreateAsync(TransitStopRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<TransitStopResponseDto> CreateAsync(TransitStopRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana durak ekleme yetkiniz bulunmamaktadır");
 
         if (!await _context.TransitRoutes.AnyAsync(r => r.Id == request.TransitRouteId && !r.IsDeleted))
@@ -54,11 +54,11 @@ public sealed class TransitStopService : ITransitStopService
         return ToDto(entity);
     }
 
-    public async Task<TransitStopResponseDto?> UpdateAsync(int id, TransitStopRequestDto request, int userId, IEnumerable<string> roles)
+    public async Task<TransitStopResponseDto?> UpdateAsync(int id, TransitStopRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
 
-        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, geometry))
+        if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana durak ekleme yetkiniz bulunmamaktadır");
 
         if (!await _context.TransitRoutes.AnyAsync(r => r.Id == request.TransitRouteId && !r.IsDeleted))

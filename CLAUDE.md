@@ -3,6 +3,10 @@
 Full-stack web GIS portal: drawing (point/line/polygon), POI, annotations, transit routes & stops,
 real-time vehicle simulation, trip planning, isochrone and location analysis, RBAC + geographic permissions.
 
+**Product direction:** site-selection / location-analysis platform ("where should a chain open its next branch?").
+The fleet module (companies, vehicles, shipments, live simulation) is out of scope: kept, hidden, not extended.
+Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not in git — read it before planning a feature).
+
 ## Repo layout
 - `BackendApi/` — ASP.NET Core 8 Web API (details: `BackendApi/CLAUDE.md`)
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind + OpenLayers (details: `frontend/CLAUDE.md`)
@@ -33,6 +37,7 @@ real-time vehicle simulation, trip planning, isochrone and location analysis, RB
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
 
 ## Never do without asking
+- Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)
 - Change the database schema or create/apply EF Core migrations
 - Change seed data (roles, permissions, POI categories) in `AppDbContext`
 - Add new NuGet or npm packages

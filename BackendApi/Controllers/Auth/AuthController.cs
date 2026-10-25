@@ -42,8 +42,12 @@ public sealed class AuthController : ControllerBase
             return Unauthorized();
 
         var roles          = await _userService.GetUserRolesAsync(user.Id);
-        var hasAdminAccess = await _permissionService.HasPermissionAsync(user.Id, "admin_access");
-        var token          = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles, user.TeamId, hasAdminAccess);
+        var permissions    = (await _permissionService.GetEffectivePermissionsAsync(user.Id))
+                                 .Where(p => p.IsGranted)
+                                 .Select(p => p.Name)
+                                 .ToList();
+        var hasAdminAccess = permissions.Contains("admin_access");
+        var token          = _tokenService.GenerateToken(user.Id.ToString(), user.Email, roles, permissions, user.TeamId, hasAdminAccess);
         return Ok(new LoginResponseDto(token));
     }
 }

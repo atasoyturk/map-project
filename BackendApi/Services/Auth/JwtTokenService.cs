@@ -14,7 +14,7 @@ public sealed class JwtTokenService : ITokenService
     public JwtTokenService(IOptions<JwtSettings> options)
         => _settings = options.Value;
 
-   public string GenerateToken(string userId, string email, IEnumerable<string> roles, int? teamId, bool hasAdminAccess)
+   public string GenerateToken(string userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions, int? teamId, bool hasAdminAccess)
     {
         var key         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -27,6 +27,7 @@ public sealed class JwtTokenService : ITokenService
         };
 
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+        claims.AddRange(permissions.Select(p => new Claim("permission", p)));
 
         if (teamId is not null)
             claims.Add(new Claim("team_id", teamId.Value.ToString()));

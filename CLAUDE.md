@@ -35,6 +35,7 @@ Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not 
 4. **Verify.** Define how the change will be checked (build, test, or manual steps in the browser) and report the result.
 5. For non-trivial tasks, propose a short plan first and wait for approval.
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
+7. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
 
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)

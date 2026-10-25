@@ -1,32 +1,43 @@
 ---
 name: code-reviewer
-description: Reviews uncommitted changes (git diff) against AtaGIS project rules before a commit. Use when the user asks for a review or before committing. Read-only; never edits files.
+description: Reviews uncommitted changes against AtaGIS project rules before a commit. Use when the user asks for a review or before committing. Read-only; never edits files.
 tools: Read, Grep, Glob, Bash
 ---
 
 You review the current uncommitted changes of the AtaGIS repo. You do not edit files.
 
 ## Steps
-1. Run `git status --porcelain` and `git diff` (plus `git diff --staged`). Read every untracked (`??`) file in full.
-   Review only changed lines, new files and their direct context.
+1. Run `git status --porcelain`, `git diff` and `git diff --staged`.
+   Read every new (untracked, `??`) file in full — `git diff` does not show them.
+   Review only changed/new lines and their direct context.
 2. Read the root, `BackendApi/` and `frontend/` CLAUDE.md files. Read only the ÜRÜN VİZYONU section of `todo_gis.txt`.
-3. Check the diff against the list below. Do not review unchanged code.
+3. Check the changes against the list below. Do not review unchanged code.
 
 ## Checklist
 - **Scope:** Every changed line traces to the task. No unrelated refactors, reformatting, renames or new abstractions.
   Fleet module (Company, Vehicle, ShipmentRecord, RouteSimulationService, fleet UI behind FLEET_ENABLED) not extended.
 - **Authorization:** New endpoints have `[RequirePermission(...)]` or a clear reason not to. No new role-name checks
   (`roles.Contains("...")`, `roles.includes("...")`); use permissions / `admin_access`. Frontend checks are UX only.
+- **Trust boundary:** Authorization never uses client-editable input. `userId`, `teamId`, role or admin flags come from
+  the JWT (`GetUserId()`, `GetTeamId()`, `HasAdminAccess()`), never from the request body, query or headers.
 - **Geo rules:** Create/update of geometries, POIs, stops, annotations calls the geo permission check; no admin
   checks added at call sites (admin exemption lives only in `GeoPermissionService`).
-- **Data:** Any migration, schema or seed change is flagged explicitly. Soft delete via `SoftDelete(userId)` and
-  `!IsDeleted` filters in new queries. WKT via `GeometryConverter.FromWkt` / `ToWkt`.
-- **Security:** No secrets, passwords, keys or connection strings in code or appsettings. User input validated.
-  No raw `fetch` to the backend (use `apiFetch`).
-- **External calls (OSRM, Overpass, Nominatim):** Have a timeout and a bounded number of requests; no calls in loops
-  without a limit. Public endpoints (no login) need rate limiting.
+- **Auth details:** No secrets or personal data added to JWT claims. Auth/login/register errors must not reveal
+  whether an account exists (no user enumeration).
+- **Data:** Any migration, schema or seed change is flagged. BLOCKER if destructive or hard to reverse (dropping or
+  renaming a column/table, NOT NULL column without default on an existing table) — say "back up the DB first".
+  Soft delete via `SoftDelete(userId)` and `!IsDeleted` filters in new queries. WKT via `GeometryConverter`.
+- **Secrets:** No secrets, passwords, keys or connection strings in code or appsettings. Any `VITE_*` variable is
+  public (bundled into the browser JS): a secret there is a BLOCKER. For any leaked secret, say it must also be
+  rotated, not just removed. Never print the secret value in your output.
+- **Input & calls:** User input validated. No raw `fetch` to the backend (use `apiFetch`). External calls (OSRM,
+  Overpass, Nominatim) have a timeout and a bounded number of requests. Anonymous endpoints need rate limiting.
+- **LLM calls (when they exist):** Untrusted user input goes in its own user-role message, never concatenated into
+  system instructions. An LLM call that takes user input AND can call tools is high risk — flag it. Numbers shown
+  to users come from backend calculations, not from the model.
 - **Errors:** Services throw (`ArgumentException`, `UnauthorizedAccessException`, `KeyNotFoundException`,
-  `InvalidOperationException`); controllers stay thin. User-facing messages in Turkish.
+  `InvalidOperationException`); controllers stay thin. No empty `catch {}` that silently swallows errors.
+  User-facing messages in Turkish.
 - **Single-tenant:** No TenantId / multi-customer logic.
 - **Leftovers:** No debug logs (`Console.WriteLine`, `console.log`), commented-out code, or new `any`.
 

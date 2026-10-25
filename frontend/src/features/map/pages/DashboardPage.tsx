@@ -112,9 +112,10 @@ export function DashboardPage() {
   const [thematicCenterPoint,  setThematicCenterPoint]  = useState<{ lon: number; lat: number } | null>(null);
   const [thematicResult,       setThematicResult]       = useState<IsochroneResultDto | null>(null);
 
-  const { token, apiFetch, roles, userId } = useAuth();
+  const { token, apiFetch, roles, permissions, hasPermission, userId } = useAuth();
 
-  const isPlainUser = roles.includes("User") && roles.length === 1;
+  const isPlainUser = !(hasPermission("point_create") || hasPermission("line_create") || hasPermission("polygon_create"));
+  const canReadAnnotation = hasPermission("annotation_read");
 
   const annotationSourceRef = useRef(new VectorSource());
   const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
@@ -128,7 +129,7 @@ export function DashboardPage() {
   const [annotationLayer, setAnnotationLayer] = useState<VectorLayer<VectorSource> | null>(null);
 
   useEffect(() => {
-    if (!map || isPlainUser) return;
+    if (!map || !canReadAnnotation) return;
     const layer = new VectorLayer({
       source: annotationSourceRef.current,
       style:  annotationStyle,
@@ -146,7 +147,7 @@ export function DashboardPage() {
       annotationLayerRef.current = null;
       setAnnotationLayer(null);
     };
-  }, [map, isPlainUser]);
+  }, [map, canReadAnnotation]);
 
   useEffect(() => {
     if (!map || !locAnalysisPoints) return;
@@ -210,8 +211,8 @@ export function DashboardPage() {
     else if (thematicSearchTarget === "center") { setThematicCenterPoint({ lon, lat }); setThematicSearchTarget(null); }
   }
 
-  // Annotation'lar User için hiç yüklenmez (şirket dışı kullanıcı, iç notlara erişemez).
-  useAnnotationLoader(map, annotationSourceRef.current, apiFetch, !isPlainUser);
+  // Annotations are loaded only for users with annotation_read (internal notes).
+  useAnnotationLoader(map, annotationSourceRef.current, apiFetch, canReadAnnotation);
 
   const poiFlowActive    = poiDrawActive || poiFormOpen;
   const stopFlowActive   = stopDrawActive || stopFormOpen;
@@ -225,7 +226,7 @@ export function DashboardPage() {
     enabled: interactionsIdle && !isPlainUser,
   });
 
-  const canCreateAnnotation = roles.includes("Admin") || roles.includes("Takım Lideri");
+  const canCreateAnnotation = hasPermission("annotation_create");
 
   const { pending: pendingNote, clear: clearPendingNote } = useAnnotationContextMenu({
     map,
@@ -235,7 +236,7 @@ export function DashboardPage() {
   const { selected: annotationSelected, clear: clearAnnotationSelected } = useAnnotationClick({
     map,
     annotationLayer: annotationLayer,
-    enabled: interactionsIdle && !isPlainUser,
+    enabled: interactionsIdle && canReadAnnotation,
   });
 
   useMapClick({
@@ -471,7 +472,7 @@ export function DashboardPage() {
               userLookup={userLookup}
               onClose={clearAnnotationSelected}
               onDelete={() => handleDeleteAnnotation(annotationSelected.feature.get("id"))}
-              canDelete={roles.includes("Admin") || annotationSelected.feature.get("userId") === userId}
+              canDelete={hasPermission("admin_access") || annotationSelected.feature.get("userId") === userId}
             />
           </div>
         )}
@@ -533,7 +534,7 @@ export function DashboardPage() {
           />
         )}
 
-        {!isPlainUser && <HeatmapLegend visible={heatmapActive} />}
+        {hasPermission("heatmap_view") && <HeatmapLegend visible={heatmapActive} />}
         {!isPlainUser && <LayerControl layers={layers} poiLayer={poiLayer} visible={layerControlOpen} />}
         <PoiSearchBar map={map} poiFeatures={poiFeatures} />
         <LocationSearchBar
@@ -568,9 +569,9 @@ export function DashboardPage() {
         apiFetch={apiFetch}
         categories={categories}
         userLookup={userLookup}
-        roles={roles}
+        permissions={permissions}
         userId={userId}
-        isPlainUser={isPlainUser}
+        canRead={hasPermission("poi_read")}
         otherFlowsIdle={!analysisActive && activeType === null && !heatmapActive && !stopFlowActive}
         drawActive={poiDrawActive}
         onDrawActiveChange={setPoiDrawActive}

@@ -21,9 +21,9 @@ interface PoiModuleProps {
   apiFetch:           ApiFetch;
   categories:         CategoryTreeNode[];
   userLookup:         Map<number, UserLookupEntry>;
-  roles:              string[];
+  permissions:        string[];
   userId:             number | null;
-  isPlainUser:        boolean;
+  canRead:            boolean;
   otherFlowsIdle:     boolean;
   drawActive:         boolean;
   onDrawActiveChange: (active: boolean) => void;
@@ -34,7 +34,7 @@ interface PoiModuleProps {
 }
 
 export function PoiModule({
-  map, apiFetch, categories, userLookup, roles, userId, isPlainUser,
+  map, apiFetch, categories, userLookup, permissions, userId, canRead,
   otherFlowsIdle, drawActive, onDrawActiveChange, onFormOpenChange,
   onFeaturesChange, onLayerReady, onToast,
 }: PoiModuleProps) {
@@ -103,7 +103,7 @@ export function PoiModule({
   const { selected: poiClickSelected, clear: clearPoiSelected } = usePoiClick({
     map,
     poiLayer: poiLayerRef.current,
-    enabled:  otherFlowsIdle && !flowActive && !isPlainUser,
+    enabled:  otherFlowsIdle && !flowActive && canRead,
   });
 
   useEffect(() => {
@@ -161,8 +161,8 @@ export function PoiModule({
 
   const canManageSelectedPoi =
     !!poiSelectedFeature &&
-    (roles.includes("Admin") ||
-      (roles.includes("POI Operatörü") && poiSelectedFeature.get("poiUserId") === userId));
+    (permissions.includes("admin_access") ||
+      (permissions.includes("poi_create") && poiSelectedFeature.get("poiUserId") === userId));
 
   return (
     <>
@@ -176,7 +176,7 @@ export function PoiModule({
         />
       )}
 
-      {!isPlainUser && poiSelectedFeature && (
+      {canRead && poiSelectedFeature && (
         <PoiInfoPopup
           feature={poiSelectedFeature}
           categories={categories}

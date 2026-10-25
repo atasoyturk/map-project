@@ -111,28 +111,20 @@ export function Navbar({
   const lineSourceRef    = useRef(new VectorSource());
   const polygonSourceRef = useRef(new VectorSource());
 
-  const { logout, apiFetch, roles, teamId } = useAuth();
+  const { logout, apiFetch, hasPermission, teamId } = useAuth();
   const navigate = useNavigate();
 
-  const isPlainUser = roles.includes("User") && roles.length === 1;
+  const canDraw =
+    hasPermission("point_create") || hasPermission("line_create") || hasPermission("polygon_create");
 
-  const canManagePoi  =
-    roles.includes("Admin") || roles.includes("Takım Lideri") ||
-    roles.includes("Çalışan") || roles.includes("POI Operatörü");
+  const isPlainUser = !canDraw;
 
-  const canManageTransitStops =
-    roles.includes("Admin") || roles.includes("Takım Lideri") ||
-    roles.includes("Çalışan") || roles.includes("Ulaşım Operatörü");
-
-  const canManageTransitRoutes =
-    roles.includes("Admin") || roles.includes("Takım Lideri") || roles.includes("Ulaşım Operatörü");
-
-  const canUseAnalysisTools =
-    roles.includes("Admin") || roles.includes("Takım Lideri") || roles.includes("Çalışan");
-
-  const isOperatorOnly =
-    (roles.includes("POI Operatörü") || roles.includes("Ulaşım Operatörü")) &&
-    !roles.includes("Admin") && !roles.includes("Takım Lideri") && !roles.includes("Çalışan");
+  const canManagePoi           = hasPermission("poi_create");
+  const canManageTransitStops  = hasPermission("transit_stop_create");
+  const canManageTransitRoutes = hasPermission("transit_route_manage");
+  const canAreaScan            = hasPermission("area_scan");
+  const canLocationAnalysis    = hasPermission("location_analysis");
+  const canViewHeatmap         = hasPermission("heatmap_view");
   
   const otherToolActive = !!activeType || analysisActive;
   const toolsLocked = !!pendingGeometry || heatmapActive || poiDrawActive || poiFormOpen || stopDrawActive || stopFormOpen;
@@ -289,7 +281,7 @@ export function Navbar({
     logout();
     navigate("/login");
   }
-  const isAdmin = roles.includes("Admin");
+  const isAdmin = hasPermission("admin_access");
 
   const isExpanded = menuOpen || !isPlainUser && (
     analysisActive || heatmapActive || poiDrawActive || poiFormOpen ||
@@ -442,17 +434,17 @@ export function Navbar({
           hasActiveItem={analysisActive || locAnalysisActive || heatmapActive || thematicMapOpen}
           onOpenChange={(open) => handleDropdownOpenChange("Analiz", open)}
         >
-          {canUseAnalysisTools && (
+          {canAreaScan && (
             <button onClick={handleAnalysisToggle} disabled={toolsLocked} style={navItemStyle(analysisActive, "#eab308", "#fde047", toolsLocked)}>
               Alan Tara
             </button>
           )}
-          {canUseAnalysisTools && (
+          {canLocationAnalysis && (
             <button onClick={onLocAnalysisToggle} disabled={toolsLocked} style={navItemStyle(locAnalysisActive, "#ec4899", "#fbcfe8", toolsLocked)}>
               Konum Analizi
             </button>
           )}
-          {canUseAnalysisTools && (
+          {canViewHeatmap && (
             <button
               onClick={onHeatmapToggle}
               disabled={!!pendingGeometry || poiDrawActive || poiFormOpen}
@@ -528,7 +520,7 @@ export function Navbar({
               POI
             </button>
           )}
-          {!isOperatorOnly && !isAdmin && teamId !== null && (
+          {canDraw && !isAdmin && teamId !== null && (
             <button onClick={() => setTeamModeActive((p) => !p)} disabled={toolsLocked} style={navItemStyle(teamModeActive, "#10b981", "#6ee7b7", toolsLocked)}>
               Takım Haritası
             </button>

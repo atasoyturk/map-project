@@ -15,20 +15,21 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - All entities inherit `BaseEntity` (Id, IsActive, IsDeleted, CreatedDate, ModifiedDate, ModifiedUserId).
 - **Soft delete only**: use `entity.SoftDelete(userId)` (`Helpers/EntityExtensions.cs`). Every query filters `!IsDeleted`.
 - Exception: link tables (`UserRole`, `RolePermission`, `UserPermission`, `UserGeoPermission`, `RoleGeoPermission`, `CompanyRoute`) do not inherit `BaseEntity` and are hard-deleted; `Role` is hard-deleted too.
-- Table names use `[Table("tbl_...")]`.
+- New tables use `[Table("tbl_...")]`. Auth tables (`Users`, `Roles`, `Permissions`, `UserRoles`, `RolePermissions`, `UserPermissions`) keep their current names — do not rename.
 - Geometry: always parse WKT with `GeometryConverter.FromWkt` (has the 10,000-point limit) and output with `GeometryConverter.ToWkt`. SRID 4326 (lon, lat).
 
 ## Authorization
 - Endpoint permissions: `[RequirePermission("permission_name")]`.
   A new permission needs: seed entry in `AppDbContext`, policy in `Program.cs`, and role mapping — **ask first**.
 - Seeded roles: Admin, Çalışan, Stajyer, Takım Lideri, POI Operatörü, Kullanıcı, Ulaşım Operatörü.
+- New code must authorize by permission (or `admin_access`), never by role name — the role set will be simplified (see todo_gis.txt vision).
 - Geographic limits: create/update of drawn features, POIs, stops and annotations must check
   `IGeoPermissionService.IsWithinBoundaryAsync` / `EnsureWithinBoundaryAsync`.
   Admins (`admin_access`, passed as `HasAdminAccess()`) are exempt; the exemption lives only in `GeoPermissionService` — do not add
   admin checks at call sites. A boundary cannot be assigned to an admin user or to a role with `admin_access` (403).
 - Data visibility uses `GeoViewMode` (Own / Team / All) resolved by `GeoViewModeResolver`.
   Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
-- GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist and get a CQL filter.
+- GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist. User-data layers get a CQL filter; shared layers (`tbl_poi_active`, `tbl_transit_stop_active`) are currently unfiltered.
 
 ## Errors
 - Throw, don't return error codes from services. `GlobalExceptionHandler` maps:
@@ -44,3 +45,6 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - `TripPlanningService`: graph of walk/bus/transfer edges + Dijkstra, Haversine distances.
 - `ThematicMapService`: isochrone with 16 OSRM rays + interpolation.
 - `RouteSimulationService`: time-scaled simulation, 250 ms tick, SignalR hub `/hubs/route-simulation`.
+
+## Out of product scope
+- Company, Vehicle, ShipmentRecord and `RouteSimulationService` (fleet module) are kept but out of scope — do not extend or refactor unless asked.

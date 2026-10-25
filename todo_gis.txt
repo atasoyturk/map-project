@@ -1,37 +1,146 @@
-YAPILACAKLAR
+YAPILACAKLAR — AtaGIS
+Sıra önemli: üstteki maddeler alttakilerin önünü açıyor.
+Her madde ayrı branch + ayrı commit. "(Kodda)" notları 25.10.2026 kod incelemesinden.
 
-- Admin panelindeki Takım Yönetimi Sekmesinde İşlem kısmnda sadece "Sil" var oraya "Coğrafi Yetki" Butonu da eklenmeli. Yani takım bazlı coğrafi yetki de atanabilmeli. Demek istediğim ornegin X takımı Sadece İstanbulda çalısıyrorsa, X takımına ben İstanbul sınırlarını coğrafi yetki olarak atarsam, o takımdaki herkese (hangi rolde olursa olsun) direkt sınır atadığım için takımdaki herkese ayrı ayrı coğrafi yetki vermemiş olurum bu da zekice bi yaklaşım bence.
+======================================================================
+ÜRÜN VİZYONU (her işte bu çerçeveye göre karar ver)
+======================================================================
 
-Not ekledikten sonra o noktaya geri tıklayınca gözükmüyor not, nota tıklayınca ekranda popup açılmalı notu okumak için. Şunlardan da ayrıca emin olalım : admin tüm notları görebilir, onun dışında notların görünürlüğü takım bazlı olacak, ornegin bir kişi A takımında ise sadece A takımındaki kişilerin notlarını ve ayrıca admin notlarını gorebilr.
+Ürün: Şube / yer seçimi (lokasyon analizi) platformu.
+Senaryo: market, eczane veya franchise zinciri "yeni şubeyi nereye açalım?" sorusuna cevap arar.
 
+Mevcut özelliklerin yeni rolleri:
+- Polygon çizimi          → analiz edilecek aday bölge
+- POI + kategori ağacı    → rakipler ve tamamlayıcılar (ör. eczane için hastane)
+- Ağırlıklı ısı haritası  → bölgenin uygunluk skoru
+- Isochrone               → şubenin hizmet alanı ("10 dakikada kimler ulaşabilir?")
+- Duraklar + trip planning→ toplu taşımayla erişilebilirlik kriteri
+- Annotation (notlar)     → aday yerlere ekip içi notlar ve yorumlar
+- Takım + coğrafi yetki   → bölge müdürleri sadece kendi bölgelerinde çalışır
+- Admin                   → firma yöneticisi
 
---POİ kısmı sadece --
+Kapsam dışı (silinmez, menüden gizlenir): şirket, araç, sevkiyat, canlı filo simülasyonu.
+Portfolyo için staj sürümü v1-staj tag'inde korunur.
 
-- Kişi haritada gezerken hani herhangi bi geometrinin uzerine gelince hemen onun üzerinde kimin cizdigi, takımı ve saat kaçta cizdigi yazıyor ya, bi de aynı sekilde orada rolü de gözüksün.
+POI verisi: ana kaynak OpenStreetMap (Overpass API ile içe aktarma). Elle ekleme/düzeltme
+özel bir operatör rolü değil, yetkili rollerin (poi_create) yapabildiği bir işlem olarak kalır:
+OSM verisi eksik/eski olabilir ve müşteri kendi şubelerini, rakip listesini ekleyebilmeli.
 
-- operatör rolü sadece poi eklyebilr. yani navbarda sadece poi butonu gözüksün, ayrıca eklediği poiye tıkladığında çıkan popupda sil ve düzenle butonu da olsun yani sadece poi bilgileri gözükmesin o popup'da.
+Hedef rol seti (öneri, uygulamadan önce onayla):
+- Yönetici (Admin)       : her şey, sınırdan muaf
+- Bölge Müdürü           : kendi bölgesinde analiz, POI düzenleme, notlar, takımını yönetme
+- Analist                : analiz, POI düzenleme, notlar
+- Görüntüleyici          : sadece görüntüleme
+Kaldırılacak roller: Stajyer, POI Operatörü, Ulaşım Operatörü.
 
-operatörler de takım bazlı mı çalışır ? yani operatör olan bi kişi ornegin hangi takımda ise sadece onlar için mi poi işlemi yapar ? yoksa operatör takımsız bir eleman olup doğrudan tüm harita üzerinde istediği kadar yerin poi'lerini mi çıkarır ? Bu operator rolunu kurumsal GIS platformlarında nasıl calsııyorlar interntten detaylı sekile araştırr mıısn ?
+======================================================================
+0. HAZIRLIK
+======================================================================
 
-- Poi kategorileri genişletmem lazım  (yani yeme-içme ve turizm var bende şu an çok az biliyorsun) bunu için ui üzerinden benim eklemem yetiyor mu ? ve haritada eklendiğinde o yeşil noktada içinde hangi üst  kategori ise o emoji olsun.
+- [ ] Staj sürümünü dondur: git tag v1-staj (portfolyo için tam hali korunur).
 
+======================================================================
+1. ÖNCE BU: Frontend yetki kontrolü rol adından permission'a geçmeli
+======================================================================
 
-YAPILACAKLAR (CLAUDE.md incelemesinden çıkan teknik işler)
+- [ ] Frontend, yetkiyi rol ADINA bakarak veriyor (roles.includes("POI Operatörü") vb.).
+      (Kodda) Navbar.tsx: canManagePoi, canManageTransitStops, canUseAnalysisTools, isOperatorOnly;
+      DashboardPage.tsx: canCreateAnnotation, annotation canDelete; PoiModule.tsx: canManageSelectedPoi.
+      Neden önce: POI düzenleme yetkisi, navbar butonları ve rol sadeleştirmesi
+      bunlara bağlı. Rol adı değişirse bu kontrollerin hepsi sessizce bozulur.
+      Yapılacak: kullanıcının efektif permission listesi frontend'e gelsin (JWT claim veya /me endpoint'i),
+      butonlar permission'a göre gösterilsin. Backend zaten permission ile çalışıyor.
+- [ ] HATA: isPlainUser = roles.includes("User") ama seed'deki rol adı "Kullanıcı".
+      (Kodda) Navbar.tsx ve DashboardPage.tsx. Kontrol hiç true olmuyor. Yukarıdaki işle birlikte çözülür.
 
-- Swagger 404: Swashbuckle paketi kurulu ve launchSettings tarayıcıyı /swagger'a açıyor ama Program.cs'te AddSwaggerGen/UseSwagger yok. Ya ekle ya da paketi ve launchUrl'i kaldır.
+======================================================================
+2. ÖZELLİKLER (mevcut sistemi tamamlayanlar)
+======================================================================
 
-- Admin tespiti admin_access'e taşınmalı: Point/Line/Polygon (Update, Delete, GetById) ve Annotation (Delete) servislerindeki sahiplik kontrolleri hâlâ roles.Contains("Admin") kullanıyor; frontend admin panelinde de "Admin" rol adına göre buton gizleniyor. Coğrafi sınır muafiyeti artık admin_access üzerinden (GeoPermissionService).
+--- Takım bazlı coğrafi yetki ---
+- [ ] Takım Yönetimi'nde İşlem sütununa "Coğrafi Yetki" butonu. Takıma atanan sınır,
+      takımdaki herkese (rolünden bağımsız) uygulanır.
+      (Kodda) Şu an sadece UserGeoPermission ve RoleGeoPermission var.
+      Gerekenler: TeamGeoPermission tablosu (migration), IsWithinBoundaryAsync'e takım sınırlarının
+      eklenmesi, GeoPermissionController'a takım atama endpoint'leri, TeamManagement'a buton + modal.
+      Kural: kişisel + rol + takım sınırlarının BİRLEŞİMİ geçerli (mevcut mantık: herhangi biri içeriyorsa izin).
+      Admin muafiyeti aynen kalır.
+      Ürün karşılığı: bölge müdürü / bölge ekibi.
 
-- Backend adresi (http://localhost:5130) üç yerde sabit yazılı: shared/api/apiFetch.ts, shared/api/signalR.ts, map/pages/DashboardPage.tsx. Tek bir yere (ör. Vite env değişkeni) taşı.
+--- Notlar (annotation) ---
+- [ ] HATA: Not eklendikten sonra noktaya tıklayınca popup açılmıyor.
+      (Kodda) Popup zaten var: useAnnotationClick + AnnotationInfoPopup. Sorun büyük ihtimalle
+      aynı tıklamayı dinleyen useMapClick ile çakışma ya da popup piksel hesabı.
+- [ ] Not görünürlüğü: admin tüm notları görür; diğerleri kendi takımının notlarını + admin notlarını görür.
+      (Kodda) AnnotationService.GetAllAsync şu an: TeamId == null || TeamId == kendi takımı.
+      Sorunlar: admin notu sadece admin'in takımı yoksa görünüyor; takımsız normal kullanıcıların
+      notları herkese görünüyor. "Admin notu" nasıl anlaşılacak karar verilmeli:
+      notun yazarının admin_access'i (sorguda join) veya not oluşturulurken kaydedilen bir bayrak
+      (TeamId snapshot mantığıyla tutarlı; migration gerekir).
+- [ ] Not oluşturma yetkisi: frontend sadece Admin ve Takım Lideri'ne izin veriyor, seed'de Stajyer de
+      annotation_create yetkisine sahip. 1. madde ve rol sadeleştirmesiyle birlikte netleşir.
 
-- GeoServerService: tbl_poi_active ve tbl_transit_stop_active katmanlarına CQL filtresi uygulanmıyor (BuildCqlFilter boş dönüyor). Bilinçli mi, yoksa takım/kullanıcı filtresi gerekli mi karar ver.
+--- Tooltip ---
+- [ ] Geometri üzerine gelince çıkan tooltip'te kullanıcının rolü de görünsün.
+      (Kodda) useFeatureTooltip bilgiyi /api/users/lookup'tan alıyor; UserLookupDto'da
+      sadece Id, Email ve TeamName var. Backend'de DTO'ya rol(ler) eklenmeli + FeatureTooltip'e bir satır.
 
-- Soft delete tutarsızlığı: Point, Line, Polygon, Poi, Annotation servisleri ve AdminService (takım silme) SoftDelete(userId) helper'ı yerine elle IsDeleted = true yazıyor.
+--- POI düzenleme ---
+- [ ] HATA: Admin popup'ta başkasının POI'si için düzenle/sil görüyor ama backend
+      PoiService.Update/Delete sadece sahibine izin veriyor (p.UserId == userId) → admin 404 alır.
+      Çalışan/Takım Lideri POI ekleyebiliyor ama kendi POI'sini popup'tan düzenleyemiyor
+      (PoiModule: canManageSelectedPoi = Admin || (POI Operatörü && kendi POI'si)).
+      Kural tekleştirilmeli: sahibi + admin. 1. madde ve rol sadeleştirmesiyle birlikte ele al.
 
-- WKT çıktısı tutarsızlığı: TripPlanningService ve ThematicMapService GeometryConverter.ToWkt yerine doğrudan .AsText() kullanıyor.
+--- POI kategorileri ---
+- [ ] Kategori ekleme: UI yeterli (Admin → POI Yönetimi → CategoryTreeManager, poi_category_manage yetkisi).
+- [ ] HATA/TASARIM: Haritadaki POI ikonları kategori ID'lerine göre koda sabit yazılmış.
+      (Kodda) usePoiLoader.ts: FOOD/TOURISM/WORSHIP/HEALTH_CATEGORY_IDS sabit kümeleri.
+      UI'dan eklenen yeni kategori ikon almaz, gri nokta olur.
+      Çözüm: PoiCategory'ye Icon (emoji) alanı (migration); üst kategoriye emoji atanır, alt kategoriler
+      üst kategorinin emojisini kullanır (findCategoryPath zaten var). CategoryFormModal'a emoji alanı.
+      Not: GeoServer'da poi_category_style.sld ve SVG ikonlar da var; kullanılıp kullanılmadığını kontrol et.
+- [ ] Kategori ağacını ürün yönüne göre yeniden kur: lokasyon analizi için anlamlı üst kategoriler
+      (Sağlık, Eğitim, Perakende/Market, Yeme-İçme, Finans, Ulaşım, Kamu...).
+      OSM içe aktarma (3. bölüm) ile eşleşecek şekilde tasarla, iki kez yapma.
 
-- apiFetch tutarsızlıkları: DashboardPage ısı haritası karolarını ham fetch ile çekiyor; RouteManagementPanel, TransitModule, PoiModule, RoleManagement ve GeoPermissionPage bileşen içinden doğrudan apiFetch("/api/...") çağırıyor (api/ servis dosyasına taşınmalı).
+======================================================================
+3. ÜRÜN YÖNÜ (lokasyon analizi)
+======================================================================
 
-- [Table("tbl_...")] tutarsızlığı: Auth entity'lerinde (User, Role, Permission, RolePermission, UserPermission, UserRole) [Table] attribute'u yok. Eklemek tablo adını değiştirebilir (migration gerekir), önce mevcut tablo adlarını kontrol et.
+- [ ] Filo/sevkiyat modülünü (şirket, araç, sevkiyat, simülasyon) menüden gizle. Kod silinmez.
+- [ ] OSM'den POI içe aktarma (Overpass API): seçilen bölgenin POI'leri kategori eşlemesiyle gelir.
+      Gerçek veri olmadan lokasyon analizi boş kalır. En kritik ürün maddesi.
+- [ ] Analizi isochrone ile birleştir: noktaya tıkla → "X dakikalık alanda kaç rakip, hastane, durak var".
+      (Kodda) ThematicMapService isochrone polygon üretiyor; AnalysisService polygon ile kesişim yapıyor.
+- [ ] "Aday lokasyon": birkaç aday nokta kaydedilir, her biri skorlanır, tabloda yan yana karşılaştırılır.
+- [ ] Rol sadeleştirme: vizyondaki hedef rol setine geç; Stajyer, POI Operatörü ve Ulaşım Operatörü kalksın.
+      ÖNKOŞUL: 1. madde (frontend rol adına bakmayı bırakmalı) ve OSM içe aktarma.
+      Seed değişikliği + migration. Bu rollere sahip mevcut kullanıcılar başka role taşınmalı (önce listele, sor).
+      AdminController'daki sabit rol ID kontrolleri (RoleId == 1, rol 1–4 silinemez) bu işte gözden geçirilmeli.
+- [ ] (İleride, müşteri netleşince) Çok kiracılılık: her firmanın verisi ayrı.
 
-- .gitignore'daki osrm-data/ satırı kalıntı: klasör yok, ayar genel OSRM sunucusunu gösteriyor. Yerel OSRM planı yoksa satırı sil.
+======================================================================
+4. TEKNİK BORÇ
+======================================================================
+
+- [ ] Swagger 404: Swashbuckle kurulu, launchSettings /swagger'a açıyor ama Program.cs'te
+      AddSwaggerGen/UseSwagger yok. Ya ekle ya da paketi ve launchUrl'i kaldır.
+- [ ] Admin tespiti admin_access'e taşınmalı: Point/Line/Polygon (Update, Delete, GetById) ve
+      Annotation (Delete) sahiplik kontrolleri hâlâ roles.Contains("Admin"); frontend admin panelinde de
+      rol adına göre buton gizleniyor. (Sınır muafiyeti artık admin_access üzerinden — tamamlandı.)
+- [ ] Backend adresi (http://localhost:5130) üç yerde sabit: shared/api/apiFetch.ts, shared/api/signalR.ts,
+      map/pages/DashboardPage.tsx. Vite env değişkenine taşı.
+- [ ] GeoServerService: tbl_poi_active ve tbl_transit_stop_active için CQL filtresi yok.
+      POI paylaşılan veri olduğu için muhtemelen bilinçli; kararı CLAUDE.md'ye yaz.
+- [ ] Soft delete tutarsızlığı: Point, Line, Polygon, Poi, Annotation servisleri ve AdminService (takım silme)
+      SoftDelete(userId) yerine elle IsDeleted = true yazıyor.
+- [ ] WKT çıktısı: TripPlanningService ve ThematicMapService ToWkt yerine .AsText() kullanıyor.
+- [ ] apiFetch tutarsızlıkları: DashboardPage ısı haritasını ham fetch ile çekiyor; RouteManagementPanel,
+      TransitModule, PoiModule, RoleManagement, GeoPermissionPage bileşen içinden apiFetch("/api/...") çağırıyor.
+- [ ] [Table("tbl_...")] tutarsızlığı: Auth entity'lerinde [Table] yok; gerçek tablo adları Users, Roles,
+      Permissions, UserRoles, RolePermissions, UserPermissions. Eklemek migration gerektirir.
+- [ ] .gitignore'daki osrm-data/ satırı kalıntı; yerel OSRM planı yoksa sil.
+- [ ] AnnotationService.DeleteAsync içinde debug Console.WriteLine satırları.
+- [ ] JWT süresi: Kullanıcı rolü 5 dk, diğer roller ~10 yıl (ExtendedExpiresInMinutes). Ürün öncesi gözden geçir.
+- [ ] AdminController'da sabit ID kontrolleri (RoleId == 1, PermissionId == 4, rol 1–4 silinemez).

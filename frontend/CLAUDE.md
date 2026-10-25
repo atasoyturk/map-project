@@ -20,6 +20,14 @@ Lint with `npm run lint` (oxlint). Build with `npm run build` (runs `tsc -b`, so
   Clean up OpenLayers layers, interactions and listeners in the hook's cleanup.
 - Geometry is sent/received as WKT in EPSG:4326; the map view is EPSG:3857 — transform explicitly.
 - Strong typing: no new `any` (some old code has it — don't fix unasked). Shared types go in the feature's `types.ts`.
-- Styling with Tailwind classes; follow the look of existing components.
+- Styling with Tailwind classes in new code; follow the look of existing components.
+  Some older components use inline `style={{...}}` objects — don't convert them unasked.
 - UI text is in Turkish.
 - Frontend permission checks are only for UX; the backend is the real security check.
+- Do not add new role-name checks (`roles.includes("...")`) — the role set will be simplified (see todo_gis.txt vision).
+  Until permissions reach the frontend (todo item 1), reuse the existing flags (e.g. `canManagePoi`) instead of writing new role checks.
+- POI icons: do not add IDs to the hardcoded category ID sets in `usePoiLoader.ts`; a per-category icon field is planned (see todo).
+
+## Out of product scope
+- `features/company` and the fleet parts of transit (vehicles, shipments, live simulation) are kept but out of scope —
+  do not extend or refactor unless asked. Transit stops, trip planning and isochrone ARE in scope.

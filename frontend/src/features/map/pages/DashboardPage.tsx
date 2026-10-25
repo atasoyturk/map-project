@@ -112,7 +112,7 @@ export function DashboardPage() {
   const [thematicCenterPoint,  setThematicCenterPoint]  = useState<{ lon: number; lat: number } | null>(null);
   const [thematicResult,       setThematicResult]       = useState<IsochroneResultDto | null>(null);
 
-  const { token, apiFetch, roles, permissions, hasPermission, userId } = useAuth();
+  const { token, apiFetch, permissions, hasPermission, userId } = useAuth();
 
   const isPlainUser = !(hasPermission("point_create") || hasPermission("line_create") || hasPermission("polygon_create"));
   const canReadAnnotation = hasPermission("annotation_read");
@@ -585,9 +585,9 @@ export function DashboardPage() {
         map={map}
         apiFetch={apiFetch}
         userLookup={userLookup}
-        roles={roles}
+        permissions={permissions}
         userId={userId}
-        isPlainUser={isPlainUser}
+        canRead={hasPermission("transit_stop_read")}
         otherFlowsIdle={!analysisActive && activeType === null && !heatmapActive && !poiFlowActive}
         drawActive={stopDrawActive}
         onDrawActiveChange={setStopDrawActive}

@@ -36,9 +36,9 @@ interface TransitModuleProps {
   map:                    OlMap | null;
   apiFetch:               ApiFetch;
   userLookup:             Map<number, UserLookupEntry>;
-  roles:                  string[];
+  permissions:            string[];
   userId:                 number | null;
-  isPlainUser:            boolean;
+  canRead:                boolean;
   otherFlowsIdle:         boolean;
   drawActive:             boolean;
   onDrawActiveChange:     (active: boolean) => void;
@@ -49,7 +49,7 @@ interface TransitModuleProps {
 }
 
 export function TransitModule({
-  map, apiFetch, userLookup, roles, userId, isPlainUser,
+  map, apiFetch, userLookup, permissions, userId, canRead,
   otherFlowsIdle, drawActive, onDrawActiveChange, onFormOpenChange, onToast,
   routeManagementOpen, onRouteManagementClose,
 }: TransitModuleProps) {
@@ -206,7 +206,7 @@ export function TransitModule({
   const { selected: stopClickSelected, clear: clearStopSelected } = useTransitStopClick({
     map,
     stopLayer: stopLayerRef.current,
-    enabled:   otherFlowsIdle && !flowActive && !isPlainUser,
+    enabled:   otherFlowsIdle && !flowActive && canRead,
   });
 
   useEffect(() => {
@@ -268,8 +268,8 @@ export function TransitModule({
 
   const canManageSelectedStop =
     !!stopSelectedFeature &&
-    (roles.includes("Admin") ||
-      (roles.includes("Ulaşım Operatörü") && stopSelectedFeature.get("stopUserId") === userId));
+    (permissions.includes("admin_access") ||
+      (permissions.includes("transit_stop_create") && stopSelectedFeature.get("stopUserId") === userId));
 
   return (
     <>
@@ -284,7 +284,7 @@ export function TransitModule({
         />
       )}
 
-      {!isPlainUser && stopSelectedFeature && (
+      {canRead && stopSelectedFeature && (
         <StopInfoPopup
           feature={stopSelectedFeature}
           routes={transitRoutes}

@@ -37,6 +37,7 @@ Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not 
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
 7. Before committing, run the `code-reviewer` agent on the changes and fix any BLOCKER.
 8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
+9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests (once BackendApi.Tests exists, see todo T1).
 
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)

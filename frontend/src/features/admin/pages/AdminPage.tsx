@@ -9,6 +9,7 @@ import { PoiManagement } from "./PoiManagement";
 import { CompanyUserManagement } from "./CompanyUserManagement";
 import { TransitManagement } from "./TransitManagement";
 import { CompanyManagement } from "./CompanyManagement";
+import { FLEET_ENABLED } from "../../../shared/featureFlags";
 
 
 export function AdminPage() {
@@ -28,7 +29,7 @@ export function AdminPage() {
     { to: "/admin/geo",   label: "Coğrafi Yetkiler"   },
     { to: "/admin/poi",   label: "POI Yönetimi"       },
     { to: "/admin/transit", label: "Ulaşım Yönetimi"  },
-    { to: "/admin/company", label: "Hizmet Yönetimi"  },
+    ...(FLEET_ENABLED ? [{ to: "/admin/company", label: "Hizmet Yönetimi" }] : []),
   ];
 
   return (
@@ -132,7 +133,7 @@ export function AdminPage() {
           <Route path="geo"   element={<GeoPermissionPage />} />
           <Route path="poi" element={<PoiManagement />} />
           <Route path="transit" element={<TransitManagement />} />
-          <Route path="company" element={<CompanyManagement />} />
+          {FLEET_ENABLED && <Route path="company" element={<CompanyManagement />} />}
         </Routes>
       </main>
     </div>

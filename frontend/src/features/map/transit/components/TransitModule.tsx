@@ -27,6 +27,7 @@ import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { createRouteSimulationConnection } from "../../../../shared/api/signalR";
 import { RouteInfoPopup } from "./RouteInfoPopup";
 import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
+import { FLEET_ENABLED } from "../../../../shared/featureFlags";
 
 
 type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
@@ -125,11 +126,11 @@ export function TransitModule({
   } = useRouteSimulation(connectionRef.current, apiFetch);
 
   const { selected: vehicleSelected, clear: clearVehicleSelected } = useVehicleClick({
-    map, vehicleLayer, enabled: otherFlowsIdle && !flowActive,
+    map, vehicleLayer, enabled: FLEET_ENABLED && otherFlowsIdle && !flowActive,
   });
 
   const { selected: routeSelected, clear: clearRouteSelected } = useTransitRouteClick({
-    map, routeLineLayer, enabled: otherFlowsIdle && !flowActive,
+    map, routeLineLayer, enabled: FLEET_ENABLED && otherFlowsIdle && !flowActive,
   });
 
 

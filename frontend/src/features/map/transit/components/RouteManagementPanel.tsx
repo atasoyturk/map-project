@@ -14,6 +14,7 @@ import { buildRouteStyle } from "../../../../utils/mapStyle";
 import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
 import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../../company/types";
 import type { VehicleActionResult } from "../hooks/useRouteSimulation";
+import { FLEET_ENABLED } from "../../../../shared/featureFlags";
 
 type FilterMode = "" | "unassigned";
 
@@ -158,7 +159,7 @@ export function RouteManagementPanel({
   async function toggleExpand(routeId: number) {
     if (expandedId === routeId) { setExpandedId(null); return; }
     setExpandedId(routeId);
-    await Promise.all([loadDetail(routeId), loadShipmentData(routeId)]);
+    await Promise.all([loadDetail(routeId), FLEET_ENABLED && loadShipmentData(routeId)]);
   }
 
   async function loadShipmentData(routeId: number) {
@@ -261,6 +262,7 @@ export function RouteManagementPanel({
   }
 
   useEffect(() => {
+    if (!FLEET_ENABLED) return;
     (async () => {
       try {
         const [catRes, compRes] = await Promise.all([
@@ -343,8 +345,8 @@ export function RouteManagementPanel({
     }
   }
 
-  const visibleRoutes = filteredRouteIds
-    ? routes.filter((r) => filteredRouteIds.has(r.id))
+  const visibleRoutes = !FLEET_ENABLED ? routes
+    : filteredRouteIds ? routes.filter((r) => filteredRouteIds.has(r.id))
     : [];
 
 
@@ -411,6 +413,7 @@ export function RouteManagementPanel({
         </button>
       </div>
 
+      {FLEET_ENABLED && (
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
         <select
           value={selectedCategoryId}
@@ -441,6 +444,7 @@ export function RouteManagementPanel({
           <option value="unassigned">— Atanmamış —</option>
         </select>
       </div>
+      )}
 
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
         <input
@@ -481,13 +485,13 @@ export function RouteManagementPanel({
           <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
             Yükleniyor...
           </p>
-        ) : selectedCategoryId === "" && selectedCompanyId === "" ? (
+        ) : FLEET_ENABLED && selectedCategoryId === "" && selectedCompanyId === "" ? (
           <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
             Güzergahları görüntülemek için bir kategori veya şirket seçin.
           </p>
         ) : visibleRoutes.length === 0 ? (
           <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>
-            Bu filtreye uyan güzergah yok.
+            {FLEET_ENABLED ? "Bu filtreye uyan güzergah yok." : "Henüz güzergah yok."}
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -611,7 +615,7 @@ export function RouteManagementPanel({
                         </button>
                       </div>
 
-                      {route.routeWktGeometry && (
+                      {FLEET_ENABLED && route.routeWktGeometry && (
                         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: 12, paddingTop: 10 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", letterSpacing: ".5px" }}>
                             SEVKİYAT

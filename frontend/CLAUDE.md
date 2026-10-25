@@ -24,10 +24,12 @@ Lint with `npm run lint` (oxlint). Build with `npm run build` (runs `tsc -b`, so
   Some older components use inline `style={{...}}` objects — don't convert them unasked.
 - UI text is in Turkish.
 - Frontend permission checks are only for UX; the backend is the real security check.
-- Do not add new role-name checks (`roles.includes("...")`) — the role set will be simplified (see todo_gis.txt vision).
-  Until permissions reach the frontend (todo item 1), reuse the existing flags (e.g. `canManagePoi`) instead of writing new role checks.
+- Show/hide UI by permission: `const { hasPermission } = useAuth(); hasPermission("poi_create")`. Admin: `hasPermission("admin_access")`.
+  Never add role-name checks (`roles.includes("...")`) — the role set will be simplified. Remaining old role checks
+  (backend `roles.Contains("Admin")` ownership checks and the admin panel) are a known todo item (A3); don't fix them unasked.
 - POI icons: do not add IDs to the hardcoded category ID sets in `usePoiLoader.ts`; a per-category icon field is planned (see todo).
 
 ## Out of product scope
 - `features/company` and the fleet parts of transit (vehicles, shipments, live simulation) are kept but out of scope —
   do not extend or refactor unless asked. Transit stops, trip planning and isochrone ARE in scope.
+- Fleet UI is hidden with `FLEET_ENABLED` in `src/shared/featureFlags.ts`. Gate any fleet-related UI with it; never delete fleet code.

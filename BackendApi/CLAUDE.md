@@ -23,6 +23,9 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   A new permission needs: seed entry in `AppDbContext`, policy in `Program.cs`, and role mapping — **ask first**.
 - Seeded roles: Admin, Çalışan, Stajyer, Takım Lideri, POI Operatörü, Kullanıcı, Ulaşım Operatörü.
 - New code must authorize by permission (or `admin_access`), never by role name — the role set will be simplified (see todo_gis.txt vision).
+- JWT carries the user's effective permissions as `permission` claims, plus a separate `admin_access` claim
+  (`"true"`) for admins; built in `JwtTokenService`, issued at login.
+  Permission changes take effect after the user logs in again.
 - Geographic limits: create/update of drawn features, POIs, stops and annotations must check
   `IGeoPermissionService.IsWithinBoundaryAsync` / `EnsureWithinBoundaryAsync`.
   Admins (`admin_access`, passed as `HasAdminAccess()`) are exempt; the exemption lives only in `GeoPermissionService` — do not add

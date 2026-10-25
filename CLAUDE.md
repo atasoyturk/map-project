@@ -5,7 +5,7 @@ real-time vehicle simulation, trip planning, isochrone and location analysis, RB
 
 **Product direction:** site-selection / location-analysis platform ("where should a chain open its next branch?").
 The fleet module (companies, vehicles, shipments, live simulation) is out of scope: kept, hidden, not extended.
-Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not in git — read it before planning a feature).
+Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not in git — read it before planning a feature). Deployment model: one separate installation per customer (single-tenant). Do not add TenantId or multi-customer logic.
 
 ## Repo layout
 - `BackendApi/` — ASP.NET Core 8 Web API (details: `BackendApi/CLAUDE.md`)
@@ -35,7 +35,8 @@ Full vision and priorities: `todo_gis.txt` → ÜRÜN VİZYONU (local file, not 
 4. **Verify.** Define how the change will be checked (build, test, or manual steps in the browser) and report the result.
 5. For non-trivial tasks, propose a short plan first and wait for approval.
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
-7. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
+7. Before committing, run the `code-reviewer` agent on the changes and fix any BLOCKER.
+8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
 
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)

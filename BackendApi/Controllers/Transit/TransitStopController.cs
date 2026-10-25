@@ -53,7 +53,7 @@ public sealed class TransitStopController : ApiControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        var result = await _service.DeleteAsync(id, userId.Value);
+        var result = await _service.DeleteAsync(id, userId.Value, HasAdminAccess());
         return result ? NoContent() : NotFound();
     }
 }

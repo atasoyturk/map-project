@@ -56,7 +56,7 @@ public sealed class PoiService : IPoiService
             throw new ArgumentException("Geçersiz kategori.");
 
         var entity = await _context.Pois
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && (p.UserId == userId || hasAdminAccess) && !p.IsDeleted);
         if (entity is null) return null;
 
         entity.Name           = request.Name;
@@ -70,10 +70,10 @@ public sealed class PoiService : IPoiService
         return ToDto(entity);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId)
+    public async Task<bool> DeleteAsync(int id, int userId, bool hasAdminAccess)
     {
         var entity = await _context.Pois
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && (p.UserId == userId || hasAdminAccess) && !p.IsDeleted);
         if (entity is null) return false;
 
         entity.IsDeleted      = true;

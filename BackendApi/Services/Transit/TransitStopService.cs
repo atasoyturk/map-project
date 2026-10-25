@@ -65,7 +65,7 @@ public sealed class TransitStopService : ITransitStopService
             throw new ArgumentException("Geçersiz güzergah.");
 
         var entity = await _context.TransitStops
-            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == id && (s.UserId == userId || hasAdminAccess) && !s.IsDeleted);
         if (entity is null) return null;
 
         var oldRouteId = entity.TransitRouteId;
@@ -85,10 +85,10 @@ public sealed class TransitStopService : ITransitStopService
         return ToDto(entity);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId)
+    public async Task<bool> DeleteAsync(int id, int userId, bool hasAdminAccess)
     {
         var entity = await _context.TransitStops
-            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == id && (s.UserId == userId || hasAdminAccess) && !s.IsDeleted);
         if (entity is null) return false;
 
         entity.SoftDelete(userId);

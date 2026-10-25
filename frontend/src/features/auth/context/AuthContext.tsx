@@ -13,11 +13,14 @@ interface TokenPayload {
   email: string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
   team_id?: string;
+  permission?: string | string[];
 }
 
 interface AuthContextValue {
   token:    string | null;
   roles:    string[];
+  permissions:   string[];
+  hasPermission: (name: string) => boolean;
   teamId:   number | null;
   userId:   number | null;
   login:    (token: string) => void;
@@ -32,6 +35,17 @@ function getRoles(token: string | null): string[] {
   try {
     const payload = jwtDecode<TokenPayload>(token);
     const raw = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+    if (!raw) return [];
+    return Array.isArray(raw) ? raw : [raw];
+  } catch {
+    return [];
+  }
+}
+
+function getPermissions(token: string | null): string[] {
+  if (!token) return [];
+  try {
+    const raw = jwtDecode<TokenPayload>(token).permission;
     if (!raw) return [];
     return Array.isArray(raw) ? raw : [raw];
   } catch {
@@ -69,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const roles  = getRoles(token);
+  const permissions = getPermissions(token);
   const teamId = getTeamId(token);
   const userId = getUserId(token);
 
@@ -84,8 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const apiFetch = useMemo(() => createApiFetch(logout), []);
 
+  function hasPermission(name: string): boolean {
+    return permissions.includes(name);
+  }
+
   return (
-    <AuthContext.Provider value={{ token, roles, teamId, userId, login, logout, apiFetch }}>
+    <AuthContext.Provider value={{ token, roles, permissions, hasPermission, teamId, userId, login, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

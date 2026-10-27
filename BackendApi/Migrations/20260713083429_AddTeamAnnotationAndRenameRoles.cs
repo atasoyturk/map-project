@@ -119,6 +119,7 @@ namespace BackendApi.Migrations
                 columns: new[] { "Id", "CreatedDate", "IsActive", "IsDeleted", "ModifiedDate", "ModifiedUserId", "Name" },
                 values: new object[,]
                 {
+                    { 3, new DateTime(2026, 7, 13, 8, 34, 29, 447, DateTimeKind.Utc).AddTicks(8940), true, false, new DateTime(2026, 7, 13, 8, 34, 29, 447, DateTimeKind.Utc).AddTicks(8940), null, "Stajyer" },
                     { 4, new DateTime(2026, 7, 13, 8, 34, 29, 447, DateTimeKind.Utc).AddTicks(8941), true, false, new DateTime(2026, 7, 13, 8, 34, 29, 447, DateTimeKind.Utc).AddTicks(8942), null, "Takım Lideri" }
                 });
 
@@ -162,6 +163,11 @@ namespace BackendApi.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_Users_TeamId",
                 table: "Users");
+
+            migrationBuilder.DeleteData(
+                table: "Roles",
+                keyColumn: "Id",
+                keyValue: 3);
 
             migrationBuilder.DeleteData(
                 table: "Roles",

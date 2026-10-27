@@ -30,8 +30,7 @@ public sealed class ApiFixture : IAsyncLifetime
         using (var scope = Factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            // EnsureCreated, not Migrate: the migration chain cannot build a fresh DB yet (task E9).
-            await db.Database.EnsureCreatedAsync();
+            await db.Database.MigrateAsync();
         }
 
         await using var connection = new NpgsqlConnection(_container.GetConnectionString());

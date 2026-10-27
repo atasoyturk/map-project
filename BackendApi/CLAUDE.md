@@ -34,6 +34,13 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
 - GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist. User-data layers get a CQL filter; shared layers (`tbl_poi_active`, `tbl_transit_stop_active`) are currently unfiltered.
 
+## Tests
+- `BackendApi.Tests/` (repo root, xUnit): integration tests through HTTP against a real PostGIS container (Testcontainers, `postgis/postgis:18-3.6`).
+- `Infrastructure/ApiFixture` starts one container + `ApiFactory` (WebApplicationFactory) per run; schema via `EnsureCreated` (migrations cannot build a fresh DB yet, task E9). Respawn resets data before each test; seed tables are kept.
+- `ApiFactory` uses the `Testing` environment (no user-secrets), a test JWT key, the container connection string and `FakeOsrmService`.
+- New test classes inherit `ApiTestBase` (`CreateUserAsync(roleIds, directPermissions)` returns a logged-in client).
+- Run: `dotnet test BackendApi.Tests` (Docker must be running).
+
 ## Errors
 - Throw, don't return error codes from services. `GlobalExceptionHandler` maps:
   `ArgumentException`→400, `UnauthorizedAccessException`→403, `KeyNotFoundException`→404, `InvalidOperationException`→409, others→500.

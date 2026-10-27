@@ -25,7 +25,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - GeoServer: `docker start geoserver` (no compose file in the repo)
 - Context dump: `scripts/context.ps1` (repomix → `artifacts/`)
 - After any change, run the build of the side you changed. Do not finish a task with a failing build.
-<!-- TODO (Ata): add test command once tests exist -->
+- Backend tests: `dotnet test BackendApi.Tests` (needs Docker running; see `BackendApi/CLAUDE.md` → Tests)
 
 ## How to work (always follow)
 1. **Think before coding.** State assumptions. If something is unclear or has several interpretations, ask before writing code.

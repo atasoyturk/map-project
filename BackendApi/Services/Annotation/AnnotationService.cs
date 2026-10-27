@@ -50,16 +50,10 @@ public sealed class AnnotationService : IAnnotationService
         return entities.Select(ToDto);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId, IEnumerable<string> roles)
+    public async Task<bool> DeleteAsync(int id, int userId, bool hasAdminAccess)
     {
-        var isAdmin = roles.Contains("Admin");
-        Console.WriteLine($"Silinecek ID: {id}");
-        Console.WriteLine($"Giriş yapan UserId: {userId}");
-        Console.WriteLine($"Roller: {string.Join(",", roles)}");
-        Console.WriteLine($"Admin mi: {isAdmin}");
-        
         var entity = await _context.Annotations
-            .FirstOrDefaultAsync(a => (isAdmin || a.UserId == userId) && a.Id == id && !a.IsDeleted);
+            .FirstOrDefaultAsync(a => (hasAdminAccess || a.UserId == userId) && a.Id == id && !a.IsDeleted);
 
         if (entity is null) return false;
 

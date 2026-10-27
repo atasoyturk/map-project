@@ -29,7 +29,9 @@ public sealed class AdminService : IAdminService
                 u.IsActive,
                 u.UserRoles.Select(ur => ur.Role.Name),
                 u.TeamId,
-                t != null ? t.Name : null))
+                t != null ? t.Name : null,
+                u.UserRoles.Any(ur => ur.Role.RolePermissions.Any(rp => rp.Permission.Name == "admin_access")) ||
+                u.UserPermissions.Any(up => up.Permission.Name == "admin_access")))
             .ToListAsync();
     
     public async Task<IList<TeamDto>> GetAllTeamsAsync() =>
@@ -99,7 +101,7 @@ public sealed class AdminService : IAdminService
 
     public async Task<IList<RoleDto>> GetAllRolesAsync() =>
     await _context.Roles
-        .Select(r => new RoleDto(r.Id, r.Name))
+        .Select(r => new RoleDto(r.Id, r.Name, r.RolePermissions.Any(rp => rp.Permission.Name == "admin_access")))
         .ToListAsync();
 
     public async Task<bool> AssignPermissionToUserAsync(int userId, int permissionId)
@@ -131,7 +133,7 @@ public sealed class AdminService : IAdminService
         var role = new Role { Name = name };
         _context.Roles.Add(role);
         await _context.SaveChangesAsync();
-        return new RoleDto(role.Id, role.Name);
+        return new RoleDto(role.Id, role.Name, false);
     }
 
     public async Task<TeamDto> CreateTeamAsync(string name)

@@ -42,7 +42,7 @@ public sealed class AnnotationController : ApiControllerBase
        var userId = GetUserId(); 
        if (userId is null) return Unauthorized();
 
-       var success = await _annotationService.DeleteAsync(id, userId.Value, GetUserRoles());
+       var success = await _annotationService.DeleteAsync(id, userId.Value, HasAdminAccess());
        return success ? NoContent() : NotFound();
     }
 

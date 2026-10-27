@@ -5,6 +5,7 @@ import { RoleGeoPermissionModal } from "../components/RoleGeoPermissionModal";
 interface RoleDto {
   id:   number;
   name: string;
+  hasAdminAccess: boolean;
 }
 
 export function RoleManagement() {
@@ -145,7 +146,7 @@ export function RoleManagement() {
                         >
                           Sil
                         </button>
-                        {role.name !== "Admin" && (
+                        {!role.hasAdminAccess && (
                         <button
                           onClick={() => {
                             setGeoRoleId(role.id);

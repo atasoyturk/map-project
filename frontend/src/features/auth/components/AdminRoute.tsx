@@ -7,10 +7,10 @@ interface AdminRouteProps {
 }
 
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { token, roles } = useAuth();
+  const { token, hasPermission } = useAuth();
 
   if (!token)                    return <Navigate to="/login"     replace />;
-  if (!roles.includes("Admin"))  return <Navigate to="/dashboard" replace />;
+  if (!hasPermission("admin_access")) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 }

@@ -25,4 +25,4 @@ public interface IAdminService
 
 }
 
-public sealed record RoleDto(int Id, string Name);
+public sealed record RoleDto(int Id, string Name, bool HasAdminAccess);

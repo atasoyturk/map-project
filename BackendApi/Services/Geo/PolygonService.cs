@@ -57,13 +57,12 @@ public sealed class PolygonService : IPolygonService
     public async Task<PolygonResponseDto?> UpdateAsync(int id, GeoRequestDto request, int userId, IEnumerable<string> roles, bool hasAdminAccess)
     {
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-        var isAdmin = roles.Contains("Admin");
 
         if (!await _geoPermissionService.IsWithinBoundaryAsync(userId, roles, hasAdminAccess, geometry))
             throw new UnauthorizedAccessException("Bu alana çizim yapma yetkiniz bulunmamaktadır");
 
         var entity = await _context.Polygons
-            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (hasAdminAccess || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         if (entity is null) return null;
 
@@ -78,11 +77,10 @@ public sealed class PolygonService : IPolygonService
         return ToDto(entity);
     }
 
-    public async Task<bool> DeleteAsync(int id, int userId, IEnumerable<string> roles)
+    public async Task<bool> DeleteAsync(int id, int userId, bool hasAdminAccess)
     {
-        var isAdmin = roles.Contains("Admin");
         var entity = await _context.Polygons
-            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (hasAdminAccess || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         if (entity is null) return false;
 
@@ -93,11 +91,10 @@ public sealed class PolygonService : IPolygonService
         return true;
     }
 
-    public async Task<PolygonResponseDto?> GetByIdAsync(int id, int userId, IEnumerable<string> roles)
+    public async Task<PolygonResponseDto?> GetByIdAsync(int id, int userId, bool hasAdminAccess)
     {
-        var isAdmin = roles.Contains("Admin");
         var entity = await _context.Polygons
-            .FirstOrDefaultAsync(p => (isAdmin || p.UserId == userId) && p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => (hasAdminAccess || p.UserId == userId) && p.Id == id && !p.IsDeleted);
 
         return entity is null ? null : ToDto(entity);
     }

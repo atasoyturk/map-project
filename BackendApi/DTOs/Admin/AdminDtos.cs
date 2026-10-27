@@ -8,7 +8,8 @@ public sealed record UserListDto(
     bool   IsActive,
     IEnumerable<string> Roles,
     int?   TeamId,
-    string? TeamName);
+    string? TeamName,
+    bool   HasAdminAccess);
 
 public sealed record AssignRoleDto(
     [Required] int RoleId);

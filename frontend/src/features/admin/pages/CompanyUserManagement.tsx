@@ -10,6 +10,7 @@ interface UserDto {
   roles:    string[];
   teamId:   number | null;
   teamName: string | null;
+  hasAdminAccess: boolean;
 }
 
 const thStyle: React.CSSProperties = {
@@ -90,7 +91,7 @@ export function CompanyUserManagement() {
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      {!user.roles.includes("Admin") && (
+                      {!user.hasAdminAccess && (
                       <button
                         onClick={() => {
                           setGeoUserId(user.id);

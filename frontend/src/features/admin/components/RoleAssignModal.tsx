@@ -5,6 +5,7 @@ import { getRoles, assignRoleToUser, removeRoleFromUser } from "../api/roleServi
 interface RoleDto {
   id:   number;
   name: string;
+  hasAdminAccess: boolean;
 }
 
 interface RoleAssignModalProps {
@@ -78,7 +79,7 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {allRoles
-              .filter(role => role.name !== "Admin")
+              .filter(role => !role.hasAdminAccess)
               .map((role) => {
               const hasRole = currentRoles.includes(role.name);
               return (

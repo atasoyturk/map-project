@@ -12,6 +12,7 @@ namespace BackendApi.Tests.Infrastructure;
 public static class Roles
 {
     public const int Admin            = 1;
+    public const int Intern           = 3;
     public const int PoiOperator      = 5;
     public const int BasicUser        = 6;
     public const int TransitOperator  = 7;

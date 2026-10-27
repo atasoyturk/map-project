@@ -13,6 +13,7 @@ interface UserDto {
   roles:    string[];
   teamId:   number | null;
   teamName: string | null;
+  hasAdminAccess: boolean;
 }
 
 export function UserManagement() {
@@ -152,7 +153,7 @@ export function UserManagement() {
                         >
                           {user.isActive ? "Pasif Yap" : "Aktif Yap"}
                         </button>
-                      {!user.roles.includes("Admin") && (
+                      {!user.hasAdminAccess && (
                         <button
                           onClick={() => {
                             setRoleUserId(user.id);
@@ -186,7 +187,7 @@ export function UserManagement() {
                           Yetkiler
                         </button>
 
-                      {!user.roles.includes("Admin") && (
+                      {!user.hasAdminAccess && (
                         <button
                         onClick={() => {
                           setGeoUserId(user.id);

@@ -36,7 +36,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 ## 4. Verify
 - Run the build of every side you touched (`dotnet build`, `npm run build`), `npm run lint` for frontend,
   and `dotnet test` if tests exist. Fix failures caused by your change.
-- Run the `code-reviewer` agent. Fix every BLOCKER and every in-scope SHOULD FIX, then run it once more.
+- Run the `code-reviewer` agent. Fix every BLOCKER and every in-scope SHOULD FIX, Re-run it only if you changed code after the   first review.
 
 ## 5. Report (gate 2 — wait for the user)
 Reply in Turkish, max 5 lines plus a short test list:

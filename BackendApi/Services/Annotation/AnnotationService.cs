@@ -43,8 +43,18 @@ public sealed class AnnotationService : IAnnotationService
     {
         IQueryable<AnnotationEntity> query = _context.Annotations.Where(a => !a.IsDeleted);
 
+        // Non-admins see their own notes, their team's notes and notes by authors who currently have admin_access.
         if (!isAdmin)
-            query = query.Where(a => a.TeamId == null || a.TeamId == teamId);
+        {
+            var adminAuthorIds = _context.Users
+                .Where(u => u.UserRoles.Any(ur => ur.Role.RolePermissions.Any(rp => rp.Permission.Name == "admin_access")) ||
+                            u.UserPermissions.Any(up => up.Permission.Name == "admin_access"))
+                .Select(u => u.Id);
+
+            query = query.Where(a => a.UserId == userId ||
+                                     (teamId != null && a.TeamId == teamId) ||
+                                     adminAuthorIds.Contains(a.UserId));
+        }
 
         var entities = await query.ToListAsync();
         return entities.Select(ToDto);

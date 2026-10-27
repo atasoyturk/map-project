@@ -41,17 +41,18 @@ public abstract class ApiTestBase : IAsyncLifetime
         await action(db);
     }
 
-    // Creates a user with the given roles and/or direct permissions, logs in, returns an authenticated client.
+    // Creates a user with the given roles, direct permissions and team, logs in, returns an authenticated client.
     protected async Task<(int UserId, HttpClient Client)> CreateUserAsync(
         int[]     roleIds,
-        string[]? directPermissions = null)
+        string[]? directPermissions = null,
+        int?      teamId            = null)
     {
         var email = $"user{Interlocked.Increment(ref _userCounter)}@test.local";
         var userId = 0;
 
         await WithDbAsync(async db =>
         {
-            var user = new User { Email = email, PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password, workFactor: 4) };
+            var user = new User { Email = email, PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password, workFactor: 4), TeamId = teamId };
             db.Users.Add(user);
             await db.SaveChangesAsync();
             userId = user.Id;

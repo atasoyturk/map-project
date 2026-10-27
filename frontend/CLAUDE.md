@@ -25,8 +25,9 @@ Lint with `npm run lint` (oxlint). Build with `npm run build` (runs `tsc -b`, so
 - UI text is in Turkish.
 - Frontend permission checks are only for UX; the backend is the real security check.
 - Show/hide UI by permission: `const { hasPermission } = useAuth(); hasPermission("poi_create")`. Admin: `hasPermission("admin_access")`.
-  Never add role-name checks (`roles.includes("...")`) — the role set will be simplified. Remaining old role checks
-  (backend `roles.Contains("Admin")` ownership checks and the admin panel) are a known task (A3 in `planning/tasks.json`); don't fix them unasked.
+  Never add role-name checks (`roles.includes("...")`) — the role set will be simplified. For another user's or role's
+  admin status (admin panel lists), use the `hasAdminAccess` field the admin API returns. The remaining "Kullanıcı"
+  role-name filters are known (D2 in `planning/tasks.json`); don't fix them unasked.
 - POI icons: do not add IDs to the hardcoded category ID sets in `usePoiLoader.ts`; a per-category icon field is planned (see task B1).
 
 ## Out of product scope

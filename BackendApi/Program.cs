@@ -196,3 +196,6 @@ app.MapControllers();
 app.MapHub<RouteSimulationHub>("/hubs/route-simulation");
 
 app.Run();
+
+// Exposed for WebApplicationFactory in BackendApi.Tests.
+public partial class Program {}

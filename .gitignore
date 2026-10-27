@@ -1,5 +1,7 @@
 # to-do list
 todo_gis.txt
+# planning notes (strategy, security)
+planning/
 # dotenv files
 .env
 

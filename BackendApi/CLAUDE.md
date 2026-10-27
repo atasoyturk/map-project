@@ -22,7 +22,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Endpoint permissions: `[RequirePermission("permission_name")]`.
   A new permission needs: seed entry in `AppDbContext`, policy in `Program.cs`, and role mapping — **ask first**.
 - Seeded roles: Admin, Çalışan, Stajyer, Takım Lideri, POI Operatörü, Kullanıcı, Ulaşım Operatörü.
-- New code must authorize by permission (or `admin_access`), never by role name — the role set will be simplified (see todo_gis.txt vision).
+- New code must authorize by permission (or `admin_access`), never by role name — the role set will be simplified (see `planning/vision.md`).
 - JWT carries the user's effective permissions as `permission` claims, plus a separate `admin_access` claim
   (`"true"`) for admins; built in `JwtTokenService`, issued at login.
   Permission changes take effect after the user logs in again.

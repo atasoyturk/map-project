@@ -1,34 +1,37 @@
 ---
 name: next
-description: Runs the AtaGIS work loop for one todo item — pick the item from todo_gis.txt, plan, implement, verify, review, commit. Use when the user types /next or /next <ITEM-CODE> (e.g. /next A2).
+description: Runs the AtaGIS work loop for one task — pick it from planning/tasks.json, plan, implement, verify, review, commit. Use when the user types /next or /next <TASK-ID> (e.g. /next T1).
 ---
 
-# /next — one todo item, start to finish
+# /next — one task, start to finish
 
 The user is the decision-maker and the browser tester. Everything else is your job.
-Talk to the user in **Turkish**, briefly. Code, commits and file contents stay in English (UI text in Turkish).
+Talk to the user in **Turkish**, briefly. Code, commits and planning files stay in English (UI text in Turkish).
 
-## 1. Pick the item
-- If an item code is given (e.g. `A2`), use it. Otherwise take the first unchecked `- [ ]` item in file order,
-  skipping the sections KOD DIŞI, FIRSATÇI TEMİZLİK and YAPILMAYACAK.
-- Read only: the ÜRÜN VİZYONU section and that item in `todo_gis.txt`. Do not read the rest.
-- Check its ÖNKOŞUL. If a prerequisite is not in "Tamamlananlar", stop and tell the user which one blocks it.
+## 1. Pick the task
+- Read `planning/tasks.json` (small index). If a task id is given, use it. Otherwise take the first task in
+  array order with `status: "todo"` whose `requires` are all `"done"`.
+- If the given task has unmet `requires`, stop and tell the user which task blocks it.
+- Read only that task's file (`planning/tasks/<id>.md`). Read `planning/vision.md` ONLY if the task involves a
+  product, UX or scope decision. Do not read `planning/backlog.md` unless the task points to it.
 - Make sure the working tree is clean and you are on `main`, then create a branch:
   `fix/<short-name>` for bugs, `feat/<short-name>` otherwise.
 
 ## 2. Plan (gate 1 — wait for the user)
-- Read only the files the item names, plus what you strictly need. No repo-wide scans.
-- For a bug: find the root cause first and state it in 1–2 lines.
+- Read only the files the task names, plus what you strictly need. No repo-wide scans.
+- For a bug: find the root cause first and state it in 1–2 lines. If you cannot reproduce or locate it,
+  ask the user targeted questions instead of guessing.
 - Reply with: the files you will change (one line each) and ONLY the decisions that are truly the user's:
   migration / schema / seed change, new package, auth or permission behaviour change, product or UX choice,
   anything that contradicts the vision. If there are none, say so.
 - Wait for the user's OK. Do not write code before it.
 
 ## 3. Implement
-- Follow all CLAUDE.md rules. Smallest change that completes the item.
+- Follow all CLAUDE.md rules. Smallest change that completes the task.
 - Backend bug fix or new backend logic: if `BackendApi.Tests` exists, write the failing test first, then the fix.
 - Before applying any migration: stop and ask the user to take a DB backup (pg_dump), then continue.
-- Problems you notice outside the item: do not fix them; add one line to the right section of `todo_gis.txt`.
+- Problems you notice outside the task: do not fix them; add one line to `planning/backlog.md`
+  (or a new task to `tasks.json` + `tasks/<id>.md` if it is clearly a separate piece of work — tell the user).
 
 ## 4. Verify
 - Run the build of every side you touched (`dotnet build`, `npm run build`), `npm run lint` for frontend,
@@ -45,13 +48,14 @@ Then wait. Do not commit until the user confirms the browser test passed.
 
 ## 6. Close
 After the user confirms:
-- Move the item to "Tamamlananlar" in `todo_gis.txt` as one line (`<CODE>. <what was done>`).
-- Commit with a short imperative English subject, no trailers. Split into 2–3 commits only if the change
+- In `planning/tasks.json` change only that task: `status: "done"`, `summary: "<one line>"`.
+  Delete `planning/tasks/<id>.md`. (planning/ is git-ignored; git history keeps the code record.)
+- Commit the code with a short imperative English subject, no trailers. Split into 2–3 commits only if the change
   has clearly separate logical parts.
 - `git checkout main`, merge the branch, delete the branch locally. Do not push; tell the user to push.
-- End with one line: the next item's code and title.
+- End with one line: the next eligible task's id and title.
 
 ## Stop and ask instead of guessing when
-- the item is ambiguous or has several reasonable interpretations,
-- the change grows beyond the item (more files or layers than planned),
+- the task is ambiguous or has several reasonable interpretations,
+- the change grows beyond the task (more files or layers than planned),
 - a decision listed in step 2 appears mid-work.

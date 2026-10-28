@@ -3,6 +3,7 @@
 ## Stack
 React 19 + TypeScript + Vite + Tailwind CSS + OpenLayers. Only `@turf/line-offset` is installed (no full Turf). SignalR client for live vehicles.
 Build/lint commands: see root CLAUDE.md (build runs `tsc -b`, so type errors fail the build).
+Use npm ≥ 11.19 (as in CI): older npm on Windows drops Linux-only optional entries (`@emnapi/*`) from `package-lock.json`, and CI's `npm ci` then fails.
 
 ## Folder structure (feature-based)
 - `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`).

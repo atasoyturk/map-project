@@ -6,6 +6,12 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Folders are grouped by domain: `Controllers/<Domain>`, `Services/<Domain>`, `DTOs/<Domain>`, `Entities/<Domain>`.
   Controller folder = service folder = DTO folder = namespace (per domain). Routes keep their existing names.
   Using another domain's DTOs or services is fine (e.g. Company → Transit DTOs, Analysis → IOsrmService); the rule is about where a file lives.
+  Exceptions (existing, keep as is):
+  - Routes named differently from their controller: `Geo/SearchController` → `api/drawings/search`,
+    `Analysis/ThematicMapController` → `api/thematic-map`,
+    `Geo/GeoController` → `api/point|line|polygon` (one controller over `PointService`/`LineService`/`PolygonService`).
+  - `Services/Permission` + `DTOs/Permission` have no controller; geo permissions live in `Geo`.
+  - `Entities/Common` (`BaseEntity`) and `Entities/Team` have no matching controller/service folder.
 - Controllers stay thin: read user info, call the service, map the result to an HTTP response. No business logic or DB access.
 - Controllers inherit `ApiControllerBase` (`[Authorize]`, `GetUserId()`, `GetTeamId()`, `GetUserRoles()`, `HasAdminAccess()`).
   Exception: `AuthController` (anonymous login/register) inherits `ControllerBase`.

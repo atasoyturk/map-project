@@ -40,7 +40,9 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   admin checks at call sites. A boundary cannot be assigned to an admin user or to a role with `admin_access` (403).
 - Data visibility uses `GeoViewMode` (Own / Team / All) resolved by `GeoViewModeResolver`.
   Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
-- GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist. User-data layers get a CQL filter; shared layers (`tbl_poi_active`, `tbl_transit_stop_active`) are currently unfiltered.
+- GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist. User-data layers get a CQL filter; shared layers (`tbl_poi_active`, `tbl_transit_stop_active`) are unfiltered on purpose:
+  POIs (mostly OSM-imported) and stops are shared reference data every user may see. Do not add a CQL filter for them.
+- OSM POI import (`POST api/poi/import-osm`, `admin_access`) skips the geo-boundary check: admins are exempt anyway.
 
 ## Tests
 - `BackendApi.Tests/` (repo root, xUnit): integration tests through HTTP against a real PostGIS container (Testcontainers, `postgis/postgis:18-3.6`).

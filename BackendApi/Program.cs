@@ -134,6 +134,8 @@ builder.Services.AddScoped<IGeoServerService, GeoServerService>();
 builder.Services.AddScoped<IAnnotationService, AnnotationService>();
 builder.Services.AddScoped<IPoiCategoryService, PoiCategoryService>();
 builder.Services.AddScoped<IPoiService,         PoiService>();
+builder.Services.AddScoped<IOsmImportService,   OsmImportService>();
+builder.Services.AddScoped<IOverpassClient,     OverpassClient>();
 builder.Services.AddScoped<IOsrmService, OsrmService>();
 builder.Services.AddScoped<ITransitRouteService, TransitRouteService>();
 builder.Services.AddScoped<ITransitStopService,  TransitStopService>();
@@ -173,6 +175,21 @@ builder.Services
 
 // HttpClient — OSRM routing service
 builder.Services.AddHttpClient("Osrm");
+
+// Overpass Settings
+builder.Services
+    .AddOptions<OverpassSettings>()
+    .Bind(builder.Configuration.GetSection("OverpassSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+// HttpClient — Overpass API (OSM POI import); waits a bit longer than the query's own [timeout]
+builder.Services.AddHttpClient("Overpass", (serviceProvider, client) =>
+{
+    var settings = serviceProvider.GetRequiredService<IOptions<OverpassSettings>>().Value;
+    client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds + 30);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("AtaGIS/1.0");
+});
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();

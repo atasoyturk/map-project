@@ -1,4 +1,5 @@
 using BackendApi.Data;
+using BackendApi.Services.Poi;
 using BackendApi.Services.Transit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -38,6 +39,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IOsrmService>();
             services.AddScoped<IOsrmService, FakeOsrmService>();
+
+            services.RemoveAll<IOverpassClient>();
+            services.AddSingleton<FakeOverpassClient>();
+            services.AddSingleton<IOverpassClient>(sp => sp.GetRequiredService<FakeOverpassClient>());
         });
     }
 }

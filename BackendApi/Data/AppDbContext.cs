@@ -215,7 +215,13 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
+        // Poi.OsmId — one row per OSM element; manual POIs have no OsmId
+        modelBuilder.Entity<Poi>()
+            .HasIndex(p => p.OsmId)
+            .IsUnique()
+            .HasFilter("\"OsmId\" IS NOT NULL");
+
         // TransitStop → TransitRoute
         modelBuilder.Entity<TransitStop>()
             .HasOne<TransitRoute>()

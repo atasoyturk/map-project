@@ -1086,6 +1086,10 @@ namespace BackendApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("OsmId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -1096,6 +1100,10 @@ namespace BackendApi.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("OsmId")
+                        .IsUnique()
+                        .HasFilter("\"OsmId\" IS NOT NULL");
 
                     b.HasIndex("UserId");
 

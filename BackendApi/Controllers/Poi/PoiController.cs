@@ -8,9 +8,14 @@ namespace BackendApi.Controllers.Poi;
 [Route("api/poi")]
 public sealed class PoiController : ApiControllerBase
 {
-    private readonly IPoiService _service;
+    private readonly IPoiService       _service;
+    private readonly IOsmImportService _osmImportService;
 
-    public PoiController(IPoiService service) => _service = service;
+    public PoiController(IPoiService service, IOsmImportService osmImportService)
+    {
+        _service          = service;
+        _osmImportService = osmImportService;
+    }
 
     [HttpGet]
     [RequirePermission("poi_read")]
@@ -33,6 +38,18 @@ public sealed class PoiController : ApiControllerBase
 
         var result = await _service.CreateAsync(request, userId.Value, GetUserRoles(), HasAdminAccess());
         return Created(string.Empty, result);
+    }
+
+    // One-off import for a bounded area; not meant to be called per request from the UI (Overpass usage limits).
+    [HttpPost("import-osm")]
+    [RequirePermission("admin_access")]
+    public async Task<IActionResult> ImportOsm([FromBody] OsmImportRequestDto request, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var (result, error) = await _osmImportService.ImportAsync(request, userId.Value, cancellationToken);
+        return error is null ? Ok(result) : StatusCode(502, error);
     }
 
     [HttpPut("{id:int}")]

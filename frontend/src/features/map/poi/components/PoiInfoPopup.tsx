@@ -6,7 +6,6 @@ import { flattenCategories, findCategoryPath, type CategoryTreeNode } from "../.
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updatePoi, deletePoi } from "../../../../shared/api/poiService";
-import { buildPoiStyle } from "../hooks/usePoiLoader";
 
 const wktFormat = new WKT();
 
@@ -60,7 +59,6 @@ export function PoiInfoPopup({ feature, categories, userLookup, canManage, onClo
       feature.set("poiName", name);
       feature.set("poiWorkingHours", workingHours);
       feature.set("poiCategoryId", categoryId);
-      feature.setStyle(buildPoiStyle(categoryId));
 
       setIsEditing(false);
       onUpdated();

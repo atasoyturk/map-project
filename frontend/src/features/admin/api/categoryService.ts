@@ -3,6 +3,7 @@ import type { ApiFetch } from "../../../shared/api/apiFetch";
 interface CategoryPayload {
   name:             string;
   parentCategoryId: number | null;
+  icon:             string | null;
 }
 
 export function createCategory(apiFetch: ApiFetch, data: CategoryPayload) {

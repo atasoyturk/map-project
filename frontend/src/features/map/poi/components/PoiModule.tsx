@@ -3,14 +3,14 @@ import OlMap from "ol/Map";
 import type Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import { usePoiLoader, poiToFeature } from "../hooks/usePoiLoader";
+import { usePoiLoader, poiToFeature, buildPoiStyle } from "../hooks/usePoiLoader";
 import { usePoiDraw } from "../hooks/usePoiDraw";
 import { usePoiClick } from "../hooks/usePoiClick";
 import { PoiFormModal } from "./PoiFormModal";
 import { PoiInfoPopup } from "./PoiInfoPopup";
 import { createPoi } from "../../../../shared/api/poiService";
 import type { PoiResponseDto, PendingPoi } from "../types";
-import type { CategoryTreeNode } from "../../../../shared/utils/categoryTree";
+import { buildCategoryIconMap, type CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
@@ -69,6 +69,12 @@ export function PoiModule({
       poiSourceRef.current.un("addfeature", handleSourceChange);
     };
   }, [map]);
+
+  // Categories load independently of the POIs, so the icon lookup lives in the layer style, not on each feature.
+  useEffect(() => {
+    const icons = buildCategoryIconMap(categories);
+    poiLayerRef.current?.setStyle((f) => buildPoiStyle(icons.get(f.get("poiCategoryId")) ?? null));
+  }, [map, categories]);
 
   usePoiLoader(map, poiSourceRef.current, apiFetch);
 

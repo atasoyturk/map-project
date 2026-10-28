@@ -18,6 +18,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
         {
             Name             = request.Name,
             ParentCategoryId = request.ParentCategoryId,
+            Icon             = NormalizeIcon(request.Icon),
         };
 
         _context.PoiCategories.Add(category);
@@ -38,6 +39,7 @@ public sealed class PoiCategoryService : IPoiCategoryService
 
         category.Name             = request.Name;
         category.ParentCategoryId = request.ParentCategoryId;
+        category.Icon             = NormalizeIcon(request.Icon);
         category.ModifiedDate     = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -95,12 +97,15 @@ public sealed class PoiCategoryService : IPoiCategoryService
 
         List<PoiCategoryTreeDto> Build(int? parentId) =>
             byParent[parentId]
-                .Select(c => new PoiCategoryTreeDto(c.Id, c.Name, Build(c.Id)))
+                .Select(c => new PoiCategoryTreeDto(c.Id, c.Name, c.Icon, Build(c.Id)))
                 .ToList();
 
         return Build(null);
     }
 
+    private static string? NormalizeIcon(string? icon) =>
+        string.IsNullOrWhiteSpace(icon) ? null : icon.Trim();
+
     private static PoiCategoryResponseDto ToDto(PoiCategory entity) =>
-        new(entity.Id, entity.Name, entity.ParentCategoryId);
+        new(entity.Id, entity.Name, entity.ParentCategoryId, entity.Icon);
 }

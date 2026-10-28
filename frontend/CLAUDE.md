@@ -28,14 +28,14 @@ Use npm ≥ 11.19 (as in CI): older npm on Windows drops Linux-only optional ent
 - Geometry is sent/received as WKT in EPSG:4326; the map view is EPSG:3857 — transform explicitly.
 - Strong typing: no new `any` (some old code has it — don't fix unasked). Shared types go in the feature's `types.ts`.
 - Styling with Tailwind classes in new code; follow the look of existing components.
-  New or touched modals use ui/*; no inline style.
+  Modals whose markup you change use ui/*; no inline style.
 - UI text is in Turkish.
 - Frontend permission checks are only for UX; the backend is the real security check.
 - Show/hide UI by permission: `const { hasPermission } = useAuth(); hasPermission("poi_create")`. Admin: `hasPermission("admin_access")`.
   Never add role-name checks (`roles.includes("...")`) — the role set will be simplified. For another user's or role's
   admin status (admin panel lists), use the `hasAdminAccess` field the admin API returns. The remaining "Kullanıcı"
   role-name filters are known (D2 in `planning/tasks.json`); don't fix them unasked.
-- POI icons: do not add IDs to the hardcoded category ID sets in `usePoiLoader.ts`; a per-category icon field is planned (see task B1).
+- POI icons come from the category `Icon` field (sub-categories inherit via `buildCategoryIconMap`); never key icons on category IDs.
 - Unit tests (Vitest): co-located `*.test.ts` next to the source; no globals/jsdom.
   When moving a file, move its test with it. E2E tests (later) go in `frontend/e2e/`.
 

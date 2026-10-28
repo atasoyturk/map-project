@@ -120,12 +120,42 @@ public static class SeedData
             new RolePermission { RoleId = 7, PermissionId = 12 }// transit_route_manage
         );
 
+        // Top-level categories carry the icon; sub-categories inherit it. Keep Id 2 (Restoran): tests use it.
         modelBuilder.Entity<PoiCategory>().HasData(
-            new PoiCategory { Id = 1, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Yeme İçme", ParentCategoryId = null },
-            new PoiCategory { Id = 2, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Restoran",  ParentCategoryId = 1    },
-            new PoiCategory { Id = 3, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Kafe",      ParentCategoryId = 1    },
-            new PoiCategory { Id = 4, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Turizm",    ParentCategoryId = null },
-            new PoiCategory { Id = 5, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Müze",      ParentCategoryId = 4    }
+            new PoiCategory { Id = 1,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Yeme İçme",        ParentCategoryId = null, Icon = "🍽️" },
+            new PoiCategory { Id = 2,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Restoran",         ParentCategoryId = 1    },
+            new PoiCategory { Id = 3,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Kafe",             ParentCategoryId = 1    },
+            new PoiCategory { Id = 4,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Fast Food",        ParentCategoryId = 1    },
+            new PoiCategory { Id = 5,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Sağlık",           ParentCategoryId = null, Icon = "🏥" },
+            new PoiCategory { Id = 6,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Hastane",          ParentCategoryId = 5    },
+            new PoiCategory { Id = 7,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Eczane",           ParentCategoryId = 5    },
+            new PoiCategory { Id = 8,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Klinik",           ParentCategoryId = 5    },
+            new PoiCategory { Id = 9,  CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Diş",              ParentCategoryId = 5    },
+            new PoiCategory { Id = 10, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Eğitim",           ParentCategoryId = null, Icon = "🎓" },
+            new PoiCategory { Id = 11, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Anaokulu",         ParentCategoryId = 10   },
+            new PoiCategory { Id = 12, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Okul",             ParentCategoryId = 10   },
+            new PoiCategory { Id = 13, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Üniversite",       ParentCategoryId = 10   },
+            new PoiCategory { Id = 14, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Kurs",             ParentCategoryId = 10   },
+            new PoiCategory { Id = 15, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Market/Perakende", ParentCategoryId = null, Icon = "🛒" },
+            new PoiCategory { Id = 16, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Süpermarket",      ParentCategoryId = 15   },
+            new PoiCategory { Id = 17, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Market/Bakkal",    ParentCategoryId = 15   },
+            new PoiCategory { Id = 18, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "AVM",              ParentCategoryId = 15   },
+            new PoiCategory { Id = 19, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Fırın",            ParentCategoryId = 15   },
+            new PoiCategory { Id = 20, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Finans",           ParentCategoryId = null, Icon = "🏦" },
+            new PoiCategory { Id = 21, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Banka",            ParentCategoryId = 20   },
+            new PoiCategory { Id = 22, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "ATM",              ParentCategoryId = 20   },
+            new PoiCategory { Id = 23, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Ulaşım",           ParentCategoryId = null, Icon = "🚉" },
+            new PoiCategory { Id = 24, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Raylı İstasyon",   ParentCategoryId = 23   },
+            new PoiCategory { Id = 25, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Otopark",          ParentCategoryId = 23   },
+            new PoiCategory { Id = 26, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Akaryakıt",        ParentCategoryId = 23   },
+            new PoiCategory { Id = 27, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Kamu",             ParentCategoryId = null, Icon = "🏛️" },
+            new PoiCategory { Id = 28, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Belediye",         ParentCategoryId = 27   },
+            new PoiCategory { Id = 29, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Karakol",          ParentCategoryId = 27   },
+            new PoiCategory { Id = 30, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Postane",          ParentCategoryId = 27   },
+            new PoiCategory { Id = 31, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "İbadet",           ParentCategoryId = null, Icon = "🕌" },
+            new PoiCategory { Id = 32, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Cami",             ParentCategoryId = 31   },
+            new PoiCategory { Id = 33, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Spor",             ParentCategoryId = null, Icon = "🏋️" },
+            new PoiCategory { Id = 34, CreatedDate = SeedDate, ModifiedDate = SeedDate, Name = "Spor Salonu",      ParentCategoryId = 33   }
         );
     }
 }

@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { flattenCategories, type CategoryTreeNode, type FlatCategoryRow } from "../../../shared/utils/categoryTree";
 import { createCategory, updateCategory } from "../api/categoryService";
+import { Modal }  from "../../../shared/components/ui/Modal";
+import { Button } from "../../../shared/components/ui/Button";
+import { Field }  from "../../../shared/components/ui/Field";
 
 interface CategoryFormModalProps {
   categories: CategoryTreeNode[];
@@ -24,6 +27,7 @@ function collectSubtreeIds(nodes: CategoryTreeNode[], targetId: number): Set<num
 export function CategoryFormModal({ categories, editTarget, onClose, onSaved }: CategoryFormModalProps) {
   const [name,     setName]     = useState(editTarget?.name ?? "");
   const [parentId, setParentId] = useState<number | "">(editTarget?.parentId ?? "");
+  const [icon,     setIcon]     = useState(editTarget?.icon ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error,    setError]    = useState<string | null>(null);
 
@@ -40,6 +44,7 @@ export function CategoryFormModal({ categories, editTarget, onClose, onSaved }: 
     const payload = {
       name:             name.trim(),
       parentCategoryId: parentId === "" ? null : parentId,
+      icon:             icon.trim() || null,
     };
 
     try {
@@ -61,92 +66,53 @@ export function CategoryFormModal({ categories, editTarget, onClose, onSaved }: 
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 3000,
-        background: "rgba(0,0,0,0.4)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#ffffff", borderRadius: 16,
-          padding: "28px 32px", width: 380,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "0 0 20px" }}>
-          {editTarget ? "Kategoriyi Düzenle" : "Yeni Kategori"}
-        </h2>
+    <Modal onClose={onClose} className="w-[380px] rounded-2xl px-8 py-7">
+      <h2 className="mt-0 mb-5 text-lg font-semibold text-ink">
+        {editTarget ? "Kategoriyi Düzenle" : "Yeni Kategori"}
+      </h2>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-            Kategori Adı
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "100%", boxSizing: "border-box", padding: "8px 12px",
-              borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 14,
-              color: "#0f172a", outline: "none",
-            }}
-          />
-        </div>
+      <Field label="Kategori Adı" className="mb-4">
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
 
-        <div style={{ marginBottom: 24 }}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-            Üst Kategori
-          </label>
-          <select
-            value={parentId}
-            onChange={(e) => setParentId(e.target.value === "" ? "" : Number(e.target.value))}
-            style={{
-              width: "100%", boxSizing: "border-box", padding: "8px 12px",
-              borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 14,
-              color: "#0f172a", outline: "none", background: "#ffffff",
-            }}
-          >
-            <option value="">— Ana Kategori (üst kategori yok) —</option>
-            {options.map((o) => (
-              <option key={o.id} value={o.id}>
-                {"— ".repeat(o.depth)}{o.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <Field label="Üst Kategori" className="mb-4">
+        <select
+          value={parentId}
+          onChange={(e) => setParentId(e.target.value === "" ? "" : Number(e.target.value))}
+          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-indigo-500"
+        >
+          <option value="">— Ana Kategori (üst kategori yok) —</option>
+          {options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {"— ".repeat(o.depth)}{o.name}
+            </option>
+          ))}
+        </select>
+      </Field>
 
-        {error && <p style={{ fontSize: 12, color: "#dc2626", margin: "0 0 16px" }}>{error}</p>}
+      <Field label="İkon (emoji)" className="mb-6">
+        <input
+          type="text"
+          value={icon}
+          maxLength={16}
+          placeholder="Boş bırakılırsa üst kategorinin ikonu kullanılır"
+          onChange={(e) => setIcon(e.target.value)}
+        />
+      </Field>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            style={{
-              flex: 1, padding: "9px 0", borderRadius: 8,
-              border: "1px solid #e2e8f0", background: "#f8fafc",
-              color: "#64748b", fontSize: 13, cursor: "pointer",
-            }}
-          >
-            İptal
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            style={{
-              flex: 2, padding: "9px 0", borderRadius: 8, border: "none",
-              background: isSaving ? "#94a3b8" : "#0f172a",
-              color: "#ffffff", fontSize: 13, fontWeight: 600,
-              cursor: isSaving ? "not-allowed" : "pointer",
-            }}
-          >
-            {isSaving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-        </div>
+      {error && <p className="mt-0 mb-4 text-xs text-red-600">{error}</p>}
+
+      <div className="flex gap-2.5">
+        <Button className="flex-1" onClick={onClose} disabled={isSaving}>İptal</Button>
+        <Button
+          className={`flex-2 ${isSaving ? "bg-slate-800! text-muted!" : ""}`}
+          variant="primary"
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? "Kaydediliyor..." : "Kaydet"}
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 }

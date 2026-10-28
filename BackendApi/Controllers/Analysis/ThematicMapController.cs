@@ -1,9 +1,9 @@
 using BackendApi.Authorization;
-using BackendApi.DTOs.Transit;
-using BackendApi.Services.Transit;
+using BackendApi.DTOs.Analysis;
+using BackendApi.Services.Analysis;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers.Transit;
+namespace BackendApi.Controllers.Analysis;
 
 [Route("api/thematic-map")]
 public sealed class ThematicMapController : ApiControllerBase

@@ -1,6 +1,6 @@
 using BackendApi.DTOs.Geo;
 
-namespace BackendApi.Services.Search;
+namespace BackendApi.Services.Geo;
 
 public interface ISearchService
 {

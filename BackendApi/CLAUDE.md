@@ -4,6 +4,8 @@
 Controller → Service (interface + implementation, registered in `Program.cs`) → `AppDbContext` (EF Core + NetTopologySuite).
 - Exception: Auth goes through `Repositories/` (`IUserRepository` / `UserRepository`) instead of using `AppDbContext` directly.
 - Folders are grouped by domain: `Controllers/<Domain>`, `Services/<Domain>`, `DTOs/<Domain>`, `Entities/<Domain>`.
+  Controller folder = service folder = DTO folder = namespace (per domain). Routes keep their existing names.
+  Using another domain's DTOs or services is fine (e.g. Company → Transit DTOs, Analysis → IOsrmService); the rule is about where a file lives.
 - Controllers stay thin: read user info, call the service, map the result to an HTTP response. No business logic or DB access.
 - Controllers inherit `ApiControllerBase` (`[Authorize]`, `GetUserId()`, `GetTeamId()`, `GetUserRoles()`, `HasAdminAccess()`).
   Exception: `AuthController` (anonymous login/register) inherits `ControllerBase`.

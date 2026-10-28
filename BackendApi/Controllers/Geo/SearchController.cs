@@ -1,8 +1,8 @@
 using BackendApi.DTOs.Geo;
-using BackendApi.Services.Search;
+using BackendApi.Services.Geo;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendApi.Controllers.Search;
+namespace BackendApi.Controllers.Geo;
 
 [Route("api/drawings")]
 public sealed class SearchController : ApiControllerBase

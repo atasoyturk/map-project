@@ -34,3 +34,5 @@ public sealed record CreateTeamDto(
 public sealed record CreateEmployeeDto(
     [Required, EmailAddress] string Email,
     [Required, MinLength(6)] string Password);
+
+public sealed record RoleDto(int Id, string Name, bool HasAdminAccess);

@@ -4,7 +4,7 @@ using BackendApi.Entities.Geo;
 using BackendApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendApi.Services.Search;
+namespace BackendApi.Services.Geo;
 
 public sealed class SearchService : ISearchService
 {

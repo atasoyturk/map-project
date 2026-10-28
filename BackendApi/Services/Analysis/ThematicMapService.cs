@@ -1,7 +1,8 @@
-using BackendApi.DTOs.Transit;
+using BackendApi.DTOs.Analysis;
+using BackendApi.Services.Transit;
 using NetTopologySuite.Geometries;
 
-namespace BackendApi.Services.Transit;
+namespace BackendApi.Services.Analysis;
 
 public sealed class ThematicMapService : IThematicMapService
 {

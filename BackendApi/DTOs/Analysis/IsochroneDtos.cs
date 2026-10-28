@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackendApi.DTOs.Transit;
+namespace BackendApi.DTOs.Analysis;
 
 public sealed record IsochroneRequestDto(
     [Required] double CenterLon,

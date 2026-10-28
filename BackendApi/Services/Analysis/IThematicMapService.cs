@@ -1,6 +1,6 @@
-using BackendApi.DTOs.Transit;
+using BackendApi.DTOs.Analysis;
 
-namespace BackendApi.Services.Transit;
+namespace BackendApi.Services.Analysis;
 
 public interface IThematicMapService
 {

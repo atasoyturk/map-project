@@ -24,5 +24,3 @@ public interface IAdminService
     Task<bool>                          CreateEmployeeAsync(string email, string password);
 
 }
-
-public sealed record RoleDto(int Id, string Name, bool HasAdminAccess);

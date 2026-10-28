@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BackendApi.Tests.Infrastructure;
 
-// Seeded role IDs from AppDbContext.
+// Seeded role IDs from Data/Seed/SeedData.cs.
 public static class Roles
 {
     public const int Admin            = 1;

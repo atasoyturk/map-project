@@ -43,7 +43,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)
 - Change the database schema or create/apply EF Core migrations
-- Change seed data (roles, permissions, POI categories) in `AppDbContext`
+- Change seed data (roles, permissions, POI categories) in `Data/Seed/`
 - Add new NuGet or npm packages
 - Change auth, permission or GeoServer proxy logic
 - Commit, push, or delete files (except /next step 6, after the user confirms the browser test)

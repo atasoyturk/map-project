@@ -43,7 +43,7 @@ public sealed class AnalysisService : IAnalysisService
         var allCategoryIds = criteriaCategoryIds.SelectMany(c => c.CategoryIds).Distinct().ToList();
 
         var filteredPois = await _context.Pois
-            .Where(p => !p.IsDeleted && allCategoryIds.Contains(p.CategoryId) && geometry.Intersects(p.Geometry))
+            .Where(p => !p.IsDeleted && p.IsActive && allCategoryIds.Contains(p.CategoryId) && geometry.Intersects(p.Geometry))
             .Select(p => new { p.Geometry.X, p.Geometry.Y, p.CategoryId })
             .ToListAsync();
 

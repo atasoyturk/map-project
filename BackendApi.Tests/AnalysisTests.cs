@@ -135,16 +135,17 @@ public sealed class AnalysisTests : ApiTestBase
         Assert.Equal(new[] { "29.01/41.01/0.4", "29.01/41.01/0.6" }, await HeatmapAsync(response));
     }
 
-    // Current behaviour: only IsDeleted is filtered, so inactive POIs are still included.
     [Fact]
-    public async Task LocationAnalysis_InactivePoi_IsIncluded()
+    public async Task LocationAnalysis_InactivePoi_IsExcluded()
     {
         var (userId, client) = await CreateUserAsync([], ["location_analysis"]);
-        await SeedPoisAsync(userId, new Poi { CategoryId = 2, Geometry = Pt(29.01, 41.01), IsActive = false });
+        await SeedPoisAsync(userId,
+            new Poi { CategoryId = 2, Geometry = Pt(29.01, 41.01), IsActive = false },
+            new Poi { CategoryId = 2, Geometry = Pt(29.02, 41.02) });
 
         var response = await LocationAnalysisAsync(client, (1, 50), (5, 50));
 
-        Assert.Equal(new[] { "29.01/41.01/0.5" }, await HeatmapAsync(response));
+        Assert.Equal(new[] { "29.02/41.02/0.5" }, await HeatmapAsync(response));
     }
 
     [Fact]

@@ -37,6 +37,8 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 - POI icons come from the category `Icon` field (sub-categories inherit via `buildCategoryIconMap`); never key icons on category IDs.
 - Unit tests (Vitest): co-located `*.test.ts` next to the source; no globals/jsdom.
   When moving a file, move its test with it. E2E tests (later) go in `frontend/e2e/`.
+- Keep components thin: non-trivial logic (formatting, transforms, calculations)
+  goes into pure helpers with co-located Vitest tests.
 
 ## Out of product scope
 - `features/company` and the fleet parts of transit (vehicles, shipments, live simulation) are kept but out of scope —

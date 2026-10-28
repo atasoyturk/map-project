@@ -44,6 +44,7 @@ public sealed class PermissionService : IPermissionService
             var isGranted = fromRole is not null || fromUser;
 
             return new EffectivePermissionDto(
+                Id:          p.Id,
                 Name:        p.Name,
                 Description: p.Description,
                 IsGranted:   isGranted,

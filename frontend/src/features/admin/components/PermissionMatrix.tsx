@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { getUserPermissions, grantPermissionToUser, revokePermissionFromUser } from "../api/permissionService";
 
 interface EffectivePermission {
+  id:          number;
   name:        string;
   description: string;
   isGranted:   boolean;
@@ -37,15 +38,12 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
   async function handleToggle(permission: EffectivePermission) {
     if (permission.origin === "Role") return;
 
-    const permissionId = getPermissionId(permission.name);
-    if (!permissionId) return;
-
     setIsSaving(true);
     try {
         if (permission.isGranted) {
-        await revokePermissionFromUser(apiFetch, userId, permissionId);
+        await revokePermissionFromUser(apiFetch, userId, permission.id);
         } else {
-        await grantPermissionToUser(apiFetch, userId, permissionId);
+        await grantPermissionToUser(apiFetch, userId, permission.id);
         }
         fetchPermissions();
     } catch {  }
@@ -156,19 +154,4 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
       </div>
     </div>
   );
-}
-
-function getPermissionId(name: string): number {
-  const map: Record<string, number> = {
-    "point_create":         1,
-    "line_create":          2,
-    "polygon_create":       3,
-    "admin_access":         4,
-    "annotation_create":    5,
-    "annotation_read":      6,
-    "poi_create":           7,
-    "poi_read":             8,
-    "poi_category_manage":  9,
-  };
-  return map[name] ?? 0;
 }

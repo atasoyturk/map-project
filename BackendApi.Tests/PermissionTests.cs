@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using BackendApi.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackendApi.Tests;
 
@@ -55,5 +56,22 @@ public sealed class PermissionTests : ApiTestBase
         var response = await CreateAnonymousClient().GetAsync("/api/poi");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private sealed record PermissionItem(int Id, string Name);
+
+    // The admin permission matrix toggles permissions by Id, so every item must carry its database Id.
+    [Fact]
+    public async Task UserPermissions_ReturnDatabaseIdForEveryPermission()
+    {
+        var (_, admin)  = await CreateUserAsync([Roles.Admin]);
+        var (userId, _) = await CreateUserAsync([Roles.BasicUser]);
+
+        var items = await admin.GetFromJsonAsync<List<PermissionItem>>($"/api/admin/users/{userId}/permissions");
+
+        var expected = new Dictionary<string, int>();
+        await WithDbAsync(async db => expected = await db.Permissions.ToDictionaryAsync(p => p.Name, p => p.Id));
+        Assert.Equal(expected.Count, items!.Count);
+        Assert.All(items, i => Assert.Equal(expected[i.Name], i.Id));
     }
 }

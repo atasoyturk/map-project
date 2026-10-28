@@ -24,10 +24,11 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - Backend: `cd BackendApi && dotnet build --nologo -v q` / `dotnet run`
 - Frontend: `cd frontend && npm run dev` / `npm run build -- --logLevel error` / `npm run lint -- --quiet` / `npm test`
 - GeoServer: `docker start geoserver` (no compose file in the repo)
-- Context dump: `scripts/context.ps1` (repomix → `artifacts/`)
 - After any change, run the build of the side you changed. Do not finish a task with a failing build.
 - Backend tests: `dotnet test BackendApi.Tests --nologo -v q` (needs Docker; if Docker is not
   running, stop and tell the user — do not debug it; see `BackendApi/CLAUDE.md` → Tests).
+- If dotnet build/test fails because files are locked by a running BackendApi, stop and ask the
+  user to stop the server — do not debug it.
 
 ## How to work (always follow)
 1. **Think before coding.** State assumptions. If something is unclear or has several interpretations, ask before writing code.
@@ -40,6 +41,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 7. Before committing, run the `code-reviewer` agent on the changes; fix every BLOCKER and in-scope SHOULD FIX.
 8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
 9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests.
+   A failing-first test must fail for the expected reason — read the error before writing the fix.
 
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)

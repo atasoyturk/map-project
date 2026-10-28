@@ -11,6 +11,8 @@ Read-only until the user picks rows.
 Files: CLAUDE.md, BackendApi/CLAUDE.md, frontend/CLAUDE.md, .claude/skills/next/SKILL.md,
 .claude/agents/code-reviewer.md.
 
+- Find the last audit: `git log -1 --grep="Sync agent config with code" --format=%H`.
+  If found, verify only claims that mention paths in `git diff --stat <hash>..HEAD`; otherwise verify all.
 - Verify every concrete claim (paths, file/class/function names, routes, commands, flags, known exceptions,
   counts) with Grep/Glob. Open a source file only if a claim cannot be checked otherwise.
 - Do not run builds or tests.
@@ -20,9 +22,9 @@ Files: CLAUDE.md, BackendApi/CLAUDE.md, frontend/CLAUDE.md, .claude/skills/next/
   security, permissions or data visibility are never low-value, even if they name files.
 
 ## 2. Report
-Table: file:line | problem (stale / wrong / contradiction / duplicate / low-value) | proposed text.
-Never add a row without evidence.
-Most urgent 3 report, nothing else. Stop and wait.
+Table: file:line | problem | evidence (Grep/Glob result or file:line) | proposed text.
+Up to 3 rows, most urgent first; fewer is fine. If nothing qualifies, reply only 'No issues found.'
+Never add a row without evidence. Stop and wait.
 
 
 ## 3. Apply (only after the user picks rows)

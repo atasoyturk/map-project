@@ -23,7 +23,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 - Do not write code before the user's OK.
 
 ## 3. Implement
-- Before applying a migration: stop, ask the user to run `scripts/backup.ps1` and wait for 'Backup OK'.
+- Before applying a migration or running a script that changes data: stop, ask the user to run `scripts/backup.ps1` and wait for 'Backup OK'.
   Never run it yourself (it reads user-secrets).
 - Problems outside the task: don't fix; add one line to `planning/backlog.md`, or a new task to `tasks.json` +
   `tasks/<id>.md` if it is clearly separate work — tell the user.

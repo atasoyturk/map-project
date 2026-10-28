@@ -14,8 +14,5 @@ public sealed class JwtSettings
     public string Audience  { get; init; } = string.Empty;
 
     [Range(1, 1440, ErrorMessage = "JwtSettings:ExpiresInMinutes 1 ile 1440 (24 saat) arasında olmalıdır.")]
-    public int    ExpiresInMinutes { get; init; } = 5;
-
-    [Range(1, int.MaxValue, ErrorMessage = "JwtSettings:ExtendedExpiresInMinutes geçerli bir değer olmalıdır.")]
-    public int    ExtendedExpiresInMinutes { get; init; } = 5_256_000; // ~10 yıl
+    public int    ExpiresInMinutes { get; init; } = 480;
 }

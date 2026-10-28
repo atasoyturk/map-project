@@ -5,7 +5,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Exception: Auth uses `Repositories/` (`IUserRepository` / `UserRepository`) instead of `AppDbContext`; `AuthController` calls it directly (known).
 - Folders are grouped by domain: `Controllers/<Domain>`, `Services/<Domain>`, `DTOs/<Domain>`, `Entities/<Domain>`.
   Controller folder = service folder = DTO folder = namespace (per domain). Routes keep their existing names.
-  Using another domain's DTOs or services is fine (e.g. Company → Transit DTOs, Analysis → IOsrmService); the rule is about where a file lives.
+  Using another domain's DTOs or services is fine; the rule is about where a file lives.
   Exceptions (existing, keep as is):
   - Routes named differently from their controller: `Geo/SearchController` → `api/drawings/search`,
     `Analysis/ThematicMapController` → `api/thematic-map`,

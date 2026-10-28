@@ -29,7 +29,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 
 ## 4. Verify
 - Build, lint and test every side you touched with the commands in the root CLAUDE.md.
-- Run the `code-reviewer` agent. Fix every BLOCKER and in-scope SHOULD FIX.
+- Run the `code-reviewer` agent (root rule 7).
   Re-run it only if you changed code after the first review.
 
 ## 5. Report (gate 2 — wait for the user)

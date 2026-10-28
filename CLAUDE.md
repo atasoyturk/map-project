@@ -47,7 +47,8 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - Change seed data (roles, permissions, POI categories) in `Data/Seed/`
 - Add new NuGet or npm packages
 - Change auth, permission or GeoServer proxy logic
-- Commit, push, or delete files (except /next step 6, after the user confirms the browser test)
+- Commit, push, or delete files — except steps of a skill that commits after the user's explicit approval
+  (e.g. /next step 6, /config-audit step 3). Never push without asking.
 
 ## Language
 - User-facing messages (errors, UI text) are in **Turkish**. Code, identifiers and comments in English.

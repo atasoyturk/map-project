@@ -5,7 +5,7 @@ real-time vehicle simulation, trip planning, isochrone and location analysis, RB
 
 **Product direction:** site-selection / location-analysis platform ("where should a chain open its next branch?").
 The fleet module (companies, vehicles, shipments, live simulation) is out of scope: kept, hidden, not extended.
-Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json` (local, not in git — read the vision before planning a feature). Deployment model: one separate installation per customer (single-tenant). Do not add TenantId or multi-customer logic.
+Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json` (local, not in git — read the vision only for product, UX or scope decisions). Deployment model: one separate installation per customer (single-tenant). Do not add TenantId or multi-customer logic.
 
 ## Repo layout
 - `BackendApi/` — ASP.NET Core 8 Web API (details: `BackendApi/CLAUDE.md`)
@@ -20,12 +20,13 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - Backend runs on `http://localhost:5130`, frontend on `http://localhost:5173`
 
 ## Commands
-- Backend: `cd BackendApi && dotnet build` / `dotnet run`
-- Frontend: `cd frontend && npm run dev` / `npm run build` / `npm run lint`
+- Backend: `cd BackendApi && dotnet build --nologo -v q` / `dotnet run`
+- Frontend: `cd frontend && npm run dev` / `npm run build -- --logLevel error` / `npm run lint -- --quiet`
 - GeoServer: `docker start geoserver` (no compose file in the repo)
 - Context dump: `scripts/context.ps1` (repomix → `artifacts/`)
 - After any change, run the build of the side you changed. Do not finish a task with a failing build.
-- Backend tests: `dotnet test BackendApi.Tests` (needs Docker running; see `BackendApi/CLAUDE.md` → Tests)
+- Backend tests: `dotnet test BackendApi.Tests --nologo -v q` (needs Docker; if Docker is not
+  running, stop and tell the user — do not debug it; see `BackendApi/CLAUDE.md` → Tests).
 
 ## How to work (always follow)
 1. **Think before coding.** State assumptions. If something is unclear or has several interpretations, ask before writing code.
@@ -37,7 +38,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
 7. Before committing, run the `code-reviewer` agent on the changes and fix any BLOCKER.
 8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
-9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests (once BackendApi.Tests exists, see task T1).
+9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests.
 
 ## Never do without asking
 - Delete feature code or whole modules (out-of-scope features are hidden from the UI, not deleted)
@@ -45,7 +46,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - Change seed data (roles, permissions, POI categories) in `AppDbContext`
 - Add new NuGet or npm packages
 - Change auth, permission or GeoServer proxy logic
-- Commit, push, or delete files
+- Commit, push, or delete files (except /next step 6, after the user confirms the browser test)
 
 ## Language
 - User-facing messages (errors, UI text) are in **Turkish**. Code, identifiers and comments in English.

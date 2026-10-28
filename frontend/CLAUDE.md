@@ -2,7 +2,7 @@
 
 ## Stack
 React 19 + TypeScript + Vite + Tailwind CSS + OpenLayers. Only `@turf/line-offset` is installed (no full Turf). SignalR client for live vehicles.
-Lint with `npm run lint` (oxlint). Build with `npm run build` (runs `tsc -b`, so type errors fail the build).
+Build/lint commands: see root CLAUDE.md (build runs `tsc -b`, so type errors fail the build).
 
 ## Folder structure (feature-based)
 - `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`, `admin/helpers/`).

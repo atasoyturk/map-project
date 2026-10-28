@@ -9,7 +9,8 @@ The user is the decision-maker and the browser tester. Everything else is your j
 Talk to the user in **Turkish**, briefly. Code, commits and planning files stay in English (UI text in Turkish).
 
 ## 1. Pick the task
-- Read `planning/tasks.json`. Finished tasks are deleted from it, so a `requires` id that is absent counts as done.
+- Read `planning/tasks.json`. A `requires` id counts as done only if it is in `done`;
+  if it is in neither `tasks` nor `done`, stop and ask.
 - If a task id is given, use it; otherwise take the first task in array order with `status: "todo"` whose
   `requires` ids are all absent. If a required id is still present, stop and tell the user which task blocks it.
 - Read only `planning/tasks/<id>.md`. Read `planning/vision.md` only for product, UX or scope decisions;
@@ -29,7 +30,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
   `tasks/<id>.md` if it is clearly separate work — tell the user.
 
 ## 4. Verify
-- Build every side you touched (`dotnet build`, `npm run build`), `npm run lint` for frontend, `dotnet test` if tests exist.
+- Build, lint and test every side you touched with the commands in the root CLAUDE.md.
 - Run the `code-reviewer` agent. Fix every BLOCKER and in-scope SHOULD FIX.
   Re-run it only if you changed code after the first review.
 
@@ -40,10 +41,10 @@ In Turkish, max 5 lines + test list:
 Do not commit until the user confirms the browser test passed.
 
 ## 6. Close
-- Delete the task's entry from `planning/tasks.json` and delete `planning/tasks/<id>.md`.
+- Delete the task's entry from `tasks`, append its id to `done`, and delete `planning/tasks/<id>.md`.
 - Commit with a short imperative English subject, no trailers (2–3 commits only for clearly separate parts).
 - `git checkout main`, merge, delete the branch locally. Do not push; tell the user to push.
-- End with one line: the next eligible task's id and title.
+- End with one line: the next eligible task's id and title, and remind the user to run /clear before the next /next.
 
 ## Stop and ask instead of guessing when
 - the task is ambiguous or has several reasonable interpretations,

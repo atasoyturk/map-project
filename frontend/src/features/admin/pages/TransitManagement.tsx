@@ -2,17 +2,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getAllTransitStops, getAllTransitRoutes } from "../../../shared/api/transitService";
 import { getUserLookup } from "../../../shared/api/userLookupService";
-import type { TransitStopResponseDto, TransitRouteResponseDto } from "../../map/transit/types";
-
-interface UserLookupEntry {
-  id:    number;
-  email: string;
-}
+import type { TransitStopResponseDto, TransitRouteResponseDto } from "../../../shared/api/transitTypes";
+import type { AdminUserLookupEntry } from "../types";
 
 export function TransitManagement() {
   const [stops,      setStops]      = useState<TransitStopResponseDto[]>([]);
   const [routes,     setRoutes]     = useState<TransitRouteResponseDto[]>([]);
-  const [users,      setUsers]      = useState<UserLookupEntry[]>([]);
+  const [users,      setUsers]      = useState<AdminUserLookupEntry[]>([]);
   const [isLoading,  setIsLoading]  = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 

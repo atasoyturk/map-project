@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { RoleGeoPermissionModal } from "../components/RoleGeoPermissionModal";
-
-interface RoleDto {
-  id:   number;
-  name: string;
-  hasAdminAccess: boolean;
-}
+import type { RoleDto } from "../types";
 
 export function RoleManagement() {
   const [roles,     setRoles]     = useState<RoleDto[]>([]);

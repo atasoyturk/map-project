@@ -8,6 +8,7 @@ import { WKT }          from "ol/format";
 import { fromLonLat }   from "ol/proj";
 import { Style, Stroke, Circle as CircleStyle, Fill } from "ol/style";
 import type { TripPlanResultDto } from "../api/tripPlanningService";
+import type { TripPoint } from "../types";
 
 const wktFormat = new WKT();
 
@@ -30,8 +31,6 @@ function buildPointStyle(color: string): Style {
     }),
   });
 }
-
-interface TripPoint { lon: number; lat: number; }
 
 export function useTripRouteLayer(
   map: OlMap | null,

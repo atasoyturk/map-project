@@ -41,7 +41,7 @@ import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
 import { LocationAnalysisPanel } from "../core/components/LocationAnalysisPanel";
 import { getLocationAnalysis } from "../core/api/analysisService";
 
-import { Toast }                    from "../../../shared/components/Toast";
+import { Toast, type ToastState }   from "../../../shared/components/Toast";
 import { LocationSearchBar }        from "../core/components/LocationSearchBar";
 import { buildStyle }               from "../../../shared/utils/mapStyle";
 import type { DrawType }            from "../core/types";
@@ -69,11 +69,6 @@ const annotationStyle = new Style({
     scale: 0.5
   } ),
 });
-
-interface ToastState {
-  message: string;
-  type:    "success" | "error";
-}
 
 export function DashboardPage() {
   const [map,             setMap]            = useState<Map | null>(null);

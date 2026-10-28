@@ -2,12 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getRoles, assignRoleToUser, removeRoleFromUser } from "../api/roleService";
 import { Z } from "../../../shared/components/ui/zIndex";
-
-interface RoleDto {
-  id:   number;
-  name: string;
-  hasAdminAccess: boolean;
-}
+import type { RoleDto } from "../types";
 
 interface RoleAssignModalProps {
   userId:       number;

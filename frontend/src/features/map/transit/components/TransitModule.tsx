@@ -29,9 +29,8 @@ import { RouteInfoPopup } from "./RouteInfoPopup";
 import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
 import { FLEET_ENABLED } from "../../../../shared/featureFlags";
 import type { ApiFetch } from "../../../../shared/api/apiFetch";
+import type { ToastState } from "../../../../shared/components/Toast";
 
-
-interface ToastState { message: string; type: "success" | "error"; }
 
 interface TransitModuleProps {
   map:                    OlMap | null;

@@ -6,7 +6,7 @@ import { buildStyle } from "../../../../shared/utils/mapStyle";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updateTransitStop, deleteTransitStop } from "../../../../shared/api/transitService";
-import type { TransitRouteResponseDto } from "../types";
+import type { TransitRouteResponseDto } from "../../../../shared/api/transitTypes";
 import { Z } from "../../../../shared/components/ui/zIndex";
 
 const wktFormat = new WKT();

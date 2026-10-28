@@ -3,20 +3,7 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { getTeams, createTeam, deleteTeam } from "../api/teamService";
 import { getUsers, assignTeamToUsers } from "../api/userService";
 import { AddTeamMembersModal } from "../components/AddTeamMembersModal";
-
-interface TeamDto {
-  id:   number;
-  name: string;
-}
-
-interface UserDto {
-  id:       number;
-  email:    string;
-  isActive: boolean;
-  roles:    string[];
-  teamId:   number | null;
-  teamName: string | null;
-}
+import type { TeamDto, UserDto } from "../types";
 
 type TargetTeam = number | "unassigned" | "";
 

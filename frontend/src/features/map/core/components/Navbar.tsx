@@ -8,7 +8,7 @@ import { useDrawing, type DrawingLayers } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { AttributeModal } from "./AttributeModal";
-import { Toast }      from "../../../../shared/components/Toast";
+import { Toast, type ToastState } from "../../../../shared/components/Toast";
 import type { DrawType, PendingGeometry } from "../types";
 import { createGeoFeature, validateGeometry } from "../api/geoService";
 import { BottomToolbar } from "./BottomToolbar";
@@ -45,11 +45,6 @@ interface NavbarProps {
   onThematicMapToggle:     () => void;
 }
 
-
-interface ToastState {
-  message: string;
-  type:    "success" | "error";
-}
 
 export function Navbar({
   map,

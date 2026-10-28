@@ -2,16 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
 import { getUsers } from "../api/userService";
-
-interface UserDto {
-  id:       number;
-  email:    string;
-  isActive: boolean;
-  roles:    string[];
-  teamId:   number | null;
-  teamName: string | null;
-  hasAdminAccess: boolean;
-}
+import type { UserDto } from "../types";
 
 const thStyle: React.CSSProperties = {
   padding: "10px 16px", textAlign: "left", fontSize: 12,

@@ -13,8 +13,7 @@ import type { PoiResponseDto, PendingPoi } from "../types";
 import { buildCategoryIconMap, type CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import type { ApiFetch } from "../../../../shared/api/apiFetch";
-
-interface ToastState { message: string; type: "success" | "error"; }
+import type { ToastState } from "../../../../shared/components/Toast";
 
 interface PoiModuleProps {
   map:                OlMap | null;

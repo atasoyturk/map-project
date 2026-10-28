@@ -2,13 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth }             from "../../auth/context/AuthContext";
 import { GeoPermissionMap }    from "../components/GeoPermissionMap";
 import { ConfirmModal } from "../../../shared/components/ConfirmModal";
-
-interface GeoPermissionDto {
-  id:          number;
-  name:        string;
-  wktGeometry: string;
-  isActive:    boolean;
-}
+import type { GeoPermissionDto } from "../types";
 
 export function GeoPermissionPage() {
   const [permissions, setPermissions] = useState<GeoPermissionDto[]>([]);

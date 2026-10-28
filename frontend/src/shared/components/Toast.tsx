@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { Z } from "./ui/zIndex";
 
+export interface ToastState {
+  message: string;
+  type:    "success" | "error";
+}
+
 interface ToastProps {
   message:  string;
   type:     "success" | "error";

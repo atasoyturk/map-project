@@ -8,3 +8,8 @@ export interface PendingGeometry {
   type:    DrawType;
   feature: Feature<Geometry>;  
 }
+
+export interface TripPoint {
+  lon: number;
+  lat: number;
+}

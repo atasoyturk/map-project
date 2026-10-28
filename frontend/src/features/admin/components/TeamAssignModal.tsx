@@ -3,11 +3,7 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { getTeams } from "../api/teamService";
 import { assignTeamToUser } from "../api/userService";
 import { Z } from "../../../shared/components/ui/zIndex";
-
-interface TeamDto {
-  id:   number;
-  name: string;
-}
+import type { TeamDto } from "../types";
 
 interface TeamAssignModalProps {
   userId:        number;

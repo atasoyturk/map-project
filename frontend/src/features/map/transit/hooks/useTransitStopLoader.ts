@@ -54,7 +54,7 @@ export function useTransitStopLoader(map: unknown, source: VectorSource, apiFetc
 }
 
 import { WKT } from "ol/format";
-import type { TransitStopResponseDto } from "../types";
+import type { TransitStopResponseDto } from "../../../../shared/api/transitTypes";
 
 const wktFormat2 = new WKT();
 

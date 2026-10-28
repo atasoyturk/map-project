@@ -5,16 +5,7 @@ import { RoleAssignModal }  from "../components/RoleAssignModal";
 import { UserGeoPermissionModal } from "../components/UserGeoPermissionModal";
 import { getUsers, setUserActive } from "../api/userService";
 import { AddEmployeeModal } from "../components/AddEmployeeModal";
-
-interface UserDto {
-  id:       number;
-  email:    string;
-  isActive: boolean;
-  roles:    string[];
-  teamId:   number | null;
-  teamName: string | null;
-  hasAdminAccess: boolean;
-}
+import type { UserDto } from "../types";
 
 export function UserManagement() {
   const [users,          setUsers]          = useState<UserDto[]>([]);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TransitRouteResponseDto } from "../types";
+import type { TransitRouteResponseDto } from "../../../../shared/api/transitTypes";
 import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface StopFormModalProps {

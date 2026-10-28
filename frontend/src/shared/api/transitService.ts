@@ -1,5 +1,5 @@
 import type { ApiFetch } from "./apiFetch";
-import type { TransitStopRequestDto, TransitRouteRequestDto } from "../../features/map/transit/types";
+import type { TransitStopRequestDto, TransitRouteRequestDto } from "./transitTypes";
 
 // --- Stops ---
 

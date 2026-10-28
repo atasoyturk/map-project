@@ -6,7 +6,7 @@ import VectorSource  from "ol/source/Vector";
 import { WKT }        from "ol/format";
 import lineOffset     from "@turf/line-offset";
 import { buildRouteStyle } from "../../../../shared/utils/mapStyle";
-import type { TransitRouteResponseDto } from "../types";
+import type { TransitRouteResponseDto } from "../../../../shared/api/transitTypes";
 
 const wktFormat = new WKT();
 

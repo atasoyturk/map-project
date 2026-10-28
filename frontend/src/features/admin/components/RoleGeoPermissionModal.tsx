@@ -7,13 +7,7 @@ import {
   removeGeoPermissionFromRole,
 } from "../api/geoPermissionService";
 import { Z } from "../../../shared/components/ui/zIndex";
-
-interface GeoPermissionDto {
-  id:          number;
-  name:        string;
-  wktGeometry: string;
-  isActive:    boolean;
-}
+import type { GeoPermissionDto } from "../types";
 
 interface RoleGeoPermissionModalProps {
   roleId:   number;

@@ -11,7 +11,8 @@ import {
   getAllCompanyCategories, getAllCompanies, getCompaniesByRoute, getVehiclesByCompany,
 } from "../../../../shared/api/companyService";
 import { buildRouteStyle } from "../../../../shared/utils/mapStyle";
-import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopResponseDto } from "../types";
+import type { TransitRouteDetailDto } from "../types";
+import type { TransitRouteResponseDto, TransitStopResponseDto } from "../../../../shared/api/transitTypes";
 import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../../company/types";
 import type { VehicleActionResult } from "../hooks/useRouteSimulation";
 import { FLEET_ENABLED } from "../../../../shared/featureFlags";

@@ -2,13 +2,9 @@ import { useState } from "react";
 import { useAuth } from "../../../auth/context/AuthContext";
 import { planTrip, type TripPlanResultDto } from "../api/tripPlanningService";
 import { Z } from "../../../../shared/components/ui/zIndex";
+import type { TripPoint } from "../types";
 
 type PickMode = "start" | "end" | null;
-
-interface TripPoint {
-  lon: number;
-  lat: number;
-}
 
 interface TripPlanningPanelProps {
   onClose:            () => void;

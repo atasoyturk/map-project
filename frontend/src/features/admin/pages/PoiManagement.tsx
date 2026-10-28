@@ -4,6 +4,7 @@ import { CategoryTreeManager } from "../components/CategoryTreeManager";
 import { flattenCategories, type CategoryTreeNode } from "../../../shared/utils/categoryTree";
 import { getAllPois, getCategoryTree } from "../../../shared/api/poiService";
 import { getUserLookup } from "../../../shared/api/userLookupService";
+import type { AdminUserLookupEntry } from "../types";
 
 interface PoiDto {
   id:           number;
@@ -15,15 +16,10 @@ interface PoiDto {
   createdDate:  string;
 }
 
-interface UserLookupEntry {
-  id:    number;
-  email: string;
-}
-
 export function PoiManagement() {
   const [pois,       setPois]       = useState<PoiDto[]>([]);
   const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
-  const [users,      setUsers]      = useState<UserLookupEntry[]>([]);
+  const [users,      setUsers]      = useState<AdminUserLookupEntry[]>([]);
   const [isLoading,  setIsLoading]  = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 

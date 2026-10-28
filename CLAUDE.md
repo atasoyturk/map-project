@@ -29,6 +29,9 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
   running, stop and tell the user — do not debug it; see `BackendApi/CLAUDE.md` → Tests).
 - If dotnet build/test fails because files are locked by a running BackendApi, stop and ask the
   user to stop the server — do not debug it.
+- Files over ~300 lines: use the Grep tool (not shell grep, which ignores .ignore) to find the symbol first, then Read only that range (offset/limit).
+- While iterating, run only the affected tests: `dotnet test BackendApi.Tests --nologo -v q --filter FullyQualifiedName~<Class>`
+  or `npm test -- <file>`. Run the full suite once before the review.
 
 ## How to work (always follow)
 1. **Think before coding.** State assumptions. If something is unclear or has several interpretations, ask before writing code.

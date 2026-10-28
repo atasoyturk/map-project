@@ -1,0 +1,3 @@
+BackendApi/Migrations/*.Designer.cs
+BackendApi/Migrations/AppDbContextModelSnapshot.cs
+**/package-lock.json

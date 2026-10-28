@@ -10,7 +10,7 @@ public sealed class PoiCategoryTests : ApiTestBase
 {
     public PoiCategoryTests(ApiFixture fixture) : base(fixture) { }
 
-    // Seed rows are inserted with explicit IDs; the identity sequence must still continue past them.
+    // Seed rows use explicit IDs; Npgsql's InsertData advances the identity sequence, so new rows must not collide.
     [Fact]
     public async Task Create_AfterSeed_GetsIdAboveSeededIds()
     {

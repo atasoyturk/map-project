@@ -90,11 +90,6 @@ namespace BackendApi.Migrations
                     { 32, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, false, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "Cami", 31 },
                     { 34, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, false, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "Spor Salonu", 33 }
                 });
-
-            // HasData inserts explicit IDs without advancing the identity sequence; move it past the highest ID.
-            migrationBuilder.Sql(@"
-                SELECT setval(pg_get_serial_sequence('tbl_poi_category', 'Id'),
-                              (SELECT MAX(""Id"") FROM tbl_poi_category));");
         }
 
         /// <inheritdoc />

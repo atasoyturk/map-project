@@ -10,7 +10,8 @@ You review the current uncommitted changes of the AtaGIS repo. You do not edit f
 1. Run `git status --porcelain`, `git diff` and `git diff --staged`.
    Read every new (untracked, `??`) file in full — `git diff` does not show them.
    Review only changed/new lines and their direct context.
-2. Read the root, `BackendApi/` and `frontend/` CLAUDE.md files. Read `planning/vision.md` only if the change
+2. Read the root CLAUDE.md, plus BackendApi/CLAUDE.md and/or frontend/CLAUDE.md only for the sides
+   the diff touches. Read planning/vision.md only if the change
    touches product scope (new feature, UX, roles, deployment model).
 3. Check the changes against the list below. Do not review unchanged code.
 

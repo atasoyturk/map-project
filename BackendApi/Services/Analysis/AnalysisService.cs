@@ -10,8 +10,13 @@ namespace BackendApi.Services.Analysis;
 public sealed class AnalysisService : IAnalysisService
 {
     private readonly AppDbContext _context;
+    private readonly IThematicMapService _thematicMapService;
 
-    public AnalysisService(AppDbContext context) => _context = context;
+    public AnalysisService(AppDbContext context, IThematicMapService thematicMapService)
+    {
+        _context            = context;
+        _thematicMapService = thematicMapService;
+    }
 
     public async Task<int> TempInventoryAsync(GeoRequestDto request, int userId)
     {
@@ -65,6 +70,44 @@ public sealed class AnalysisService : IAnalysisService
         }
 
         return new LocationAnalysisResponseDto { HeatmapPoints = heatmapPoints };
+    }
+
+    public async Task<IsochroneAnalysisResultDto> IsochroneAnalysisAsync(IsochroneRequestDto request)
+    {
+        var isochrone = await _thematicMapService.GetIsochroneAsync(
+            request.CenterLon, request.CenterLat, request.MinutesThresholds);
+
+        var categoryNames = await _context.PoiCategories
+            .Where(c => !c.IsDeleted)
+            .ToDictionaryAsync(c => c.Id, c => c.Name);
+
+        var bands = new List<IsochroneAnalysisBandDto>();
+
+        // Each band polygon covers the whole area reachable within its threshold, so counts are cumulative.
+        foreach (var band in isochrone.Bands)
+        {
+            var polygon = GeometryConverter.FromWkt(band.PolygonWkt);
+
+            var countsByCategory = await _context.Pois
+                .Where(p => !p.IsDeleted && p.IsActive && polygon.Intersects(p.Geometry))
+                .GroupBy(p => p.CategoryId)
+                .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var categoryCounts = countsByCategory
+                .Where(c => categoryNames.ContainsKey(c.CategoryId))
+                .Select(c => new CategoryCountDto(c.CategoryId, categoryNames[c.CategoryId], c.Count))
+                .OrderByDescending(c => c.Count)
+                .ThenBy(c => c.CategoryName)
+                .ToList();
+
+            var stopCount = await _context.TransitStops
+                .CountAsync(s => !s.IsDeleted && s.IsActive && polygon.Intersects(s.Geometry));
+
+            bands.Add(new IsochroneAnalysisBandDto(band.MinutesThreshold, band.PolygonWkt, stopCount, categoryCounts));
+        }
+
+        return new IsochroneAnalysisResultDto(bands);
     }
 
     private List<int> GetCategoryAndDescendants(int parentId, List<PoiCategory> allCategories)

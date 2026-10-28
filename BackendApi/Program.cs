@@ -145,6 +145,7 @@ builder.Services.AddScoped<ICompanyService,         CompanyService>();
 builder.Services.AddScoped<IVehicleService,         VehicleService>();
 builder.Services.AddScoped<ITripPlanningService,    TripPlanningService>();
 builder.Services.AddScoped<IThematicMapService,      ThematicMapService>();
+builder.Services.AddMemoryCache();
 
 // GeoServer Settings
 builder.Services

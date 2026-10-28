@@ -38,7 +38,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
                 options.UseNpgsql(_connectionString, o => o.UseNetTopologySuite()));
 
             services.RemoveAll<IOsrmService>();
-            services.AddScoped<IOsrmService, FakeOsrmService>();
+            services.AddSingleton<FakeOsrmService>();
+            services.AddSingleton<IOsrmService>(sp => sp.GetRequiredService<FakeOsrmService>());
 
             services.RemoveAll<IOverpassClient>();
             services.AddSingleton<FakeOverpassClient>();

@@ -1,5 +1,7 @@
 using BackendApi.DTOs.Analysis;
+using BackendApi.Helpers;
 using BackendApi.Services.Transit;
+using Microsoft.Extensions.Caching.Memory;
 using NetTopologySuite.Geometries;
 
 namespace BackendApi.Services.Analysis;
@@ -13,15 +15,18 @@ public sealed class ThematicMapService : IThematicMapService
     private const double RadiusSafetyMargin     = 1.3;
     private static readonly int[] MinuteThresholds = [5, 10, 15];
     private const double TrafficRealismFactor = 1.6;
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(1);
 
     private readonly IOsrmService _osrmService;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<ThematicMapService> _logger;
 
     private static readonly GeometryFactory GeometryFactory = new(new PrecisionModel(), 4326);
 
-    public ThematicMapService(IOsrmService osrmService, ILogger<ThematicMapService> logger)
+    public ThematicMapService(IOsrmService osrmService, IMemoryCache cache, ILogger<ThematicMapService> logger)
     {
         _osrmService = osrmService;
+        _cache       = cache;
         _logger      = logger;
     }
 
@@ -33,6 +38,12 @@ public sealed class ThematicMapService : IThematicMapService
 
         if (minutesThresholds.Any(m => m < MinMinutesThreshold || m > MaxMinutesThreshold))
             throw new ArgumentException($"Süre eşikleri {MinMinutesThreshold}-{MaxMinutesThreshold} dakika arasında olmalıdır.");
+
+        // 5 decimals is ~1 m: clicks that close share the same 16 OSRM calls.
+        var cacheKey = FormattableString.Invariant(
+            $"isochrone:{Math.Round(centerLon, 5)}:{Math.Round(centerLat, 5)}:{string.Join(",", minutesThresholds.Distinct().Order())}");
+        if (_cache.TryGetValue(cacheKey, out IsochroneResultDto? cached) && cached is not null)
+            return cached;
 
         var center = new Coordinate(centerLon, centerLat);
         var maxRequestedMinutes = minutesThresholds.Max();
@@ -68,10 +79,16 @@ public sealed class ThematicMapService : IThematicMapService
             ringPoints.Add(ringPoints[0]); // poligon halkasını kapat
             var polygon = GeometryFactory.CreatePolygon(ringPoints.ToArray());
 
-            bands.Add(new IsochroneBandDto(minutes, polygon.AsText()));
+            bands.Add(new IsochroneBandDto(minutes, GeometryConverter.ToWkt(polygon)));
         }
 
-        return new IsochroneResultDto(bands);
+        var result = new IsochroneResultDto(bands);
+
+        // Cache only complete results, so a temporary OSRM failure is not remembered for an hour.
+        if (rayResults.All(r => r.Success))
+            _cache.Set(cacheKey, result, CacheDuration);
+
+        return result;
     }
 
     private static double ComputeSafeRadiusMeters(int maxMinutes)

@@ -44,4 +44,12 @@ public sealed class AnalysisController : ApiControllerBase
         }
     }
 
+    [HttpPost("isochrone")]
+    [RequirePermission("location_analysis")]
+    public async Task<IActionResult> IsochroneAnalysis([FromBody] IsochroneRequestDto request)
+    {
+        var result = await _analysisService.IsochroneAnalysisAsync(request);
+        return Ok(result);
+    }
+
 }

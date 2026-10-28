@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../../../auth/context/AuthContext";
-import { getIsochrone, type IsochroneResultDto } from "../api/thematicMapService";
+import {
+  getIsochrone, getIsochroneAnalysis,
+  type IsochroneAnalysisBandDto, type IsochroneAnalysisResultDto, type IsochroneResultDto,
+} from "../api/thematicMapService";
 import { Z } from "../../../../shared/components/ui/zIndex";
+import { IsochroneAnalysisSummary } from "./IsochroneAnalysisSummary";
 
 type PickMode = "center" | null;
 
@@ -22,13 +26,15 @@ interface ThematicMapPanelProps {
 export function ThematicMapPanel({
   onClose, pickMode, onPickModeChange, searchTarget, onSearchTargetChange, centerPoint, onResult,
 }: ThematicMapPanelProps) {
-  const { apiFetch } = useAuth();
+  const { apiFetch, hasPermission } = useAuth();
+  const canAnalyse = hasPermission("location_analysis");
 
-  const [thresholds,   setThresholds]   = useState<number[]>([15]);
-  const [newThreshold, setNewThreshold] = useState("");
-  const [isLoading,    setIsLoading]    = useState(false);
-  const [error,        setError]        = useState<string | null>(null);
-  const [hasResult,    setHasResult]    = useState(false);
+  const [thresholds,    setThresholds]    = useState<number[]>([15]);
+  const [newThreshold,  setNewThreshold]  = useState("");
+  const [isLoading,     setIsLoading]     = useState(false);
+  const [error,         setError]         = useState<string | null>(null);
+  const [hasResult,     setHasResult]     = useState(false);
+  const [analysisBands, setAnalysisBands] = useState<IsochroneAnalysisBandDto[] | null>(null);
 
   function handleAddThreshold() {
     const value = Number(newThreshold);
@@ -82,19 +88,24 @@ export function ThematicMapPanel({
     setError(null);
 
     try {
-      const res = await getIsochrone(apiFetch, centerPoint.lon, centerPoint.lat, effectiveThresholds);
+      // With location_analysis the backend also counts POIs and stops inside each band.
+      const res = canAnalyse
+        ? await getIsochroneAnalysis(apiFetch, centerPoint.lon, centerPoint.lat, effectiveThresholds)
+        : await getIsochrone(apiFetch, centerPoint.lon, centerPoint.lat, effectiveThresholds);
       if (!res.ok) { setError("Hizmet alanı hesaplanamadı."); return; }
 
-      const data: IsochroneResultDto = await res.json();
+      const data: IsochroneResultDto | IsochroneAnalysisResultDto = await res.json();
       if (data.bands.length === 0) {
         setError("Bu nokta için hizmet alanı hesaplanamadı (yol ağı bulunamadı).");
         onResult(null);
         setHasResult(false);
+        setAnalysisBands(null);
         return;
       }
 
       onResult(data);
       setHasResult(true);
+      setAnalysisBands(canAnalyse ? (data as IsochroneAnalysisResultDto).bands : null);
     } catch {
       setError("Sunucuya bağlanılamadı.");
     } finally {
@@ -241,7 +252,7 @@ export function ThematicMapPanel({
         </button>
         {hasResult && (
           <button
-            onClick={() => { onResult(null); setHasResult(false); setError(null); }}
+            onClick={() => { onResult(null); setHasResult(false); setError(null); setAnalysisBands(null); }}
             style={{
               padding: "8px 0", borderRadius: 8,
               border: "1px solid #e2e8f0", background: "#f8fafc",
@@ -274,6 +285,7 @@ export function ThematicMapPanel({
                 );
               })}
             </div>
+            {analysisBands && <IsochroneAnalysisSummary bands={analysisBands} />}
           </>
         )}
 

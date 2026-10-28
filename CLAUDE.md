@@ -21,7 +21,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 
 ## Commands
 - Backend: `cd BackendApi && dotnet build --nologo -v q` / `dotnet run`
-- Frontend: `cd frontend && npm run dev` / `npm run build -- --logLevel error` / `npm run lint -- --quiet`
+- Frontend: `cd frontend && npm run dev` / `npm run build -- --logLevel error` / `npm run lint -- --quiet` / `npm test`
 - GeoServer: `docker start geoserver` (no compose file in the repo)
 - Context dump: `scripts/context.ps1` (repomix → `artifacts/`)
 - After any change, run the build of the side you changed. Do not finish a task with a failing build.

@@ -3,6 +3,7 @@ import type { HubConnection } from "@microsoft/signalr";
 import {
   startRouteSimulation, stopRouteSimulation, getRouteSimulationStatus,
 } from "../../../../shared/api/transitService";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 export interface VehiclePosition {
   routeId:             number;
@@ -20,8 +21,6 @@ export interface VehicleActionResult {
   success:     boolean;
   error:       string | null;
 }
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
 export function useRouteSimulation(connection: HubConnection | null, apiFetch: ApiFetch) {
   const [trackedRouteId, setTrackedRouteId] = useState<number | null>(null);

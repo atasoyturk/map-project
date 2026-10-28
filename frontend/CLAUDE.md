@@ -5,16 +5,22 @@ React 19 + TypeScript + Vite + Tailwind CSS + OpenLayers. Only `@turf/line-offse
 Build/lint commands: see root CLAUDE.md (build runs `tsc -b`, so type errors fail the build).
 
 ## Folder structure (feature-based)
-- `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`, `admin/helpers/`).
-  Features: `admin`, `auth`, `company`, `map/{core, poi, transit, annotation}`.
-- `src/shared/` — only code used by several features (`api/apiFetch.ts`, `api/signalR.ts`, common components, utils).
-- Today `shared/api/` also holds the poi, transit, company, trip-planning and thematic-map services; those features have no `api/` folder.
-- `src/utils/mapStyle.ts` — shared OpenLayers style builders; lives outside `shared/`.
+- `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`).
+  Features: `admin`, `auth`, `company`, `map` (sub-folders `core`, `poi`, `transit`, `annotation`, `pages`).
+- `src/shared/` — only code used by several features (`api/apiFetch.ts` with the `ApiFetch` type, common components, utils).
+- `shared/api/` also holds the poi, transit, company and user-lookup services (used by admin and map), and
+  `signalR.ts` (fleet only, kept in shared/). `shared/utils/mapStyle.ts` — shared OpenLayers style builders.
 - Put new code in the feature it belongs to. Move to `shared/` only when a second feature really needs it.
+- A feature does not import from another feature's folders; shared code goes in `shared/`. `shared/` never imports
+  from `features/`. Exceptions: `useAuth` from `features/auth/context`; inside `map`, sub-folders may import
+  `map/core` and `map/pages` may import all of `map`.
+  Known violations (do not add more): fleet/company imports (`admin/pages/CompanyManagement` → `company/`,
+  `map/transit/components/RouteManagementPanel` → `company/types`), `admin/pages/TransitManagement` →
+  `map/transit/types`, and `shared/api/transitService` → `map/transit/types`.
 
 ## Rules
 - All backend calls go through the `apiFetch` from `createApiFetch` (adds the JWT, logs out on 401). No raw `fetch` to the backend.
-  `features/admin/api/nominatim.ts` uses raw `fetch` because it calls the external Nominatim service, not the backend.
+  `shared/api/nominatim.ts` uses raw `fetch` because it calls the external Nominatim service, not the backend.
 - API calls live in the feature's `api/` service files, not inside components.
 - Map logic (layers, interactions, clicks) lives in hooks (`useXxx`), not in large components.
   Clean up OpenLayers layers, interactions and listeners in the hook's cleanup.

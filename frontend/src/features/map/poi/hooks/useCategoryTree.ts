@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 import { getCategoryTree } from "../../../../shared/api/poiService";
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 export function useCategoryTree(apiFetch: ApiFetch): CategoryTreeNode[] {
   const [tree, setTree] = useState<CategoryTreeNode[]>([]);

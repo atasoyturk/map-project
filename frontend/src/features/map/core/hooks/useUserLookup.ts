@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { getUserLookup } from "../../../../shared/api/userLookupService";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 export interface UserLookupEntry {
   email:    string;
   teamName: string | null;
 }
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
 export function useUserLookup(apiFetch: ApiFetch): Map<number, UserLookupEntry> {
   const [lookup, setLookup] = useState<Map<number, UserLookupEntry>>(new Map());

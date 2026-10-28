@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../../auth/context/AuthContext";
-import { planTrip, type TripPlanResultDto } from "../../../../shared/api/tripPlanningService";
+import { planTrip, type TripPlanResultDto } from "../api/tripPlanningService";
 
 type PickMode = "start" | "end" | null;
 

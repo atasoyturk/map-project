@@ -2,9 +2,9 @@ import { useState } from "react";
 import { flattenCategories, type FlatCategoryRow } from "../../../../shared/utils/categoryTree";
 import GeoJSON from "ol/format/GeoJSON";
 import WKT from "ol/format/WKT";
-import { RegionSearch } from "../../../admin/components/RegionSearch";
-import { simplifyToLimit } from "../../../admin/helpers/simplifyGeometry";
-import type { NominatimResult } from "../../../admin/api/nominatim";
+import { RegionSearch } from "../../../../shared/components/RegionSearch";
+import { simplifyToLimit } from "../../../../shared/utils/simplifyGeometry";
+import type { NominatimResult } from "../../../../shared/api/nominatim";
 
 
 interface Criterion {

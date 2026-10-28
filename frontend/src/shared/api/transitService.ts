@@ -1,4 +1,4 @@
-import type { ApiFetch } from "../../features/map/core/api/geoService";
+import type { ApiFetch } from "./apiFetch";
 import type { TransitStopRequestDto, TransitRouteRequestDto } from "../../features/map/transit/types";
 
 // --- Stops ---

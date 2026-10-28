@@ -5,8 +5,7 @@ import VectorSource  from "ol/source/Vector";
 import { WKT }       from "ol/format";
 import type { AnnotationResponseDto } from "../types";
 import { getAllAnnotations } from "../api/annotationService";
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 const wktFormat = new WKT();
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type OlMap from "ol/Map";
 import { fromLonLat } from "ol/proj";
-import { searchAddress, type AddressSearchResult } from "../../../admin/api/nominatim";
+import { searchAddress, type AddressSearchResult } from "../../../../shared/api/nominatim";
 
 interface LocationSearchBarProps {
   map: OlMap | null;

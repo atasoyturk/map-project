@@ -1,5 +1,7 @@
 const BASE_URL = "http://localhost:5130";
 
+export type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+
 type LogoutFn = () => void;
 
 export function createApiFetch(logout: LogoutFn) {

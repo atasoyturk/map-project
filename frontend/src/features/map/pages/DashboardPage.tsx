@@ -43,18 +43,18 @@ import { getLocationAnalysis } from "../core/api/analysisService";
 
 import { Toast }                    from "../../../shared/components/Toast";
 import { LocationSearchBar }        from "../core/components/LocationSearchBar";
-import { buildStyle }               from "../../../utils/mapStyle";
+import { buildStyle }               from "../../../shared/utils/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
 
 import { TripPlanningPanel } from "../core/components/TripPlanningPanel";
 import { useTripPointClick } from "../core/hooks/useTripPointClick";
 import { useTripRouteLayer } from "../core/hooks/useTripRouteLayer";
-import type { TripPlanResultDto } from "../../../shared/api/tripPlanningService";
+import type { TripPlanResultDto } from "../core/api/tripPlanningService";
 
 import { ThematicMapPanel } from "../core/components/ThematicMapPanel";
 import { useIsochroneLayer } from "../core/hooks/useIsochroneLayer";
-import type { IsochroneResultDto } from "../../../shared/api/thematicMapService";
+import type { IsochroneResultDto } from "../core/api/thematicMapService";
 
 import { Style, Icon } from "ol/style";
 import WKT from "ol/format/WKT";

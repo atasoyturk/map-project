@@ -6,8 +6,7 @@ import { GeoJSON, WKT } from "ol/format";
 import { Style, Fill, Stroke, Circle as CircleStyle, Icon } from "ol/style";
 import { getGeoFeatures } from "../../core/api/geoService";
 import type { PoiResponseDto } from "../types";
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 const geoJsonFormat = new GeoJSON();
 const wktFormat     = new WKT();

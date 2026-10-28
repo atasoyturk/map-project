@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAllTransitRoutes } from "../../../../shared/api/transitService";
 import type { TransitRouteResponseDto } from "../types";
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 export function useTransitRoutes(apiFetch: ApiFetch) {
   const [routes, setRoutes] = useState<TransitRouteResponseDto[]>([]);

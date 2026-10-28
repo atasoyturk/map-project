@@ -12,8 +12,8 @@ import { createPoi } from "../../../../shared/api/poiService";
 import type { PoiResponseDto, PendingPoi } from "../types";
 import type { CategoryTreeNode } from "../../../../shared/utils/categoryTree";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 interface ToastState { message: string; type: "success" | "error"; }
 
 interface PoiModuleProps {

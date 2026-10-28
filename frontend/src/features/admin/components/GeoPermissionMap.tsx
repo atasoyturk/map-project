@@ -11,9 +11,9 @@ import { WKT, GeoJSON }                from "ol/format";
 import { Style, Fill, Stroke }         from "ol/style";
 import { Feature }                     from "ol";
 import { useAuth }                     from "../../auth/context/AuthContext";
-import { RegionSearch }                from "./RegionSearch";
-import type { NominatimResult }        from "../api/nominatim";
-import { simplifyToLimit } from "../helpers/simplifyGeometry";
+import { RegionSearch }                from "../../../shared/components/RegionSearch";
+import type { NominatimResult }        from "../../../shared/api/nominatim";
+import { simplifyToLimit } from "../../../shared/utils/simplifyGeometry";
 
 interface GeoPermissionMapProps {
   onClose:      () => void;

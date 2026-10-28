@@ -1,5 +1,5 @@
 // frontend/src/shared/api/companyService.ts
-import type { ApiFetch } from "../../features/map/core/api/geoService";
+import type { ApiFetch } from "./apiFetch";
 
 // --- Company Category ---
 

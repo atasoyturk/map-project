@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../../auth/context/AuthContext";
-import { getIsochrone, type IsochroneResultDto } from "../../../../shared/api/thematicMapService";
+import { getIsochrone, type IsochroneResultDto } from "../api/thematicMapService";
 
 type PickMode = "center" | null;
 

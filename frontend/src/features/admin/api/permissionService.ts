@@ -1,4 +1,4 @@
-import type { ApiFetch } from "../../map/core/api/geoService";
+import type { ApiFetch } from "../../../shared/api/apiFetch";
 
 export function getUserPermissions(apiFetch: ApiFetch, userId: number) {
   return apiFetch(`/api/admin/users/${userId}/permissions`);

@@ -7,7 +7,7 @@ import VectorLayer     from "ol/layer/Vector";
 import { WKT }          from "ol/format";
 import { fromLonLat }   from "ol/proj";
 import { Style, Stroke, Circle as CircleStyle, Fill } from "ol/style";
-import type { TripPlanResultDto } from "../../../../shared/api/tripPlanningService";
+import type { TripPlanResultDto } from "../api/tripPlanningService";
 
 const wktFormat = new WKT();
 

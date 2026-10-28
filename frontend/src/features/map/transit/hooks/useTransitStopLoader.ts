@@ -2,10 +2,9 @@ import { useEffect } from "react";
 import { Feature }   from "ol";
 import VectorSource  from "ol/source/Vector";
 import { GeoJSON }   from "ol/format";
-import { buildStopStyle } from "../../../../utils/mapStyle";
+import { buildStopStyle } from "../../../../shared/utils/mapStyle";
 import { getGeoFeatures } from "../../core/api/geoService";
-
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 const geoJsonFormat = new GeoJSON();
 

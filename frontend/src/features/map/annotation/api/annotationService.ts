@@ -1,4 +1,4 @@
-import type { ApiFetch } from "../../core/api/geoService";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 interface AnnotationPayload {
   noteText:    string;

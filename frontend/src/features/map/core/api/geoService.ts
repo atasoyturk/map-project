@@ -1,6 +1,5 @@
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 import type { DrawType } from "../types";
-
-export type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 
 interface GeoFeatureData {
   wktGeometry: string;

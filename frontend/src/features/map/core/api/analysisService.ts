@@ -1,4 +1,4 @@
-import type { ApiFetch } from "./geoService";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 /** Alan Tara */
 export function analyzeTempInventory(apiFetch: ApiFetch, wktGeometry: string) {

@@ -5,7 +5,7 @@ import VectorSource    from "ol/source/Vector";
 import VectorLayer     from "ol/layer/Vector";
 import { WKT }          from "ol/format";
 import { Style, Fill, Stroke } from "ol/style";
-import type { IsochroneResultDto } from "../../../../shared/api/thematicMapService";
+import type { IsochroneResultDto } from "../api/thematicMapService";
 
 const wktFormat = new WKT();
 

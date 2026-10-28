@@ -1,4 +1,4 @@
-import type { ApiFetch } from "../../features/map/core/api/geoService";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 export interface IsochroneBandDto {
   minutesThreshold: number;

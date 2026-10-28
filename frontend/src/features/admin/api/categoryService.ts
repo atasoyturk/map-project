@@ -1,4 +1,4 @@
-import type { ApiFetch } from "../../map/core/api/geoService";
+import type { ApiFetch } from "../../../shared/api/apiFetch";
 
 interface CategoryPayload {
   name:             string;

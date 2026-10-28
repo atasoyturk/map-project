@@ -6,7 +6,7 @@ import VectorLayer from "ol/layer/Vector";
 import { fromLonLat } from "ol/proj";
 
 import { VehicleInfoPopup } from "./VehicleInfoPopup";
-import { buildVehicleStyle } from "../../../../utils/mapStyle";
+import { buildVehicleStyle } from "../../../../shared/utils/mapStyle";
 import Point from "ol/geom/Point";
 
 import { useTransitStopLoader, transitStopToFeature } from "../hooks/useTransitStopLoader";
@@ -28,9 +28,9 @@ import { createRouteSimulationConnection } from "../../../../shared/api/signalR"
 import { RouteInfoPopup } from "./RouteInfoPopup";
 import { createTransitStop, getRouteSimulationStatus } from "../../../../shared/api/transitService";
 import { FLEET_ENABLED } from "../../../../shared/featureFlags";
+import type { ApiFetch } from "../../../../shared/api/apiFetch";
 
 
-type ApiFetch = (path: string, options?: RequestInit) => Promise<Response>;
 interface ToastState { message: string; type: "success" | "error"; }
 
 interface TransitModuleProps {

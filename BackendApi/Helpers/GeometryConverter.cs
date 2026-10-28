@@ -24,6 +24,7 @@ public static class GeometryConverter
             throw new ArgumentException(
                 $"Geometri çok fazla nokta içeriyor (max {MaxCoordinateCount}).");
 
+        geometry.SRID = 4326;
         return geometry;
     }
 }

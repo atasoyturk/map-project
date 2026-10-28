@@ -9,7 +9,7 @@ public sealed class FakeOsrmService : IOsrmService
     public Task<(bool Success, LineString? RouteGeometry, double? DurationSeconds, string? Error)>
         GetRouteAsync(IEnumerable<Coordinate> orderedCoordinates)
     {
-        var line = new LineString(orderedCoordinates.ToArray());
+        var line = new LineString(orderedCoordinates.ToArray()) { SRID = 4326 };
         return Task.FromResult<(bool, LineString?, double?, string?)>((true, line, 0, null));
     }
 

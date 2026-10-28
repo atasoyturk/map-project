@@ -34,7 +34,7 @@ public sealed class TripPlanningTests : ApiTestBase
                 db.TransitStops.Add(new TransitStop
                 {
                     Name           = $"{name}-{i + 1}",
-                    Geometry       = new Point(stops[i].Lon, stops[i].Lat),
+                    Geometry       = new Point(stops[i].Lon, stops[i].Lat) { SRID = 4326 },
                     TransitRouteId = route.Id,
                     UserId         = _ownerId,
                     SortOrder      = i,

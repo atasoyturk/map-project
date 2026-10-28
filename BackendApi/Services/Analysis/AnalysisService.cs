@@ -16,15 +16,12 @@ public sealed class AnalysisService : IAnalysisService
     public async Task<int> TempInventoryAsync(GeoRequestDto request, int userId)
     {
         var geometry  = GeometryConverter.FromWkt(request.WktGeometry);
-        
-        var points   = await _context.Points  .Where(p => p.UserId == userId && !p.IsDeleted && p.IsActive).ToListAsync();
-        var lines    = await _context.Lines   .Where(l => l.UserId == userId && !l.IsDeleted && l.IsActive).ToListAsync();
-        var polygons = await _context.Polygons.Where(p => p.UserId == userId && !p.IsDeleted && p.IsActive).ToListAsync();
 
-        return
-            points  .Count(p => geometry.Intersects(p.Geometry)) +
-            lines   .Count(l => geometry.Intersects(l.Geometry)) +
-            polygons.Count(p => geometry.Intersects(p.Geometry));
+        var points   = await _context.Points  .CountAsync(p => p.UserId == userId && !p.IsDeleted && p.IsActive && geometry.Intersects(p.Geometry));
+        var lines    = await _context.Lines   .CountAsync(l => l.UserId == userId && !l.IsDeleted && l.IsActive && geometry.Intersects(l.Geometry));
+        var polygons = await _context.Polygons.CountAsync(p => p.UserId == userId && !p.IsDeleted && p.IsActive && geometry.Intersects(p.Geometry));
+
+        return points + lines + polygons;
     }
 
     public async Task<LocationAnalysisResponseDto> LocationAnalysisAsync(LocationAnalysisRequestDto request, int userId)
@@ -36,32 +33,32 @@ public sealed class AnalysisService : IAnalysisService
             throw new ArgumentException("En az 2, en fazla 5 kriter seçilmelidir.");
 
         var geometry = GeometryConverter.FromWkt(request.WktGeometry);
-        
-        var poisInRegion = await _context.Pois
-            .Where(p => !p.IsDeleted)
-            .ToListAsync();
-
-        var filteredPois = poisInRegion
-            .Where(p => geometry.Intersects(p.Geometry))
-            .ToList();
 
         var allCategories = await _context.PoiCategories.Where(c => !c.IsDeleted).ToListAsync();
-        
+
+        // Kategori ve tüm alt kategorilerini bul
+        var criteriaCategoryIds = request.Criteria
+            .Select(c => (Criterion: c, CategoryIds: GetCategoryAndDescendants(c.CategoryId, allCategories)))
+            .ToList();
+        var allCategoryIds = criteriaCategoryIds.SelectMany(c => c.CategoryIds).Distinct().ToList();
+
+        var filteredPois = await _context.Pois
+            .Where(p => !p.IsDeleted && allCategoryIds.Contains(p.CategoryId) && geometry.Intersects(p.Geometry))
+            .Select(p => new { p.Geometry.X, p.Geometry.Y, p.CategoryId })
+            .ToListAsync();
+
         var heatmapPoints = new List<HeatmapPointDto>();
 
-        foreach (var criterion in request.Criteria)
+        foreach (var (criterion, categoryIds) in criteriaCategoryIds)
         {
-            // Kategori ve tüm alt kategorilerini bul
-            var categoryIds = GetCategoryAndDescendants(criterion.CategoryId, allCategories);
-            
             var categoryPois = filteredPois.Where(p => categoryIds.Contains(p.CategoryId));
-            
+
             foreach (var poi in categoryPois)
             {
                 heatmapPoints.Add(new HeatmapPointDto
                 {
-                    Latitude = poi.Geometry.Y,
-                    Longitude = poi.Geometry.X,
+                    Latitude = poi.Y,
+                    Longitude = poi.X,
                     Weight = criterion.Score / 100.0
                 });
             }

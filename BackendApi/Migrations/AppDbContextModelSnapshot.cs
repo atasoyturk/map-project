@@ -37,7 +37,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Geometry>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -852,7 +852,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Geometry>("BoundaryGeometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -895,7 +895,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Geometry>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -920,6 +920,10 @@ namespace BackendApi.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Geometry");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Geometry"), "gist");
 
                     b.HasIndex("TeamId");
 
@@ -943,7 +947,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Geometry>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -968,6 +972,10 @@ namespace BackendApi.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Geometry");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Geometry"), "gist");
 
                     b.HasIndex("TeamId");
 
@@ -991,7 +999,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Geometry>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1016,6 +1024,10 @@ namespace BackendApi.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Geometry");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Geometry"), "gist");
 
                     b.HasIndex("TeamId");
 
@@ -1068,7 +1080,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Point>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1100,6 +1112,10 @@ namespace BackendApi.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Geometry");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Geometry"), "gist");
 
                     b.HasIndex("OsmId")
                         .IsUnique()
@@ -1604,7 +1620,7 @@ namespace BackendApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<Geometry>("RouteGeometry")
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("integer");
@@ -1629,7 +1645,7 @@ namespace BackendApi.Migrations
 
                     b.Property<Point>("Geometry")
                         .IsRequired()
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(Geometry,4326)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");

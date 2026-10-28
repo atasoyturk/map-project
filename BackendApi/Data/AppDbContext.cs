@@ -243,6 +243,22 @@ public sealed class AppDbContext : DbContext
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Geometry columns: SRID 4326 enforced by the column type; GiST indexes for spatial queries
+        const string geometry4326 = "geometry(Geometry,4326)";
+        modelBuilder.Entity<Annotation>()         .Property(a => a.Geometry)        .HasColumnType(geometry4326);
+        modelBuilder.Entity<GeoPermissionEntity>().Property(g => g.BoundaryGeometry).HasColumnType(geometry4326);
+        modelBuilder.Entity<TransitRoute>()       .Property(r => r.RouteGeometry)   .HasColumnType(geometry4326);
+        modelBuilder.Entity<TransitStop>()        .Property(s => s.Geometry)        .HasColumnType(geometry4326);
+        modelBuilder.Entity<Poi>()                .Property(p => p.Geometry)        .HasColumnType(geometry4326);
+        modelBuilder.Entity<PointEntity>()        .Property(p => p.Geometry)        .HasColumnType(geometry4326);
+        modelBuilder.Entity<LineEntity>()         .Property(l => l.Geometry)        .HasColumnType(geometry4326);
+        modelBuilder.Entity<PolygonEntity>()      .Property(p => p.Geometry)        .HasColumnType(geometry4326);
+
+        modelBuilder.Entity<Poi>()          .HasIndex(p => p.Geometry).HasMethod("gist");
+        modelBuilder.Entity<PointEntity>()  .HasIndex(p => p.Geometry).HasMethod("gist");
+        modelBuilder.Entity<LineEntity>()   .HasIndex(l => l.Geometry).HasMethod("gist");
+        modelBuilder.Entity<PolygonEntity>().HasIndex(p => p.Geometry).HasMethod("gist");
+
         modelBuilder.Seed();
     }
 }

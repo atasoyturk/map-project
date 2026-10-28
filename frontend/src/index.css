@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #030c21;
+  --color-ink:   #0f172a;
+  --color-line:  #e2e8f0;
+  --color-muted: #64748b;
+}
+
 html, body {
   height: 100%;
   width: 100%;

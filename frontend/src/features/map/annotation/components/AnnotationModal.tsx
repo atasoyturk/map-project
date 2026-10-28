@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Modal }  from "../../../../shared/components/ui/Modal";
+import { Button } from "../../../../shared/components/ui/Button";
+import { Field }  from "../../../../shared/components/ui/Field";
 
 interface AnnotationModalProps {
   onSave:   (noteText: string) => void;
@@ -16,94 +19,32 @@ export function AnnotationModal({ onSave, onCancel, isSaving, error }: Annotatio
   }
 
   return (
-    <div
-      style={{
-        position:       "fixed",
-        inset:          0,
-        zIndex:         2000,
-        background:     "rgba(0,0,0,0.5)",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-      }}
-      onClick={onCancel}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background:   "#ffffff",
-          borderRadius: 16,
-          padding:      "28px 32px",
-          width:        360,
-          boxShadow:    "0 20px 60px rgba(0,0,0,0.3)",
-        }}
-      >
-        <div style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "4px 0 0" }}>
-            Not Ekle
-          </h2>
-        </div>
+    <Modal onClose={onCancel} className="w-[360px] rounded-2xl px-8 py-7">
+      <h2 className="mt-1 mb-5 text-lg font-semibold text-ink">Not Ekle</h2>
 
-        <div style={{ marginBottom: error ? 8 : 24 }}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-            Not Metni
-          </label>
-          <textarea
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Bu konuma dair notunuz..."
-            rows={4}
-            style={{
-              width:        "100%",
-              boxSizing:    "border-box",
-              padding:      "8px 12px",
-              borderRadius: 8,
-              border:       "1px solid #e2e8f0",
-              fontSize:     14,
-              color:        "#0f172a",
-              outline:      "none",
-              resize:       "vertical",
-              fontFamily:   "inherit",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-            onBlur={(e)  => (e.target.style.borderColor = "#e2e8f0")}
-          />
-        </div>
+      <Field label="Not Metni" className={error ? "mb-2" : "mb-6"}>
+        <textarea
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="Bu konuma dair notunuz..."
+          rows={4}
+          className="resize-y"
+        />
+      </Field>
 
-        {error && (
-          <p style={{ fontSize: 12, color: "#dc2626", margin: "0 0 16px" }}>
-            {error}
-          </p>
-        )}
+      {error && <p className="mb-4 text-xs text-red-600">{error}</p>}
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            onClick={onCancel}
-            disabled={isSaving}
-            style={{
-              flex: 1, padding: "9px 0", borderRadius: 8,
-              border: "1px solid #e2e8f0", background: "#f8fafc",
-              color: "#64748b", fontSize: 13, fontWeight: 500, cursor: "pointer",
-            }}
-          >
-            İptal
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving || !noteText.trim()}
-            style={{
-              flex: 2, padding: "9px 0", borderRadius: 8,
-              border: "1px solid rgba(255,255,255,.15)",
-              background: isSaving ? "#1e293b" : "#030c21",
-              color:      isSaving ? "#64748b" : "#94a3b8",
-              fontSize: 13, fontWeight: 600,
-              cursor: isSaving || !noteText.trim() ? "not-allowed" : "pointer",
-            }}
-          >
-            {isSaving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-        </div>
+      <div className="flex gap-2.5">
+        <Button className="flex-1" onClick={onCancel} disabled={isSaving}>İptal</Button>
+        <Button
+          className={`flex-2 ${isSaving ? "bg-slate-800! text-muted!" : ""}`}
+          variant="primary"
+          onClick={handleSave}
+          disabled={isSaving || !noteText.trim()}
+        >
+          {isSaving ? "Kaydediliyor..." : "Kaydet"}
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 }

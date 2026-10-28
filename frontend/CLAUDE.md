@@ -27,7 +27,7 @@ Build/lint commands: see root CLAUDE.md (build runs `tsc -b`, so type errors fai
 - Geometry is sent/received as WKT in EPSG:4326; the map view is EPSG:3857 — transform explicitly.
 - Strong typing: no new `any` (some old code has it — don't fix unasked). Shared types go in the feature's `types.ts`.
 - Styling with Tailwind classes in new code; follow the look of existing components.
-  Some older components use inline `style={{...}}` objects — don't convert them unasked.
+  New or touched modals use ui/*; no inline style.
 - UI text is in Turkish.
 - Frontend permission checks are only for UX; the backend is the real security check.
 - Show/hide UI by permission: `const { hasPermission } = useAuth(); hasPermission("poi_create")`. Admin: `hasPermission("admin_access")`.

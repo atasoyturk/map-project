@@ -42,7 +42,7 @@ public sealed class GeoServerService : IGeoServerService
         GetFeaturesAsync(string typeName, int userId, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
-                return (false, null, null, "Gecersiz katman adi.");
+                throw new ArgumentException("Geçersiz katman adı.");
 
             try
             {
@@ -85,7 +85,7 @@ public sealed class GeoServerService : IGeoServerService
         GetWmsMapAsync(string typeName, int userId, string bbox, int width, int height, string? styles, int? teamId, GeoViewMode viewMode)
         {
             if (!AllowedLayers.Contains(typeName))
-                return (false, null, null, "Gecersiz katman adi.");
+                throw new ArgumentException("Geçersiz katman adı.");
 
             try
             {

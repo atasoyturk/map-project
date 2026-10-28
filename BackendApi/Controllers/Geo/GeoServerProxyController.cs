@@ -36,9 +36,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
             await _geoServerService.GetFeaturesAsync(typeName, userId.Value, teamId, resolvedMode);
 
         if (!success)
-            return error == "Geçersiz katman adı."
-                ? BadRequest(error)
-                : StatusCode(502, error);
+            return StatusCode(502, error);
 
         return Content(content!, contentType!);
     }
@@ -72,9 +70,7 @@ public sealed class GeoServerProxyController : ApiControllerBase
             await _geoServerService.GetWmsMapAsync(typeName, userId.Value, bbox, width, height, styles, teamId, resolvedMode);
 
         if (!success)
-            return error == "Geçersiz katman adı."
-                ? BadRequest(error)
-                : StatusCode(502, error);
+            return StatusCode(502, error);
 
         return File(content!, contentType!);
     }

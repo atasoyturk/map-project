@@ -41,7 +41,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - `Infrastructure/ApiFixture` starts one container + `ApiFactory` (WebApplicationFactory) per run; schema via `Migrate` (the full migration chain). Respawn resets data before each test; seed tables are kept.
 - `ApiFactory` uses the `Testing` environment (no user-secrets), a test JWT key, the container connection string and `FakeOsrmService`.
 - New test classes inherit `ApiTestBase` (`CreateUserAsync(roleIds, directPermissions)` returns a logged-in client).
-- Run: `dotnet test BackendApi.Tests` (Docker must be running).
+- Run: see root CLAUDE.md Commands.
 
 ## Errors
 - Throw, don't return error codes from services. `GlobalExceptionHandler` maps:

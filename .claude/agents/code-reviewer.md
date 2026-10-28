@@ -7,7 +7,10 @@ tools: Read, Grep, Glob, Bash
 You review the current uncommitted changes of the AtaGIS repo. You do not edit files.
 
 ## Steps
-1. Run `git status --porcelain`, `git diff` and `git diff --staged`.
+1. Run `git status --porcelain`,
+   `git diff -- . ':(exclude)**/package-lock.json' ':(exclude)**/*.Designer.cs' ':(exclude)**/*ModelSnapshot.cs'`
+   and `git diff --staged -- . ':(exclude)**/package-lock.json' ':(exclude)**/*.Designer.cs' ':(exclude)**/*ModelSnapshot.cs'`.
+   For the excluded files, only note that they changed (`git diff --stat`); review a migration's Up/Down only.
    Read every new (untracked, `??`) file in full — `git diff` does not show them.
    Review only changed/new lines and their direct context.
 2. Read the root CLAUDE.md, plus BackendApi/CLAUDE.md and/or frontend/CLAUDE.md only for the sides

@@ -12,7 +12,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 - Read `planning/tasks.json`. A `requires` id counts as done only if it is in `done`;
   if it is in neither `tasks` nor `done`, stop and ask.
 - If a task id is given, use it; otherwise take the first task in array order with `status: "todo"` whose
-  `requires` ids are all absent. If a required id is still present, stop and tell the user which task blocks it.
+  `requires` ids are all in `done`. If a required id is still present, stop and tell the user which task blocks it.
 - Read only `planning/tasks/<id>.md`. Read `planning/vision.md` only for product, UX or scope decisions;
   `planning/backlog.md` only if the task points to it.
 - Working tree must be clean and on `main`; create `fix/<short-name>` for bugs, `feat/<short-name>` otherwise.
@@ -24,7 +24,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 - Do not write code before the user's OK.
 
 ## 3. Implement
-- Backend bug fix or new backend logic: write the failing test first (if `BackendApi.Tests` exists), then the fix.
+- Backend bug fix or new backend logic: write the failing test first, then the fix.
 - Before applying a migration: stop and ask the user to take a DB backup (pg_dump).
 - Problems outside the task: don't fix; add one line to `planning/backlog.md`, or a new task to `tasks.json` +
   `tasks/<id>.md` if it is clearly separate work — tell the user.
@@ -35,7 +35,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
   Re-run it only if you changed code after the first review.
 
 ## 5. Report (gate 2 — wait for the user)
-In Turkish, max 5 lines + test list:
+In Turkish, max 8 lines + test list:
 - What changed and why (2–3 lines); remaining reviewer NOTEs (1 line each).
 - `git diff --stat` output and the 1–2 design decisions you made (one line each), so the user can review the diff.
 - "Tarayıcıda test et:" 2–4 steps (account, screen, expected result). Remind to re-login if JWT claims changed.

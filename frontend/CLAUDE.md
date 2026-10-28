@@ -29,6 +29,8 @@ Build/lint commands: see root CLAUDE.md (build runs `tsc -b`, so type errors fai
   admin status (admin panel lists), use the `hasAdminAccess` field the admin API returns. The remaining "Kullanıcı"
   role-name filters are known (D2 in `planning/tasks.json`); don't fix them unasked.
 - POI icons: do not add IDs to the hardcoded category ID sets in `usePoiLoader.ts`; a per-category icon field is planned (see task B1).
+- Unit tests (Vitest): co-located `*.test.ts` next to the source; no globals/jsdom.
+  When moving a file, move its test with it. E2E tests (later) go in `frontend/e2e/`.
 
 ## Out of product scope
 - `features/company` and the fleet parts of transit (vehicles, shipments, live simulation) are kept but out of scope —

@@ -7,9 +7,10 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 
 ## Folder structure (feature-based)
 - `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`).
-  Features: `admin`, `auth`, `company`, `map` (sub-folders `core`, `poi`, `transit`, `annotation`, `pages`).
+  `map` has sub-folders `core`, `poi`, `transit`, `annotation`, `pages`.
 - `src/shared/` — only code used by several features (`api/apiFetch.ts` with the `ApiFetch` type, common components, utils).
-- `shared/utils/mapStyle.ts` — shared OpenLayers style builders.
+- Known misplacement: `shared/utils/mapStyle.ts` is used only by `map`; move it to `features/map/core/` when map styles
+  are next touched.
 - Put new code in the feature it belongs to. Move to `shared/` only when a second feature really needs it.
 - A feature does not import from another feature's folders; shared code goes in `shared/`. `shared/` never imports
   from `features/`. Exceptions: `useAuth` from `features/auth/context`; inside `map`, sub-folders may import

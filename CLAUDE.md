@@ -1,7 +1,7 @@
 # AtaGIS — Web GIS Portal
 
 Full-stack web GIS portal: drawing (point/line/polygon), POI, annotations, transit routes & stops,
-real-time vehicle simulation, trip planning, isochrone and location analysis, RBAC + geographic permissions.
+trip planning, isochrone and location analysis, RBAC + geographic permissions.
 
 **Product direction:** site-selection / location-analysis platform ("where should a chain open its next branch?").
 The fleet module (companies, vehicles, shipments, live simulation) is out of scope: kept, hidden, not extended.
@@ -16,7 +16,8 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - GeoServer in Docker at `http://localhost:8090/geoserver`, workspace `gisportal` (container `geoserver`, no volume — never `docker rm` it)
 - `tbl_poi_active` and `tbl_transit_stop_active` are not in the database; they are SQL views defined in GeoServer (`featuretype.xml` in its data_dir). Ask before changing them.
 - OSRM: public server `https://router.project-osrm.org` (profile `driving`)
-- Nominatim (public OSM geocoder), called directly from the browser for admin region search
+- Nominatim (public OSM geocoder), called directly from the browser via `shared/api/nominatim.ts`
+- Overpass API: public server `https://overpass-api.de` (admin OSM POI import only)
 - Backend runs on `http://localhost:5130`, frontend on `http://localhost:5173`
 
 ## Commands
@@ -36,7 +37,7 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 4. **Verify.** Define how the change will be checked (build, test, or manual steps in the browser) and report the result.
 5. For non-trivial tasks, propose a short plan first and wait for approval.
 6. The rules in all three CLAUDE.md files apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
-7. Before committing, run the `code-reviewer` agent on the changes and fix any BLOCKER.
+7. Before committing, run the `code-reviewer` agent on the changes; fix every BLOCKER and in-scope SHOULD FIX.
 8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
 9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests.
 

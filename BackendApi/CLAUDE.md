@@ -2,7 +2,7 @@
 
 ## Architecture
 Controller → Service (interface + implementation, registered in `Program.cs`) → `AppDbContext` (EF Core + NetTopologySuite).
-- Exception: Auth goes through `Repositories/` (`IUserRepository` / `UserRepository`) instead of using `AppDbContext` directly.
+- Exception: Auth uses `Repositories/` (`IUserRepository` / `UserRepository`) instead of `AppDbContext`; `AuthController` calls it directly (known).
 - Folders are grouped by domain: `Controllers/<Domain>`, `Services/<Domain>`, `DTOs/<Domain>`, `Entities/<Domain>`.
   Controller folder = service folder = DTO folder = namespace (per domain). Routes keep their existing names.
   Using another domain's DTOs or services is fine (e.g. Company → Transit DTOs, Analysis → IOsrmService); the rule is about where a file lives.
@@ -39,7 +39,8 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   Admins (`admin_access`, passed as `HasAdminAccess()`) are exempt; the exemption lives only in `GeoPermissionService` — do not add
   admin checks at call sites. A boundary cannot be assigned to an admin user or to a role with `admin_access` (403).
 - Data visibility uses `GeoViewMode` (Own / Team / All) resolved by `GeoViewModeResolver`.
-  Today it is used only for points/lines/polygons (`GeoController`) and the GeoServer proxy.
+  Visibility filtering is not global: every endpoint that returns drawings must apply `GeoViewModeResolver`
+  (or the same filter) itself.
 - GeoServer is only reached through `GeoServerService`; layers must be in the `AllowedLayers` whitelist. User-data layers get a CQL filter; shared layers (`tbl_poi_active`, `tbl_transit_stop_active`) are unfiltered on purpose:
   POIs (mostly OSM-imported) and stops are shared reference data every user may see. Do not add a CQL filter for them.
 - OSM POI import (`POST api/poi/import-osm`, `admin_access`) skips the geo-boundary check: admins are exempt anyway.
@@ -47,7 +48,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 ## Tests
 - `BackendApi.Tests/` (repo root, xUnit): integration tests through HTTP against a real PostGIS container (Testcontainers, `postgis/postgis:18-3.6`).
 - `Infrastructure/ApiFixture` starts one container + `ApiFactory` (WebApplicationFactory) per run; schema via `Migrate` (the full migration chain). Respawn resets data before each test; seed tables are kept.
-- `ApiFactory` uses the `Testing` environment (no user-secrets), a test JWT key, the container connection string and `FakeOsrmService`.
+- `ApiFactory` uses the `Testing` environment (no user-secrets), a test JWT key, the container connection string, `FakeOsrmService` and `FakeOverpassClient`.
 - New test classes inherit `ApiTestBase` (`CreateUserAsync(roleIds, directPermissions)` returns a logged-in client).
 - Run: see root CLAUDE.md Commands.
 
@@ -55,7 +56,6 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Throw, don't return error codes from services. `GlobalExceptionHandler` maps:
   `ArgumentException`→400, `UnauthorizedAccessException`→403, `KeyNotFoundException`→404, `InvalidOperationException`→409, others→500.
 - Return `null` / `false` from services for "not found", and let the controller return `NotFound()`.
-- Error messages are in Turkish.
 
 ## Config & secrets
 - Settings classes in `Settings/` with DataAnnotations + `ValidateOnStart`.

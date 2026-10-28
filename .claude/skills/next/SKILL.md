@@ -13,8 +13,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
   if it is in neither `tasks` nor `done`, stop and ask.
 - If a task id is given, use it; otherwise take the first task in array order with `status: "todo"` whose
   `requires` ids are all in `done`. If a required id is still present, stop and tell the user which task blocks it.
-- Read only `planning/tasks/<id>.md`. Read `planning/vision.md` only for product, UX or scope decisions;
-  `planning/backlog.md` only if the task points to it.
+- Read only `planning/tasks/<id>.md`; `planning/backlog.md` only if the task points to it.
 - Working tree must be clean and on `main`; create `fix/<short-name>` for bugs, `feat/<short-name>` otherwise.
 
 ## 2. Plan (gate 1 — wait for the user)
@@ -24,7 +23,6 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 - Do not write code before the user's OK.
 
 ## 3. Implement
-- Backend bug fix or new backend logic: write the failing test first, then the fix.
 - Before applying a migration: stop and ask the user to take a DB backup (pg_dump).
 - Problems outside the task: don't fix; add one line to `planning/backlog.md`, or a new task to `tasks.json` +
   `tasks/<id>.md` if it is clearly separate work — tell the user.
@@ -45,7 +43,7 @@ Do not commit until the user confirms the browser test passed.
 
 ## 6. Close
 - Delete the task's entry from `tasks`, append its id to `done`, and delete `planning/tasks/<id>.md`.
-- Commit with a short imperative English subject, no trailers (2–3 commits only for clearly separate parts).
+- Commit (see root CLAUDE.md rule 8); 2–3 commits only for clearly separate parts.
 - `git checkout main`, merge, delete the branch locally. Do not push; tell the user to push.
 - End with one line: the next eligible task's id and title, and remind the user to run /clear before the next /next.
 

@@ -194,7 +194,17 @@ public sealed class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(pg => pg.TeamId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
+        // Invalid geometries make PostGIS predicates silently wrong; GeometryConverter.FromWkt rejects them first.
+        modelBuilder.Entity<LineEntity>()
+            .ToTable(t => t.HasCheckConstraint("CK_tbl_line_Geometry_Valid", "ST_IsValid(\"Geometry\")"));
+        modelBuilder.Entity<PolygonEntity>()
+            .ToTable(t => t.HasCheckConstraint("CK_tbl_polygon_Geometry_Valid", "ST_IsValid(\"Geometry\")"));
+        modelBuilder.Entity<Annotation>()
+            .ToTable(t => t.HasCheckConstraint("CK_tbl_annotation_Geometry_Valid", "ST_IsValid(\"Geometry\")"));
+        modelBuilder.Entity<GeoPermissionEntity>()
+            .ToTable(t => t.HasCheckConstraint("CK_tbl_geo_permission_BoundaryGeometry_Valid", "ST_IsValid(\"BoundaryGeometry\")"));
+
         // PoiCategory self-referencing (Parent-Child)
         modelBuilder.Entity<PoiCategory>()
             .HasOne<PoiCategory>()

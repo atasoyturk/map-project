@@ -67,7 +67,10 @@ namespace BackendApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("tbl_annotation");
+                    b.ToTable("tbl_annotation", t =>
+                        {
+                            t.HasCheckConstraint("CK_tbl_annotation_Geometry_Valid", "ST_IsValid(\"Geometry\")");
+                        });
                 });
 
             modelBuilder.Entity("BackendApi.Entities.Auth.Permission", b =>
@@ -875,7 +878,10 @@ namespace BackendApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("tbl_geo_permission");
+                    b.ToTable("tbl_geo_permission", t =>
+                        {
+                            t.HasCheckConstraint("CK_tbl_geo_permission_BoundaryGeometry_Valid", "ST_IsValid(\"BoundaryGeometry\")");
+                        });
                 });
 
             modelBuilder.Entity("BackendApi.Entities.Geo.LineEntity", b =>
@@ -927,7 +933,10 @@ namespace BackendApi.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("tbl_line");
+                    b.ToTable("tbl_line", t =>
+                        {
+                            t.HasCheckConstraint("CK_tbl_line_Geometry_Valid", "ST_IsValid(\"Geometry\")");
+                        });
                 });
 
             modelBuilder.Entity("BackendApi.Entities.Geo.PointEntity", b =>
@@ -1031,7 +1040,10 @@ namespace BackendApi.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("tbl_polygon");
+                    b.ToTable("tbl_polygon", t =>
+                        {
+                            t.HasCheckConstraint("CK_tbl_polygon_Geometry_Valid", "ST_IsValid(\"Geometry\")");
+                        });
                 });
 
             modelBuilder.Entity("BackendApi.Entities.Geo.RoleGeoPermission", b =>

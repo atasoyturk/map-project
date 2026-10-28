@@ -3,6 +3,7 @@ using BackendApi.Helpers;
 using BackendApi.Services.Transit;
 using Microsoft.Extensions.Caching.Memory;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
 
 namespace BackendApi.Services.Analysis;
 
@@ -77,7 +78,9 @@ public sealed class ThematicMapService : IThematicMapService
             if (ringPoints.Count < 3) continue; // poligon oluşturmak için en az 3 nokta gerekli
 
             ringPoints.Add(ringPoints[0]); // poligon halkasını kapat
-            var polygon = GeometryFactory.CreatePolygon(ringPoints.ToArray());
+            // Curved routes can end out of angular order, so the ring may cross itself; fix it to a valid (multi)polygon.
+            var polygon = GeometryFixer.Fix(GeometryFactory.CreatePolygon(ringPoints.ToArray()));
+            if (polygon.IsEmpty) continue; // collinear ray ends collapse to nothing
 
             bands.Add(new IsochroneBandDto(minutes, GeometryConverter.ToWkt(polygon)));
         }

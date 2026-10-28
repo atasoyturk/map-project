@@ -24,6 +24,9 @@ public static class GeometryConverter
             throw new ArgumentException(
                 $"Geometri çok fazla nokta içeriyor (max {MaxCoordinateCount}).");
 
+        if (!geometry.IsValid)
+            throw new ArgumentException("Geometri geçersiz (örn. kendisiyle kesişen kenarlar veya eksik nokta).");
+
         geometry.SRID = 4326;
         return geometry;
     }

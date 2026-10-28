@@ -5,6 +5,7 @@ import WKT from "ol/format/WKT";
 import { RegionSearch } from "../../../../shared/components/RegionSearch";
 import { simplifyToLimit } from "../../../../shared/utils/simplifyGeometry";
 import type { NominatimResult } from "../../../../shared/api/nominatim";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 
 interface Criterion {
@@ -75,7 +76,7 @@ export function LocationAnalysisPanel({
     <div style={{
       position: "fixed", top: 70, right: 20, width: 320,
       background: "#ffffff", borderRadius: 12, boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-      padding: 20, zIndex: 1100, border: "1px solid #e2e8f0"
+      padding: 20, zIndex: Z.analysisPanel, border: "1px solid #e2e8f0"
     }}>
       <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, color: "#0f172a" }}>Konum Analizi</h3>
 

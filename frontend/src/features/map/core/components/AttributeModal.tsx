@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { PendingGeometry } from "../types";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 
 interface AttributeModalProps {
@@ -34,7 +35,7 @@ export function AttributeModal({
       style={{
         position:        "fixed",
         inset:           0,
-        zIndex:          2000,
+        zIndex:          Z.modal,
         background:      "rgba(0,0,0,0.5)",
         display:         "flex",
         alignItems:      "center",

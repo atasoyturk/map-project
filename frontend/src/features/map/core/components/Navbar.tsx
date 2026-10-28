@@ -13,6 +13,7 @@ import type { DrawType, PendingGeometry } from "../types";
 import { createGeoFeature, validateGeometry } from "../api/geoService";
 import { BottomToolbar } from "./BottomToolbar";
 import { NavDropdown } from "./NavDropdown";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface NavbarProps {
   map:               Map | null;
@@ -294,7 +295,7 @@ export function Navbar({
         ref={navRef as React.RefObject<HTMLElement>}
         style={{
           position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
-          zIndex: 1000,
+          zIndex: Z.toolbar,
           display:      "flex",
           alignItems:   "center",
           gap:          8,
@@ -377,7 +378,7 @@ export function Navbar({
         ref={navRef as React.RefObject<HTMLElement>}
         style={{
           position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
-          zIndex: 1000,
+          zIndex: Z.toolbar,
           display:      "flex",
           alignItems:   "center",
           gap:          8,

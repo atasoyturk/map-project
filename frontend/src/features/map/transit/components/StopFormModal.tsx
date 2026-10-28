@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { TransitRouteResponseDto } from "../types";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface StopFormModalProps {
   routes:        TransitRouteResponseDto[];
@@ -26,7 +27,7 @@ export function StopFormModal({ routes, lockedRouteId, onSave, onCancel, isSavin
     <div
       onClick={onCancel}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

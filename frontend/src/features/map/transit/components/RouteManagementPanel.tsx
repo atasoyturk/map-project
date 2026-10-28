@@ -15,6 +15,7 @@ import type { TransitRouteResponseDto, TransitRouteDetailDto, TransitStopRespons
 import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../../company/types";
 import type { VehicleActionResult } from "../hooks/useRouteSimulation";
 import { FLEET_ENABLED } from "../../../../shared/featureFlags";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 type FilterMode = "" | "unassigned";
 
@@ -392,7 +393,7 @@ export function RouteManagementPanel({
       borderRadius: 12,
       border:       "1px solid #e2e8f0",
       boxShadow:    "0 8px 32px rgba(0,0,0,0.15)",
-      zIndex:       950,
+      zIndex:       Z.sidePanel,
       display:      "flex",
       flexDirection:"column",
       overflow:     "hidden",

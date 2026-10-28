@@ -1,5 +1,6 @@
 import type { DrawType } from "../types";
 import { useEffect } from "react";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 
 const LABEL_MAP: Record<DrawType, string> = {
@@ -38,7 +39,7 @@ export function BottomToolbar({ activeType, onSelect, onCancel, disabled }: Bott
       border:       "1px solid rgba(255,255,255,.08)",
       borderRadius: 12,
       padding:      "8px 12px",
-      zIndex:       1000,
+      zIndex:       Z.toolbar,
     }}>
       {(["Point", "LineString", "Polygon"] as DrawType[]).map((type) => (
         <button

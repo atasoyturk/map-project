@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import type Map from "ol/Map";
 import type { Feature } from "ol";
 import type Point from "ol/geom/Point";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface PoiSearchBarProps {
   map: Map | null;
@@ -43,7 +44,7 @@ export function PoiSearchBar({ map, poiFeatures }: PoiSearchBarProps) {
   if (poiFeatures.length === 0) return null;
 
   return (
-    <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, width: 200 }}>
+    <div style={{ position: "absolute", top: 12, left: 12, zIndex: Z.mapControl, width: 200 }}>
       <input
         type="text"
         value={query}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface NavDropdownProps {
   label:    string;
@@ -57,7 +58,7 @@ export function NavDropdown({ label, disabled, hasActiveItem, onOpenChange, chil
             display: "flex", flexDirection: "column", gap: 6,
             background: "#030c21", border: "1px solid rgba(255,255,255,.08)",
             borderRadius: 12, padding: 10, minWidth: 180,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.3)", zIndex: 1001,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)", zIndex: Z.dropdown,
           }}
         >
           {children}

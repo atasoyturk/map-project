@@ -1,6 +1,7 @@
 import type { DrawingLayers } from "../hooks/useDrawing";
 import type VectorLayer from "ol/layer/Vector";
 import type VectorSource from "ol/source/Vector";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface LayerControlProps {
   layers:  DrawingLayers | null;
@@ -20,7 +21,7 @@ export function LayerControl({ layers, poiLayer, visible }: LayerControlProps) {
 
   return (
     <div style={{
-      position: "absolute", top: 80, right: 16, zIndex: 10,
+      position: "absolute", top: 80, right: 16, zIndex: Z.mapControl,
       background: "rgba(3,12,33)", borderRadius: 10,
       padding: "10px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
       display: "flex", flexDirection: "column", gap: 8,

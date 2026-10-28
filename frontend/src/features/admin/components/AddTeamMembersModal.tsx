@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { assignTeamToUsers } from "../api/userService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface EligibleUser {
   id:       number;
@@ -50,7 +51,7 @@ export function AddTeamMembersModal({ teamId, teamName, users, onClose, onAdded 
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

@@ -27,6 +27,8 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 - Strong typing: no new `any` (some old code has it — don't fix unasked). Shared types go in the feature's `types.ts`.
 - Styling with Tailwind classes in new code; follow the look of existing components.
   Modals whose markup you change use `shared/components/ui/` (Modal, Button, Field); no inline style.
+- No hand-written z-index; use `Z` from shared/components/ui/zIndex.ts via `style={{ zIndex: Z.x }}`
+  (the only allowed inline style, since Tailwind classes can't take constants).
 - Frontend permission checks are only for UX; the backend is the real security check.
 - Show/hide UI by permission: `const { hasPermission } = useAuth(); hasPermission("poi_create")`. Admin: `hasPermission("admin_access")`.
   Never add role-name checks (`roles.includes("...")`) — the role set will be simplified. For another user's or role's

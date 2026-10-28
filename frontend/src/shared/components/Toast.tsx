@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Z } from "./ui/zIndex";
 
 interface ToastProps {
   message:  string;
@@ -22,7 +23,7 @@ export function Toast({ message, type, onClose }: ToastProps) {
         bottom:       24,
         left:         "50%",
         transform:    "translateX(-50%)",
-        zIndex:       3000,
+        zIndex:       Z.modalRaised,
         background:   isSuccess ? "#f0fdf4" : "#fef2f2",
         border:       `1px solid ${isSuccess ? "#bbf7d0" : "#fecaca"}`,
         borderRadius: 12,

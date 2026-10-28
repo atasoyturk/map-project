@@ -6,6 +6,7 @@ import { flattenCategories, findCategoryPath, type CategoryTreeNode } from "../.
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updatePoi, deletePoi } from "../../../../shared/api/poiService";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 const wktFormat = new WKT();
 
@@ -91,7 +92,7 @@ export function PoiInfoPopup({ feature, categories, userLookup, canManage, onClo
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

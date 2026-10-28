@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getTeams } from "../api/teamService";
 import { assignTeamToUser } from "../api/userService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface TeamDto {
   id:   number;
@@ -65,7 +66,7 @@ export function TeamAssignModal({
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 3000,
+        position: "fixed", inset: 0, zIndex: Z.modalRaised,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

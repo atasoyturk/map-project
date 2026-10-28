@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../../auth/context/AuthContext";
 import { getIsochrone, type IsochroneResultDto } from "../api/thematicMapService";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 type PickMode = "center" | null;
 
@@ -105,7 +106,7 @@ export function ThematicMapPanel({
     <div style={{
       position: "fixed", top: 70, left: 16, bottom: 100, width: 300,
       background: "#ffffff", borderRadius: 12, border: "1px solid #e2e8f0",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 950,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: Z.sidePanel,
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>
       <div style={{

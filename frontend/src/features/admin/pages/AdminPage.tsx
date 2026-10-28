@@ -10,6 +10,7 @@ import { CompanyUserManagement } from "./CompanyUserManagement";
 import { TransitManagement } from "./TransitManagement";
 import { CompanyManagement } from "./CompanyManagement";
 import { FLEET_ENABLED } from "../../../shared/featureFlags";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 
 export function AdminPage() {
@@ -47,7 +48,7 @@ export function AdminPage() {
         top:             0,
         left:            0,
         bottom:          0,
-        zIndex:          100,
+        zIndex:          Z.adminSidebar,
       }}>
         {/* Brand */}
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid rgba(255,255,255,.08)" }}>

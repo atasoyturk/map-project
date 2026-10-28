@@ -9,6 +9,7 @@ import {
   assignGeoPermissionToUser,
   removeGeoPermissionFromUser,
 } from "../api/geoPermissionService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface GeoPermissionDto {
   id:          number;
@@ -129,7 +130,7 @@ export function UserGeoPermissionModal({
       <div
         onClick={onClose}
         style={{
-          position: "fixed", inset: 0, zIndex: 3000,
+          position: "fixed", inset: 0, zIndex: Z.modalRaised,
           background: "rgba(0,0,0,0.4)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}

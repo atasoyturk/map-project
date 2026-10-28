@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getRoles, assignRoleToUser, removeRoleFromUser } from "../api/roleService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface RoleDto {
   id:   number;
@@ -53,7 +54,7 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
     <div
       onClick={onClose}
       style={{
-        position:  "fixed", inset: 0, zIndex: 3000,
+        position:  "fixed", inset: 0, zIndex: Z.modalRaised,
         background: "rgba(0,0,0,0.4)",
         display:   "flex", alignItems: "center", justifyContent: "center",
       }}

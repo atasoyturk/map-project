@@ -1,3 +1,5 @@
+import { Z } from "../../../../shared/components/ui/zIndex";
+
 interface AnnotationContextMenuProps {
   x: number;
   y: number;
@@ -8,10 +10,10 @@ interface AnnotationContextMenuProps {
 export function AnnotationContextMenu({ x, y, onAddNote, onClose }: AnnotationContextMenuProps) {
   return (
     <>
-      <div className="fixed inset-0 z-[1900]" onClick={onClose} />
+      <div className="fixed inset-0" style={{ zIndex: Z.contextMenuBackdrop }} onClick={onClose} />
       <div
-        className="absolute z-[1901] min-w-[140px] rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/10"
-        style={{ left: x, top: y }}
+        className="absolute min-w-[140px] rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/10"
+        style={{ left: x, top: y, zIndex: Z.contextMenu }}
       >
         <button
           onClick={onAddNote}

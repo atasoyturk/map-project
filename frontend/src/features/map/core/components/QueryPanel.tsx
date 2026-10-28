@@ -4,6 +4,7 @@ import Map                     from "ol/Map";
 import { WKT }                 from "ol/format";
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import { searchDrawings } from "../api/searchService";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface DrawingRow {
   id:          number;
@@ -105,7 +106,7 @@ export function QueryPanel({ map, onClose }: QueryPanelProps) {
       bottom:     0, left: 0, right: 0,
       height:     320,
       background: "#ffffff",
-      zIndex:     900,
+      zIndex:     Z.mapTooltip,
       borderTop:  "1px solid #e2e8f0",
       boxShadow:  "0 -4px 24px rgba(0,0,0,0.08)",
       display:    "flex",

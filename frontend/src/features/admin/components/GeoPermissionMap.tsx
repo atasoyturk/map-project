@@ -14,6 +14,7 @@ import { useAuth }                     from "../../auth/context/AuthContext";
 import { RegionSearch }                from "../../../shared/components/RegionSearch";
 import type { NominatimResult }        from "../../../shared/api/nominatim";
 import { simplifyToLimit } from "../../../shared/utils/simplifyGeometry";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface GeoPermissionMapProps {
   onClose:      () => void;
@@ -194,7 +195,7 @@ export function GeoPermissionMap({
       <div
         onClick={onClose}
         style={{
-          position: "fixed", inset: 0, zIndex: 4000,
+          position: "fixed", inset: 0, zIndex: Z.fullscreen,
           background: "rgba(0,0,0,0.6)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
@@ -311,7 +312,7 @@ export function GeoPermissionMap({
         <div
           onClick={() => setShowConfirm(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 5000,
+            position: "fixed", inset: 0, zIndex: Z.fullscreenConfirm,
             background: "rgba(0,0,0,0.5)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}

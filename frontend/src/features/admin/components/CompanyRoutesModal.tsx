@@ -4,6 +4,7 @@ import { getAllTransitRoutes } from "../../../shared/api/transitService";
 import {
   getRoutesByCompany, assignRouteToCompany, removeRouteFromCompany,
 } from "../../../shared/api/companyService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface RouteOption {
   id:   number;
@@ -73,7 +74,7 @@ export function CompanyRoutesModal({ companyId, companyName, onClose }: CompanyR
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

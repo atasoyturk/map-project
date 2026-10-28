@@ -1,3 +1,5 @@
+import { Z } from "../../../../shared/components/ui/zIndex";
+
 interface HeatmapLegendProps {
   visible: boolean;
 }
@@ -10,7 +12,7 @@ export function HeatmapLegend({ visible }: HeatmapLegendProps) {
       position:     "absolute",
       bottom:       24,
       right:        16,
-      zIndex:       10,
+      zIndex:       Z.mapControl,
       background:   "rgba(15,23,42,0.85)",
       borderRadius: 12,
       padding:      "14px 16px",

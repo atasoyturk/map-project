@@ -7,6 +7,7 @@ import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updateTransitStop, deleteTransitStop } from "../../../../shared/api/transitService";
 import type { TransitRouteResponseDto } from "../types";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 const wktFormat = new WKT();
 
@@ -92,7 +93,7 @@ export function StopInfoPopup({ feature, routes, userLookup, canManage, onClose,
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

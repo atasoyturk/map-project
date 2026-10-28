@@ -1,4 +1,5 @@
 import type { TooltipInfo } from "../hooks/useFeatureTooltip";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface FeatureTooltipProps {
   info: TooltipInfo | null;
@@ -9,8 +10,8 @@ export function FeatureTooltip({ info }: FeatureTooltipProps) {
 
   return (
     <div
-      className="pointer-events-none absolute z-[900] -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg ring-1 ring-white/10"
-      style={{ left: info.x, top: info.y - 12 }}
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg ring-1 ring-white/10"
+      style={{ left: info.x, top: info.y - 12, zIndex: Z.mapTooltip }}
     >
       <div className="font-medium text-slate-50">{info.email}</div>
       {info.teamName && <div className="text-slate-400">{info.teamName}</div>}

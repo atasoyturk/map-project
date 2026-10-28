@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { flattenCategories, type CategoryTreeNode } from "../../../../shared/utils/categoryTree";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface PoiFormModalProps {
   categories: CategoryTreeNode[];
@@ -27,7 +28,7 @@ export function PoiFormModal({ categories, onSave, onCancel, isSaving, error }: 
     <div
       onClick={onCancel}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

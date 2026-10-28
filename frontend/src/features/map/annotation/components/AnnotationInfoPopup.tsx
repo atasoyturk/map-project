@@ -1,5 +1,6 @@
 import Feature from "ol/Feature";
 import { useState } from "react"; 
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 
 interface AnnotationInfoPopupProps {
@@ -31,7 +32,7 @@ export function AnnotationInfoPopup({feature, userLookup, onClose, onDelete, can
       position: "absolute",
       bottom: "100%", left: "50%", transform: "translateX(-50%) translateY(-10px)",
       width: 240, background: "white", borderRadius: 12, padding: 16,
-      boxShadow: "0 10px 25px rgba(0,0,0,0.15)", zIndex: 1000,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.15)", zIndex: Z.toolbar,
       border: "1px solid #e2e8f0"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>

@@ -5,6 +5,7 @@ import type { SelectedFeatureInfo } from "../hooks/useSelect";
 import { useAuth }      from "../../../auth/context/AuthContext";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updateGeoFeature, deleteGeoFeature } from "../api/geoService";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 
 interface InfoPopupProps {
@@ -96,7 +97,7 @@ export function InfoPopup({ info, onClose, onUpdated, onDelete }: InfoPopupProps
   return (
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

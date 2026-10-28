@@ -1,4 +1,5 @@
 import type { SelectedFeatureInfo } from "../hooks/useSelect";
+import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface FeaturePickerModalProps {
   features: SelectedFeatureInfo[];
@@ -17,7 +18,7 @@ export function FeaturePickerModal({ features, onPick, onClose }: FeaturePickerM
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: Z.modal,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

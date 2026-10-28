@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { Z } from "./zIndex";
 
 interface ModalProps {
   onClose:    () => void;
@@ -18,7 +19,8 @@ export function Modal({ onClose, children, className = "" }: ModalProps) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50"
+      style={{ zIndex: Z.modalRaised }}
+      className="fixed inset-0 flex items-center justify-center bg-black/50"
     >
       <div
         onClick={(e) => e.stopPropagation()}

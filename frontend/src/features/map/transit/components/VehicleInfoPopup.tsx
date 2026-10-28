@@ -1,3 +1,5 @@
+import { Z } from "../../../../shared/components/ui/zIndex";
+
 interface VehicleInfoPopupProps {
   x: number;
   y: number;
@@ -13,7 +15,7 @@ export function VehicleInfoPopup({
 }: VehicleInfoPopupProps) {
   return (
     <div style={{
-      position: "absolute", left: x, top: y, zIndex: 1500,
+      position: "absolute", left: x, top: y, zIndex: Z.mapPopup,
       background: "#ffffff", borderRadius: 10, padding: "12px 14px",
       boxShadow: "0 8px 24px rgba(0,0,0,0.18)", minWidth: 200,
     }}>

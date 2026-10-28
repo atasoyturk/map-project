@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getUserPermissions, grantPermissionToUser, revokePermissionFromUser } from "../api/permissionService";
+import { Z } from "../../../shared/components/ui/zIndex";
 
 interface EffectivePermission {
   id:          number;
@@ -54,7 +55,7 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 3000,
+        position: "fixed", inset: 0, zIndex: Z.modalRaised,
         background: "rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}

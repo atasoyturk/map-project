@@ -71,6 +71,10 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Settings classes in `Settings/` with DataAnnotations + `ValidateOnStart`.
 - Secrets (JWT key, connection string, GeoServer credentials) live in **user-secrets**. Never write secrets into `appsettings.json` or code.
 
+## Outbound HTTP
+- Every outbound HttpClient sends a User-Agent from config.
+- Log the status code of every non-2xx response before mapping it to an error.
+
 ## Key algorithms (read before changing)
 - `TripPlanningService`: graph of walk/bus/transfer edges + Dijkstra, Haversine distances.
 - `ThematicMapService`: isochrone with 16 OSRM rays + interpolation.

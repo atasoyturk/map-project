@@ -47,6 +47,15 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   POIs (mostly OSM-imported) and stops are shared reference data every user may see. Do not add a CQL filter for them.
 - OSM POI import (`POST api/poi/import-osm`, `admin_access`) skips the geo-boundary check: admins are exempt anyway.
 
+## Spatial queries
+- Filter in SQL on `geometry` with an index-usable predicate (Intersects / IsWithinDistance / &&); never load
+  rows to filter in C#.
+- Use `geography` only to measure (distance, area) rows that are already filtered; never in WHERE or ORDER BY over
+  a whole table (the cast disables the GiST index).
+- Nearest-N: KNN candidates (`<->`, LIMIT ~10) from the index, then re-rank by geography distance.
+- New geometry tables: GiST index, `geometry(<Type>,4326)` column, ST_IsValid CHECK for lines/polygons.
+- No DB call per data row in a loop (small fixed loops, e.g. 3 bands, are fine).
+
 ## Tests
 - `BackendApi.Tests/` (repo root, xUnit): integration tests through HTTP against a real PostGIS container (Testcontainers, `postgis/postgis:18-3.6`).
 - `Infrastructure/ApiFixture` starts one container + `ApiFactory` (WebApplicationFactory) per run; schema via `Migrate` (the full migration chain). Respawn resets data before each test; seed tables are kept.

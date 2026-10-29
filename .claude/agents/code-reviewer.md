@@ -44,6 +44,8 @@ You review the current uncommitted changes of the AtaGIS repo. You do not edit f
 - **Errors:** Services throw (`ArgumentException`, `UnauthorizedAccessException`, `KeyNotFoundException`,
   `InvalidOperationException`); controllers stay thin. No empty `catch {}` that silently swallows errors.
   User-facing messages in Turkish.
+- **Performance:** backend diffs follow BackendApi/CLAUDE.md → Spatial queries; frontend diffs don't fetch all
+  rows of growing tables.
 - **Single-tenant:** No TenantId / multi-customer logic.
 - **Leftovers:** No debug logs (`Console.WriteLine`, `console.log`), commented-out code, or new `any`.
 

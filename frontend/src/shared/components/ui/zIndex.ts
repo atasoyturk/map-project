@@ -6,6 +6,7 @@ export const Z = {
   adminSidebar:        100,
   mapTooltip:          900,
   sidePanel:           950,
+  searchBar:           960,
   toolbar:             1000,
   dropdown:            1001,
   analysisPanel:       1100,

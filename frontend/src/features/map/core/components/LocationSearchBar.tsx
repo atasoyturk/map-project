@@ -59,7 +59,7 @@ export function LocationSearchBar({ map, onLocationSelected, active, onQueryClea
   }
 
   return (
-    <div style={{ position: "absolute", bottom: 12, left: 12, zIndex: Z.mapControl, width: 320 }}>
+    <div style={{ position: "absolute", bottom: 12, left: 12, zIndex: Z.searchBar, width: 320 }}>
       <div style={{ display: "flex", gap: 8 }}>
         <input
           type="text"

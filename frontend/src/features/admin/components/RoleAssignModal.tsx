@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { getRoles, assignRoleToUser, removeRoleFromUser } from "../api/roleService";
-import { Z } from "../../../shared/components/ui/zIndex";
+import { Modal }  from "../../../shared/components/ui/Modal";
+import { Button } from "../../../shared/components/ui/Button";
 import type { RoleDto } from "../types";
 
 interface RoleAssignModalProps {
@@ -13,8 +14,10 @@ interface RoleAssignModalProps {
 
 export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: RoleAssignModalProps) {
   const [allRoles,  setAllRoles]  = useState<RoleDto[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>(currentRoles);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving,  setIsSaving]  = useState(false);
+  const [error,     setError]     = useState<string | null>(null);
 
   const { apiFetch} = useAuth();
 
@@ -23,120 +26,73 @@ export function RoleAssignModal({ userId, currentRoles, onClose, onUpdated }: Ro
       setIsLoading(true);
       try {
         const res = await getRoles(apiFetch);
-        if (!res.ok) return;
+        if (!res.ok) { setError("Roller yüklenemedi."); return; }
         setAllRoles(await res.json());
-      } catch {  }
+      } catch {
+        setError("Sunucuya bağlanılamadı.");
+      }
       finally { setIsLoading(false); }
     }
     fetchRoles();
   }, []);
 
   async function handleToggle(role: RoleDto) {
-    const hasRole = currentRoles.includes(role.name);
+    const hasRole = userRoles.includes(role.name);
     setIsSaving(true);
+    setError(null);
     try {
-      if (hasRole) {
-        await removeRoleFromUser(apiFetch, userId, role.id);
-      } else {
-        await assignRoleToUser(apiFetch, userId, role.id);
-      }
+      const res = hasRole
+        ? await removeRoleFromUser(apiFetch, userId, role.id)
+        : await assignRoleToUser(apiFetch, userId, role.id);
+      if (!res.ok) { setError("Rol güncellenemedi."); return; }
+      setUserRoles(prev => hasRole ? prev.filter(r => r !== role.name) : [...prev, role.name]);
       onUpdated();
-    } catch {  }
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
+    }
     finally { setIsSaving(false); }
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position:  "fixed", inset: 0, zIndex: Z.modalRaised,
-        background: "rgba(0,0,0,0.4)",
-        display:   "flex", alignItems: "center", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background:   "#ffffff", borderRadius: 16,
-          padding:      "28px 32px", width: 400,
-          boxShadow:    "0 20px 60px rgba(0,0,0,0.25)",
-          maxHeight:    "80vh", overflowY: "auto",
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: "#0f172a", margin: "0 0 6px" }}>
-          Rol Yönetimi
-        </h2>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>
-          Kullanıcının rollerini düzenleyin.
-        </p>
+    <Modal onClose={onClose} className="max-h-[80vh] w-[400px] overflow-y-auto rounded-2xl px-8 py-7">
+      <h2 className="mt-0 mb-1.5 text-lg font-semibold text-ink">Rol Yönetimi</h2>
+      <p className="mt-0 mb-5 text-[13px] text-muted">Kullanıcının rollerini düzenleyin.</p>
 
-        {isLoading ? (
-          <p style={{ color: "#94a3b8", fontSize: 13 }}>Yükleniyor...</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {allRoles
-              .filter(role => !role.hasAdminAccess)
-              .map((role) => {
-              const hasRole = currentRoles.includes(role.name);
-              return (
-                <div
-                  key={role.id}
-                  style={{
-                    display:      "flex",
-                    alignItems:   "center",
-                    gap:          12,
-                    padding:      "12px 14px",
-                    borderRadius: 10,
-                    border:       "1px solid #e2e8f0",
-                    background:   hasRole ? "#eff6ff" : "#ffffff",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={hasRole}
-                    disabled={isSaving}
-                    onChange={() => handleToggle(role)}
-                    style={{ cursor: isSaving ? "not-allowed" : "pointer" }}
-                  />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: "#0f172a" }}>
-                    {role.name}
+      {isLoading ? (
+        <p className="text-[13px] text-slate-400">Yükleniyor...</p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {allRoles
+            .filter(role => !role.hasAdminAccess)
+            .map((role) => {
+            const hasRole = userRoles.includes(role.name);
+            return (
+              <div
+                key={role.id}
+                className={`flex items-center gap-3 rounded-[10px] border border-line px-3.5 py-3 ${hasRole ? "bg-blue-50" : "bg-white"}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={hasRole}
+                  disabled={isSaving}
+                  onChange={() => handleToggle(role)}
+                  className="cursor-pointer disabled:cursor-not-allowed"
+                />
+                <span className="text-[13px] font-medium text-ink">{role.name}</span>
+                {hasRole && (
+                  <span className="ml-auto rounded-full bg-blue-50 px-2 py-px text-[10px] font-semibold text-blue-500">
+                    Atanmış
                   </span>
-                  {hasRole && (
-                    <span style={{
-                      marginLeft:   "auto",
-                      padding:      "1px 8px",
-                      borderRadius: 20,
-                      background:   "#eff6ff",
-                      color:        "#3b82f6",
-                      fontSize:     10,
-                      fontWeight:   600,
-                    }}>
-                      Atanmış
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-        <button
-          onClick={onClose}
-          style={{
-            width:        "100%",
-            marginTop:    20,
-            padding:      "9px 0",
-            borderRadius: 8,
-            border:       "1px solid #e2e8f0",
-            background:   "#f8fafc",
-            color:        "#64748b",
-            fontSize:     13,
-            cursor:       "pointer",
-          }}
-        >
-          Kapat
-        </button>
-      </div>
-    </div>
+      {error && <p className="mt-4 mb-0 text-xs text-red-600">{error}</p>}
+
+      <Button className="mt-5 w-full" onClick={onClose}>Kapat</Button>
+    </Modal>
   );
 }

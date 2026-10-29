@@ -220,7 +220,7 @@ export function UserManagement() {
           userId={roleUserId}
           currentRoles={roleUserRoles}
           onClose={() => setRoleUserId(null)}
-          onUpdated={() => { fetchUsers(); setRoleUserId(null); }}
+          onUpdated={fetchUsers}
         />
       )}
       {showGeoModal && geoUserId !== undefined && (

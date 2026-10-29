@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
@@ -73,6 +74,15 @@ builder.Services
                     context.Token = accessToken;
 
                 return Task.CompletedTask;
+            },
+            // Tokens of deactivated or deleted users stop working immediately, not after expiry.
+            OnTokenValidated = async context =>
+            {
+                var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var users       = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+
+                if (!int.TryParse(userIdValue, out var userId) || !await users.IsActiveAsync(userId))
+                    context.Fail("User is inactive.");
             }
         };
     });

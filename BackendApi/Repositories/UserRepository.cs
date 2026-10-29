@@ -21,4 +21,7 @@ public sealed class UserRepository : IUserRepository
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
     }
+
+    public Task<bool> IsActiveAsync(int userId) =>
+        _context.Users.AnyAsync(u => u.Id == userId && u.IsActive && !u.IsDeleted);
 }

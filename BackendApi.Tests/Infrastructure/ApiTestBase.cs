@@ -21,7 +21,7 @@ public static class Roles
 [Collection(ApiCollection.Name)]
 public abstract class ApiTestBase : IAsyncLifetime
 {
-    private const string Password = "Test1234!";
+    protected const string Password = "Test1234!";
 
     private readonly ApiFixture _fixture;
     private int _userCounter;

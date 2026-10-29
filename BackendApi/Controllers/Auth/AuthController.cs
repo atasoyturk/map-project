@@ -38,7 +38,7 @@ public sealed class AuthController : ControllerBase
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user is null || !user.IsActive || user.IsDeleted || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Unauthorized();
 
         var roles          = await _userService.GetUserRolesAsync(user.Id);

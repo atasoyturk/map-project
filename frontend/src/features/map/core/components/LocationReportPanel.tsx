@@ -176,6 +176,7 @@ export function LocationReportPanel({
             <select
               value={0}
               onChange={(e) => addComplement(Number(e.target.value))}
+              aria-label="Tamamlayıcı kategori ekle"
               className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-xs font-normal"
             >
               <option value={0} disabled>Tamamlayıcı ekle...</option>

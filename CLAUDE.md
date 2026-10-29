@@ -6,6 +6,8 @@
 - Change seed data (roles, permissions, POI categories) in `Data/Seed/`
 - Add new NuGet or npm packages
 - Change auth, permission or GeoServer proxy logic
+- Before applying a migration or running a script that changes data, ask the user to run `scripts/backup.ps1`
+  and wait for 'Backup OK' (never run it yourself).
 - Commit, push, or delete files — except steps of a skill that commits after the user's explicit approval
   (e.g. /next step 6, /config-audit step 3).
 

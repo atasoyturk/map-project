@@ -6,7 +6,7 @@ import VectorLayer from "ol/layer/Vector";
 import { fromLonLat } from "ol/proj";
 
 import { VehicleInfoPopup } from "./VehicleInfoPopup";
-import { buildVehicleStyle } from "../../../../shared/utils/mapStyle";
+import { buildVehicleStyle } from "../../core/mapStyle";
 import Point from "ol/geom/Point";
 
 import { useTransitStopLoader, transitStopToFeature } from "../hooks/useTransitStopLoader";

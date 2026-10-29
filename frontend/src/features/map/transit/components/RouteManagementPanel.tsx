@@ -10,7 +10,7 @@ import {
 import {
   getAllCompanyCategories, getAllCompanies, getCompaniesByRoute, getVehiclesByCompany,
 } from "../../../../shared/api/companyService";
-import { buildRouteStyle } from "../../../../shared/utils/mapStyle";
+import { buildRouteStyle } from "../../core/mapStyle";
 import type { TransitRouteDetailDto } from "../types";
 import type { TransitRouteResponseDto, TransitStopResponseDto } from "../../../../shared/api/transitTypes";
 import type { CompanyCategoryResponseDto, CompanyResponseDto, VehicleResponseDto } from "../../../company/types";

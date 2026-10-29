@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Feature } from "ol";
 import { WKT } from "ol/format";
 import { useAuth } from "../../../auth/context/AuthContext";
-import { buildStyle } from "../../../../shared/utils/mapStyle";
+import { buildStyle } from "../../core/mapStyle";
 import type { UserLookupEntry } from "../../core/hooks/useUserLookup";
 import { ConfirmModal } from "../../../../shared/components/ConfirmModal";
 import { updateTransitStop, deleteTransitStop } from "../../../../shared/api/transitService";

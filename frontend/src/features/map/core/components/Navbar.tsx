@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth }    from "../../../auth/context/AuthContext";
 import Map from "ol/Map";
 import VectorSource from "ol/source/Vector";
-import { buildStyle } from "../../../../shared/utils/mapStyle";
+import { buildStyle } from "../mapStyle";
 import { useDrawing, type DrawingLayers } from "../hooks/useDrawing";
 import { useFeatureLoader } from "../hooks/useFeatureLoader";
 import { useAnalysis } from "../hooks/useAnalysis";

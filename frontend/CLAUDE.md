@@ -9,8 +9,6 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 - `src/features/<feature>/` with subfolders `api/`, `components/`, `hooks/`, `pages/`, `types.ts` as needed (also `auth/context/`).
   `map` has sub-folders `core`, `poi`, `transit`, `annotation`, `pages`.
 - `src/shared/` — only code used by several features (`api/apiFetch.ts` with the `ApiFetch` type, common components, utils).
-- Known misplacement: `shared/utils/mapStyle.ts` is used only by `map`; move it to `features/map/core/` when map styles
-  are next touched.
 - Put new code in the feature it belongs to. Move to `shared/` only when a second feature really needs it.
 - A feature does not import from another feature's folders; shared code goes in `shared/`. `shared/` never imports
   from `features/`. Exceptions: `useAuth` from `features/auth/context`; inside `map`, sub-folders may import
@@ -20,7 +18,7 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 ## Rules
 - All backend calls go through the `apiFetch` from `createApiFetch` (adds the JWT, logs out on 401). No raw `fetch` to the backend.
   `shared/api/nominatim.ts` uses raw `fetch` because it calls the external Nominatim service, not the backend.
-  Known violation: the heatmap `tileLoadFunction` in `map/pages/DashboardPage` (do not copy).
+  Known violation: the heatmap `tileLoadFunction` in `map/core/hooks/useWmsHeatmapLayer` (do not copy).
 - API calls live in the feature's `api/` service files, not inside components.
 - Map logic (layers, interactions, clicks) lives in hooks (`useXxx`), not in large components.
   Clean up OpenLayers layers, interactions and listeners in the hook's cleanup.

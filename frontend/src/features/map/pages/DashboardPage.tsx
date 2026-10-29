@@ -5,13 +5,10 @@ import Feature                      from "ol/Feature";
 import VectorSource                from "ol/source/Vector";
 import Cluster                     from "ol/source/Cluster";
 import VectorLayer                 from "ol/layer/Vector";
-import HeatmapLayer                from "ol/layer/Heatmap";
 import Point from "ol/geom/Point";
 import { fromLonLat } from "ol/proj";
 
-import TileLayer                   from "ol/layer/Tile";
-import TileWMS                     from "ol/source/TileWMS";
-import { useAuth }                 from "../../../features/auth/context/AuthContext";
+import { useAuth }                from "../../../features/auth/context/AuthContext";
 import { MapView }              from "../core/components/MapView";
 import { Navbar }               from "../core/components/Navbar";
 import { InfoPopup }            from "../core/components/InfoPopup";
@@ -32,6 +29,11 @@ import { TransitModule }        from "../transit/components/TransitModule";
 
 import { useMapClick }          from "../core/hooks/useMapClick";
 import { useUserLookup }        from "../core/hooks/useUserLookup";
+import { useAnalysisHeatmapLayer } from "../core/hooks/useAnalysisHeatmapLayer";
+import { useSearchMarkerLayer }   from "../core/hooks/useSearchMarkerLayer";
+import { useWmsHeatmapLayer }     from "../core/hooks/useWmsHeatmapLayer";
+import { useRegionPreviewLayer }  from "../core/hooks/useRegionPreviewLayer";
+import { useAnnotationLayer }     from "../annotation/hooks/useAnnotationLayer";
 import { useFeatureTooltip }    from "../core/hooks/useFeatureTooltip";
 import type { SelectedFeatureInfo } from "../core/hooks/useSelect";
 import type { DrawingLayers }       from "../core/hooks/useDrawing";
@@ -43,7 +45,7 @@ import { getLocationAnalysis } from "../core/api/analysisService";
 
 import { Toast, type ToastState }   from "../../../shared/components/Toast";
 import { LocationSearchBar }        from "../core/components/LocationSearchBar";
-import { buildStyle }               from "../../../shared/utils/mapStyle";
+import { buildStyle }               from "../core/mapStyle";
 import type { DrawType }            from "../core/types";
 import type { AnnotationResponseDto} from "../annotation/types";
 
@@ -55,20 +57,6 @@ import type { TripPlanResultDto } from "../core/api/tripPlanningService";
 import { ThematicMapPanel } from "../core/components/ThematicMapPanel";
 import { useIsochroneLayer } from "../core/hooks/useIsochroneLayer";
 import type { IsochroneResultDto } from "../core/api/thematicMapService";
-
-import { Style, Icon } from "ol/style";
-import WKT from "ol/format/WKT";
-import { Fill, Stroke} from "ol/style";
-
-const annotationStyle = new Style({
-  image: new Icon({
-    anchor: [0.5, 1],
-    anchorXUnits: "fraction",
-    anchorYUnits: "fraction",
-    src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23f59e0b" stroke="%2378350f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
-    scale: 0.5
-  } ),
-});
 
 export function DashboardPage() {
   const [map,             setMap]            = useState<Map | null>(null);
@@ -113,87 +101,17 @@ export function DashboardPage() {
   const canReadAnnotation = hasPermission("annotation_read");
 
   const annotationSourceRef = useRef(new VectorSource());
-  const annotationLayerRef  = useRef<VectorLayer<VectorSource> | null>(null);
   const searchMarkerSourceRef = useRef(new VectorSource());
 
   const categories = useCategoryTree(apiFetch);
   const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
   const [locAnalysisPolygon, setLocAnalysisPolygon]    = useState<{ wkt: string; feature: any } | null>(null);
   const [locAnalysisPoints, setLocAnalysisPoints] = useState<{latitude: number, longitude: number, weight: number}[] | null>(null);
-  const regionPreviewLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
-  const [annotationLayer, setAnnotationLayer] = useState<VectorLayer<VectorSource> | null>(null);
+  const regionPreview   = useRegionPreviewLayer(map);
+  const annotationLayer = useAnnotationLayer(map, annotationSourceRef.current, canReadAnnotation);
 
-  useEffect(() => {
-    if (!map || !canReadAnnotation) return;
-    const layer = new VectorLayer({
-      source: annotationSourceRef.current,
-      style:  annotationStyle,
-      zIndex: 2,
-      updateWhileAnimating: true,
-      updateWhileInteracting: true,
-    });
-
-    map.addLayer(layer);
-    annotationLayerRef.current = layer;
-    setAnnotationLayer(layer);
-
-    return () => {
-      map.removeLayer(layer);
-      annotationLayerRef.current = null;
-      setAnnotationLayer(null);
-    };
-  }, [map, canReadAnnotation]);
-
-  useEffect(() => {
-    if (!map || !locAnalysisPoints) return;
-
-    const vectorSource = new VectorSource();
-
-    locAnalysisPoints.forEach(pt => {
-      const feature = new Feature({
-        geometry: new Point(fromLonLat([pt.longitude, pt.latitude])),
-        weight: pt.weight
-      });
-      vectorSource.addFeature(feature);
-    });
-
-    const heatmapLayer = new HeatmapLayer({
-      source: vectorSource,
-      blur: 20,
-      radius: 10,
-      weight: (feature: Feature) => feature.get("weight"),
-      zIndex: 100
-    });
-
-    map.addLayer(heatmapLayer);
-
-    return () => {
-      map.removeLayer(heatmapLayer);
-    };
-  }, [map, locAnalysisPoints]);
-
-  useEffect(() => {
-    if (!map) return;
-    const layer = new VectorLayer({
-      source: searchMarkerSourceRef.current,
-      updateWhileAnimating: true,
-      updateWhileInteracting: true,
-      style: new Style({
-        image: new Icon({
-          anchor: [0.5, 1],
-          anchorXUnits: "fraction",
-          anchorYUnits: "fraction",
-          src: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23030c21" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>',
-          scale: 0.7,
-        }),
-      }),
-      zIndex: 200,
-    });
-
-    map.addLayer(layer);
-
-    return () => { map.removeLayer(layer); };
-  }, [map]);
+  useAnalysisHeatmapLayer(map, locAnalysisPoints);
+  useSearchMarkerLayer(map, searchMarkerSourceRef.current);
 
   function handleLocationSelected(lon: number, lat: number) {
     searchMarkerSourceRef.current.clear();
@@ -267,47 +185,7 @@ export function DashboardPage() {
 
   useIsochroneLayer(map, thematicResult);
 
-  useEffect(() => {
-    if (!map || isPlainUser) return;
-
-    if (layers?.pointLayer) {
-      layers.pointLayer.setVisible(!heatmapActive);
-    }
-
-    if (!heatmapActive) return;
-
-    const heatmapLayer = new TileLayer({
-      source: new TileWMS({
-        url:    "http://localhost:5130/api/proxy/geoserver/wms",
-        params: {
-          typeName:    "tbl_point",
-          styles:      "gisportal:gisportal_heatmap",
-          FORMAT:      "image/png",
-          TRANSPARENT: true,
-        },
-        tileLoadFunction: (tile: any, src: string) => {
-          fetch(src, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-            .then((res) => res.blob())
-            .then((blob) => {
-              tile.getImage().src = URL.createObjectURL(blob);
-            });
-        },
-      }),
-      zIndex:   10,
-      opacity:  0.75,
-    });
-
-    map.addLayer(heatmapLayer);
-
-    return () => {
-      map.removeLayer(heatmapLayer);
-      if (layers?.pointLayer) {
-        layers.pointLayer.setVisible(true);
-      }
-    };
-  }, [map, heatmapActive, token, layers, isPlainUser]);
+  useWmsHeatmapLayer(map, heatmapActive, token, layers, !isPlainUser);
 
   useEffect(() => {
     function handleSelectFeature(e: Event) {
@@ -402,10 +280,7 @@ export function DashboardPage() {
   }
 
   function handleClearLocationAnalysis() {
-    if (regionPreviewLayerRef.current && map) {
-      map.removeLayer(regionPreviewLayerRef.current);
-      regionPreviewLayerRef.current = null;
-    }
+    regionPreview.clear();
 
     if (locAnalysisPolygon?.feature) {
       map?.getLayers().getArray().forEach(layer => {
@@ -477,10 +352,7 @@ export function DashboardPage() {
             categories={categories}
             onStart={handleStartLocationAnalysis}
             onCancel={() => {
-              if (regionPreviewLayerRef.current && map) {
-                map.removeLayer(regionPreviewLayerRef.current);
-                regionPreviewLayerRef.current = null;
-              }
+              regionPreview.clear();
               setLocAnalysisPanelOpen(false);
               setLocAnalysisPolygon(null);
             }}
@@ -492,36 +364,7 @@ export function DashboardPage() {
             onClear={handleClearLocationAnalysis}
             hasResults={!!locAnalysisPoints}
             onRegionSelect={(wkt, displayName) => {
-              if (regionPreviewLayerRef.current && map) {
-                map.removeLayer(regionPreviewLayerRef.current);
-                regionPreviewLayerRef.current = null;
-              }
-
-              const geometry = new WKT().readGeometry(wkt, {
-                dataProjection:    "EPSG:4326",
-                featureProjection: "EPSG:3857",
-              });
-
-              const source = new VectorSource({ features: [new Feature({ geometry })] });
-              const layer  = new VectorLayer({
-                source,
-                style: new Style({
-                  fill:   new Fill({ color: "rgba(59,130,246,0.2)" }),
-                  stroke: new Stroke({ color: "#3b82f6", width: 2 }),
-                }),
-                zIndex: 50,
-                updateWhileAnimating: true,
-                updateWhileInteracting: true,
-              });
-
-              map?.addLayer(layer);
-              regionPreviewLayerRef.current = layer;
-
-              map?.getView().fit(geometry.getExtent(), {
-                padding: [60, 60, 60, 60],
-                maxZoom: 12,
-                duration: 500,
-              });
+              regionPreview.show(wkt);
 
               setLocAnalysisPolygon({ wkt, feature: null });
               setToast({ message: `"${displayName}" seçildi.`, type: "success" });

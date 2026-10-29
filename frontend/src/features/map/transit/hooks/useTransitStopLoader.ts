@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Feature }   from "ol";
 import VectorSource  from "ol/source/Vector";
 import { GeoJSON }   from "ol/format";
-import { buildStopStyle } from "../../../../shared/utils/mapStyle";
+import { buildStopStyle } from "../../core/mapStyle";
 import { getGeoFeatures } from "../../core/api/geoService";
 import type { ApiFetch } from "../../../../shared/api/apiFetch";
 

@@ -56,7 +56,8 @@ export function poiToFeature(dto: PoiResponseDto): Feature {
   return feature;
 }
 
-export function usePoiLoader(map: unknown, source: VectorSource, apiFetch: ApiFetch) {
+// Changing reloadKey replaces the loaded POIs (e.g. after an OSM import).
+export function usePoiLoader(map: unknown, source: VectorSource, apiFetch: ApiFetch, reloadKey: number) {
   useEffect(() => {
     if (!map) return;
 
@@ -71,6 +72,7 @@ export function usePoiLoader(map: unknown, source: VectorSource, apiFetch: ApiFe
           featureProjection: "EPSG:3857",
         });
 
+        source.clear();
         for (const f of features as Feature[]) {
           const props = f.getProperties();
 
@@ -95,5 +97,5 @@ export function usePoiLoader(map: unknown, source: VectorSource, apiFetch: ApiFe
     }
 
     load();
-  }, [map]);
+  }, [map, reloadKey]);
 }

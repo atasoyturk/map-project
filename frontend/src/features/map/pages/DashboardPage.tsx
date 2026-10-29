@@ -40,10 +40,12 @@ import type { DrawingLayers }       from "../core/hooks/useDrawing";
 import { useAnnotationContextMenu } from "../annotation/hooks/useAnnotationContextMenu";
 import { useAnnotationLoader, annotationToFeature } from "../annotation/hooks/useAnnotationLoader";
 import { useCategoryTree }      from "../poi/hooks/useCategoryTree";
+import { useOsmImport }         from "../poi/hooks/useOsmImport";
 import { LocationAnalysisPanel } from "../core/components/LocationAnalysisPanel";
 import { getLocationAnalysis } from "../core/api/analysisService";
 
 import { Toast, type ToastState }   from "../../../shared/components/Toast";
+import { Z }                        from "../../../shared/components/ui/zIndex";
 import { LocationSearchBar }        from "../core/components/LocationSearchBar";
 import { buildStyle }               from "../core/mapStyle";
 import type { DrawType }            from "../core/types";
@@ -78,6 +80,7 @@ export function DashboardPage() {
   const [poiFormOpen,   setPoiFormOpen]   = useState(false);
   const [poiFeatures,   setPoiFeatures]   = useState<Feature[]>([]);
   const [poiLayer,      setPoiLayer]      = useState<VectorLayer<VectorSource> | null>(null);
+  const [poiReloadKey,  setPoiReloadKey]  = useState(0);
 
   const [stopDrawActive,      setStopDrawActive]      = useState(false);
   const [stopFormOpen,        setStopFormOpen]        = useState(false);
@@ -111,6 +114,7 @@ export function DashboardPage() {
   const searchMarkerSourceRef = useRef(new VectorSource());
 
   const categories = useCategoryTree(apiFetch);
+  const osmImport  = useOsmImport(map, apiFetch, setToast, () => setPoiReloadKey((k) => k + 1));
   const [locAnalysisPanelOpen, setLocAnalysisPanelOpen] = useState(false);
   const [locAnalysisPolygon, setLocAnalysisPolygon]    = useState<{ wkt: string; feature: any } | null>(null);
   const [locAnalysisPoints, setLocAnalysisPoints] = useState<{latitude: number, longitude: number, weight: number}[] | null>(null);
@@ -352,9 +356,20 @@ export function DashboardPage() {
         onThematicMapToggle={() => setThematicMapOpen((p) => !p)}
         locationReportOpen={reportOpen}
         onLocationReportToggle={() => setReportOpen((p) => !p)}
+        osmImportBusy={osmImport.busy}
+        onOsmImport={osmImport.run}
       />
       <div style={{ position: "relative", flex: 1 }}>
         <MapView onMapReady={setMap} height="100vh" />
+
+        {osmImport.busy && (
+          <div
+            className="absolute top-20 left-1/2 -translate-x-1/2 rounded-lg border border-white/10 bg-[#030c21] px-4 py-2 text-[13px] text-slate-300 shadow-lg"
+            style={{ zIndex: Z.toolbar }}
+          >
+            OSM verisi alınıyor…
+          </div>
+        )}
 
         {annotationSelected && (
           <div style={{ position: "absolute", left: annotationSelected.x, top: annotationSelected.y }}>
@@ -438,6 +453,7 @@ export function DashboardPage() {
         onFeaturesChange={setPoiFeatures}
         onLayerReady={setPoiLayer}
         onToast={setToast}
+        reloadKey={poiReloadKey}
       />
 
       <TransitModule

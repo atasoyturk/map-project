@@ -45,6 +45,8 @@ interface NavbarProps {
   onThematicMapToggle:     () => void;
   locationReportOpen:      boolean;
   onLocationReportToggle:  () => void;
+  osmImportBusy:           boolean;
+  onOsmImport:             () => void;
 }
 
 
@@ -78,6 +80,8 @@ export function Navbar({
   onThematicMapToggle,
   locationReportOpen,
   onLocationReportToggle,
+  osmImportBusy,
+  onOsmImport,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -523,6 +527,16 @@ export function Navbar({
               style={navItemStyle(poiDrawActive, "#0d9488", "#5eead4", !!pendingGeometry || heatmapActive || otherToolActive || poiFormOpen || stopDrawActive || stopFormOpen)}
             >
               POI
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={onOsmImport}
+              disabled={toolsLocked || otherToolActive || osmImportBusy}
+              title="Görünen alandaki OSM POI'lerini içe aktar"
+              style={navItemStyle(osmImportBusy, "#0d9488", "#5eead4", toolsLocked || otherToolActive || osmImportBusy)}
+            >
+              {osmImportBusy ? "OSM verisi alınıyor…" : "OSM İçe Aktar"}
             </button>
           )}
           {canDraw && !isAdmin && teamId !== null && (

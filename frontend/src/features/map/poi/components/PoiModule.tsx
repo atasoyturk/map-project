@@ -30,12 +30,13 @@ interface PoiModuleProps {
   onFeaturesChange:   (features: Feature[]) => void;
   onLayerReady:       (layer: VectorLayer<VectorSource> | null) => void;
   onToast:            (toast: ToastState) => void;
+  reloadKey:          number;
 }
 
 export function PoiModule({
   map, apiFetch, categories, userLookup, permissions, userId, canRead,
   otherFlowsIdle, drawActive, onDrawActiveChange, onFormOpenChange,
-  onFeaturesChange, onLayerReady, onToast,
+  onFeaturesChange, onLayerReady, onToast, reloadKey,
 }: PoiModuleProps) {
   const [pendingPoi,         setPendingPoi]         = useState<PendingPoi | null>(null);
   const [isSavingPoi,        setIsSavingPoi]        = useState(false);
@@ -75,7 +76,7 @@ export function PoiModule({
     poiLayerRef.current?.setStyle((f) => buildPoiStyle(icons.get(f.get("poiCategoryId")) ?? null));
   }, [map, categories]);
 
-  usePoiLoader(map, poiSourceRef.current, apiFetch);
+  usePoiLoader(map, poiSourceRef.current, apiFetch, reloadKey);
 
   usePoiDraw({
     map,

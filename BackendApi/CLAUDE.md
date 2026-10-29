@@ -25,8 +25,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Exception: link tables (`UserRole`, `RolePermission`, `UserPermission`, `UserGeoPermission`, `RoleGeoPermission`, `CompanyRoute`) do not inherit `BaseEntity` and are hard-deleted; `Role` is hard-deleted too.
 - New tables use `[Table("tbl_...")]`. Auth tables (`Users`, `Roles`, `Permissions`, `UserRoles`, `RolePermissions`, `UserPermissions`) keep their current names — do not rename.
 - Geometry: always parse WKT with GeometryConverter.FromWkt (10,000-point limit, rejects invalid geometries) and
-  output with GeometryConverter.ToWkt. SRID 4326 (lon, lat). New polygon/line tables get the same
-  ST_IsValid CHECK constraint as the existing drawing tables.
+  output with GeometryConverter.ToWkt. SRID 4326 (lon, lat).
 - Schema source of truth: `Entities/`, `Data/AppDbContext.cs` and `Data/Seed/`. Migration Designer/snapshot files are hidden from search (`.ignore`); open them by path only if needed.
 
 ## Authorization

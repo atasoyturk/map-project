@@ -37,8 +37,9 @@ In Turkish, max 8 lines + test list:
 - What changed and why (2–3 lines); remaining reviewer NOTEs (1 line each).
 - `git diff --stat` output and the 1–2 design decisions you made (one line each), so the user can review the diff.
 - "Tarayıcıda test et:" 2–4 steps (account, screen, expected result). Remind to re-login if JWT claims changed.
-- If the user corrected a project convention during this task, propose a one-line
-  CLAUDE.md addition; add it only if the user agrees (it goes into the same commit).
+- If the user corrected a project convention during this task, propose a one-line addition to the matching
+  .claude/rules/*.md file (or root CLAUDE.md only if it applies everywhere); add it only if the user agrees
+  (it goes into the same commit).
 Do not commit until the user confirms the browser test passed.
 
 ## 6. Close

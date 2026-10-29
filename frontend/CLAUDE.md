@@ -39,6 +39,7 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 - Keep components thin: non-trivial logic (formatting, transforms, calculations)
   goes into pure helpers with co-located Vitest tests.
 - Map data from growing tables (POIs) is loaded by current extent or on explicit action; never fetch all rows.
+  Known violation: `usePoiLoader` fetches all of `tbl_poi_active` via WFS (do not copy).
 
 ## Out of product scope
 - `features/company` and the fleet parts of transit (vehicles, shipments, live simulation) are kept but out of scope —

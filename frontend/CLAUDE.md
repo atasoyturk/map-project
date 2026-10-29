@@ -36,7 +36,6 @@ Use npm ≥ 11.19 (CI uses Node 24's npm): older npm on Windows drops Linux-only
 - POI icons come from the category `Icon` field (sub-categories inherit via `buildCategoryIconMap`); never key icons on category IDs.
 - Unit tests (Vitest): co-located `*.test.ts` next to the source; no globals/jsdom.
   When moving a file, move its test with it. E2E tests (Playwright) go in `frontend/e2e/`; credentials from `E2E_EMAIL` / `E2E_PASSWORD`; browser once via `npx playwright install chromium`.
-  `npm run e2e` needs the backend running (the user starts it); run it last, after backend build/tests.
 - Keep components thin: non-trivial logic (formatting, transforms, calculations)
   goes into pure helpers with co-located Vitest tests.
 - Map data from growing tables (POIs) is loaded by current extent or on explicit action; never fetch all rows.

@@ -27,6 +27,9 @@ Full vision and priorities: `planning/vision.md`, tasks in `planning/tasks.json`
 - After any change, run the build of the side you changed. Do not finish a task with a failing build.
 - Backend tests: `dotnet test BackendApi.Tests --nologo -v q` (needs Docker; if Docker is not
   running, stop and tell the user — do not debug it; see `BackendApi/CLAUDE.md` → Tests).
+- E2E: `cd frontend; npm run e2e` — run by the user (needs the running backend and E2E_EMAIL / E2E_PASSWORD).
+  At gate 2, ask for it only when the change touches the login → location-report flow (auth, analysis endpoints/
+  services, OSRM, map/core UI); run it after backend build/tests.
 - If dotnet build/test fails because files are locked by a running BackendApi, stop and ask the
   user to stop the server — do not debug it.
 - Files over ~300 lines: use the Grep tool (not shell grep, which ignores .ignore) to find the symbol first, then Read only that range (offset/limit).

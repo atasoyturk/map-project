@@ -194,7 +194,7 @@ builder.Services.AddHttpClient("Overpass", (serviceProvider, client) =>
 {
     var settings = serviceProvider.GetRequiredService<IOptions<OverpassSettings>>().Value;
     client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds + 30);
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("AtaGIS/1.0");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(settings.UserAgent);
 });
 
 builder.Services.AddControllers();

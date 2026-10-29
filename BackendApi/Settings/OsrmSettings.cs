@@ -10,4 +10,8 @@ public sealed class OsrmSettings
 
     [Required(AllowEmptyStrings = false, ErrorMessage = "OsrmSettings:Profile yapılandırması zorunludur.")]
     public string Profile { get; init; } = "driving";
+
+    // The public OSRM server rejects requests without a User-Agent (403).
+    [Required(AllowEmptyStrings = false, ErrorMessage = "OsrmSettings:UserAgent yapılandırması zorunludur.")]
+    public string UserAgent { get; init; } = string.Empty;
 }

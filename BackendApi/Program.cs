@@ -176,7 +176,11 @@ builder.Services
     .ValidateOnStart();
 
 // HttpClient — OSRM routing service
-builder.Services.AddHttpClient("Osrm");
+builder.Services.AddHttpClient("Osrm", (serviceProvider, client) =>
+{
+    var settings = serviceProvider.GetRequiredService<IOptions<OsrmSettings>>().Value;
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(settings.UserAgent);
+});
 
 // Overpass Settings
 builder.Services

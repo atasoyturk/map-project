@@ -8,7 +8,7 @@ description: Audit the agent config (CLAUDE.md files, /next skill, code-reviewer
 Read-only until the user picks rows.
 
 ## 1. Audit
-Files: CLAUDE.md, BackendApi/CLAUDE.md, frontend/CLAUDE.md, .claude/skills/next/SKILL.md,
+Files: CLAUDE.md, .claude/rules/**, .claude/settings.json, .claude/skills/next/SKILL.md,
 .claude/agents/code-reviewer.md.
 
 - Find the last audit: `git log -1 --grep="Sync agent config with code" --format=%H`.
@@ -16,7 +16,7 @@ Files: CLAUDE.md, BackendApi/CLAUDE.md, frontend/CLAUDE.md, .claude/skills/next/
 - Verify every concrete claim (paths, file/class/function names, routes, commands, flags, known exceptions,
   counts) with Grep/Glob. Open a source file only if a claim cannot be checked otherwise.
 - Do not run builds or tests.
-- Across the five files, look for contradictions, the same rule stated twice, and lines that will go stale
+- Across these files, look for contradictions, the same rule stated twice, and lines that will go stale
   without adding value.
 - "Low-value" means lists that only describe current usage (who uses what). Rules and warnings about
   security, permissions or data visibility are never low-value, even if they name files.

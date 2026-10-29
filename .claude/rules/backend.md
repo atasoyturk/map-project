@@ -1,4 +1,8 @@
-# BackendApi — rules
+---
+paths:
+  - "BackendApi/**"
+---
+# Backend rules
 
 ## Architecture
 Controller → Service (interface + implementation, registered in `Program.cs`) → `AppDbContext` (EF Core + NetTopologySuite).
@@ -18,15 +22,10 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Request/response shapes are DTOs (`sealed record` or `sealed class`). Never return entities from controllers.
 - New service → interface `IXService` + `XService`, register with `AddScoped` in `Program.cs`.
   Exception: `RouteSimulationService` is a singleton; it must use `IServiceScopeFactory` for DB access.
-
-## Entities & data
-- All entities inherit `BaseEntity` (Id, IsActive, IsDeleted, CreatedDate, ModifiedDate, ModifiedUserId).
 - **Soft delete only**: use `entity.SoftDelete(userId)` (`Helpers/EntityExtensions.cs`). Every query filters `!IsDeleted`.
-- Exception: link tables (`UserRole`, `RolePermission`, `UserPermission`, `UserGeoPermission`, `RoleGeoPermission`, `CompanyRoute`) do not inherit `BaseEntity` and are hard-deleted; `Role` is hard-deleted too.
-- New tables use `[Table("tbl_...")]`. Auth tables (`Users`, `Roles`, `Permissions`, `UserRoles`, `RolePermissions`, `UserPermissions`) keep their current names — do not rename.
-- Geometry: always parse WKT with GeometryConverter.FromWkt (10,000-point limit, rejects invalid geometries) and
-  output with GeometryConverter.ToWkt. SRID 4326 (lon, lat).
-- Schema source of truth: `Entities/`, `Data/AppDbContext.cs` and `Data/Seed/`. Migration Designer/snapshot files are hidden from search (`.ignore`); open them by path only if needed.
+  Exceptions: see `.claude/rules/migrations-seed.md` (link tables, `Role`).
+- Geometry: always parse WKT with `GeometryConverter.FromWkt` (10,000-point limit, rejects invalid geometries) and
+  output with `GeometryConverter.ToWkt`. SRID 4326 (lon, lat).
 
 ## Authorization
 - Endpoint permissions: `[RequirePermission("permission_name")]`.
@@ -46,22 +45,6 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
   POIs (mostly OSM-imported) and stops are shared reference data every user may see. Do not add a CQL filter for them.
 - OSM POI import (`POST api/poi/import-osm`, `admin_access`) skips the geo-boundary check: admins are exempt anyway.
 
-## Spatial queries
-- Filter in SQL on `geometry` with an index-usable predicate (Intersects / IsWithinDistance / &&); never load
-  rows to filter in C#.
-- Use `geography` only to measure (distance, area) rows that are already filtered; never in WHERE or ORDER BY over
-  a whole table (the cast disables the GiST index).
-- Nearest-N: KNN candidates (`<->`, LIMIT ~10) from the index, then re-rank by geography distance.
-- New geometry tables: GiST index, `geometry(<Type>,4326)` column, ST_IsValid CHECK for lines/polygons.
-- No DB call per data row in a loop (small fixed loops, e.g. 3 bands, are fine).
-
-## Tests
-- `BackendApi.Tests/` (repo root, xUnit): integration tests through HTTP against a real PostGIS container (Testcontainers, `postgis/postgis:18-3.6`).
-- `Infrastructure/ApiFixture` starts one container + `ApiFactory` (WebApplicationFactory) per run; schema via `Migrate` (the full migration chain). Respawn resets data before each test; seed tables are kept.
-- `ApiFactory` uses the `Testing` environment (no user-secrets), a test JWT key, the container connection string, `FakeOsrmService` and `FakeOverpassClient`.
-- New test classes inherit `ApiTestBase` (`CreateUserAsync(roleIds, directPermissions)` returns a logged-in client).
-- Run: see root CLAUDE.md Commands.
-
 ## Errors
 - Throw, don't return error codes from services. `GlobalExceptionHandler` maps:
   `ArgumentException`→400, `UnauthorizedAccessException`→403, `KeyNotFoundException`→404, `InvalidOperationException`→409, others→500.
@@ -70,10 +53,6 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 ## Config & secrets
 - Settings classes in `Settings/` with DataAnnotations + `ValidateOnStart`.
 - Secrets (JWT key, connection string, GeoServer credentials) live in **user-secrets**. Never write secrets into `appsettings.json` or code.
-
-## Outbound HTTP
-- Every HttpClient to an external/public service sends a User-Agent from its settings (`<Service>Settings:UserAgent`, required).
-- Log the status code of every non-2xx response before mapping it to an error.
 
 ## Key algorithms (read before changing)
 - `TripPlanningService`: graph of walk/bus/transfer edges + Dijkstra, Haversine distances.

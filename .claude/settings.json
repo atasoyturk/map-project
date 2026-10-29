@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(docker rm:*)",
+      "Bash(docker rmi:*)",
+      "Bash(docker container rm:*)",
+      "PowerShell(docker rm:*)",
+      "PowerShell(docker rmi:*)",
+      "PowerShell(docker container rm:*)",
+      "Bash(dotnet user-secrets:*)",
+      "PowerShell(dotnet user-secrets:*)",
+      "Bash(*UserSecrets*)",
+      "PowerShell(*UserSecrets*)",
+      "Read(~/AppData/Roaming/Microsoft/UserSecrets/**)",
+      "Bash(*backup.ps1*)",
+      "PowerShell(*backup.ps1*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "PowerShell(git push:*)",
+      "Bash(dotnet ef:*)",
+      "PowerShell(dotnet ef:*)"
+    ]
+  }
+}

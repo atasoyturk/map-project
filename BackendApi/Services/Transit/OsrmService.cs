@@ -98,7 +98,10 @@ public sealed class OsrmService : IOsrmService
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("OSRM cumulative-duration request failed: {StatusCode}", response.StatusCode);
                 return (false, null, null, "OSRM servisinden rota alınamadı.");
+            }
 
             var content = await response.Content.ReadAsStringAsync();
             using var json = JsonDocument.Parse(content);

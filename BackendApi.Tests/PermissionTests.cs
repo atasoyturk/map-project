@@ -74,4 +74,41 @@ public sealed class PermissionTests : ApiTestBase
         Assert.Equal(expected.Count, items!.Count);
         Assert.All(items, i => Assert.Equal(expected[i.Name], i.Id));
     }
+
+    // Admin rights come only from a role; admin_access (Id 4) cannot be granted per user.
+    [Fact]
+    public async Task GrantingAdminAccessToUser_Gets403AndAddsNothing()
+    {
+        var (_, admin)  = await CreateUserAsync([Roles.Admin]);
+        var (userId, _) = await CreateUserAsync([Roles.BasicUser]);
+
+        var response = await admin.PostAsJsonAsync($"/api/admin/users/{userId}/permissions", new { permissionId = 4 });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var granted = true;
+        await WithDbAsync(async db => granted = await db.UserPermissions.AnyAsync(up => up.UserId == userId && up.PermissionId == 4));
+        Assert.False(granted);
+    }
+
+    // Revoking stays allowed so a legacy direct grant can be cleaned up via the API.
+    [Fact]
+    public async Task RevokingDirectAdminAccessFromOtherUser_Succeeds()
+    {
+        var (_, admin)  = await CreateUserAsync([Roles.Admin]);
+        var (userId, _) = await CreateUserAsync([], ["admin_access"]);
+
+        var response = await admin.DeleteAsync($"/api/admin/users/{userId}/permissions/4");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RevokingOwnDirectAdminAccess_Gets403()
+    {
+        var (adminId, admin) = await CreateUserAsync([], ["admin_access"]);
+
+        var response = await admin.DeleteAsync($"/api/admin/users/{adminId}/permissions/4");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }

@@ -22,7 +22,7 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
   const [isLoading,   setIsLoading]   = useState(true);
   const [isSaving,    setIsSaving]    = useState(false);
 
-  const { apiFetch, hasPermission } = useAuth();
+  const { apiFetch } = useAuth();
 
   async function fetchPermissions() {
     setIsLoading(true);
@@ -78,7 +78,7 @@ export function PermissionMatrix({ userId, onClose }: PermissionMatrixProps) {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {permissions
-              .filter(p => p.name !== "admin_access" || hasPermission("admin_access"))
+              .filter(p => p.name !== "admin_access")
               .map((p) => (
               <div
                 key={p.name}

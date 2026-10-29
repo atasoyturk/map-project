@@ -53,11 +53,9 @@ public sealed class AdminController : ApiControllerBase
     [HttpPost("users/{id:int}/permissions")]
     public async Task<IActionResult> AssignPermission(int id, [FromBody] AssignPermissionDto dto)
     {
-        var currentUserId = GetUserId();
-        if (currentUserId is null) return Unauthorized();
-
-        if (dto.PermissionId == 4 && id == currentUserId.Value)
-            return StatusCode(403, "Kendinize admin yetkisi veremezsiniz.");
+        // Admin rights come only from a role (admin_access = Id 4).
+        if (dto.PermissionId == 4)
+            return StatusCode(403, "Admin yetkisi yalnızca rol ile verilebilir.");
 
         await _adminService.AssignPermissionToUserAsync(id, dto.PermissionId);
         return NoContent();
@@ -66,6 +64,12 @@ public sealed class AdminController : ApiControllerBase
     [HttpDelete("users/{id:int}/permissions/{permissionId:int}")]
     public async Task<IActionResult> RemovePermission(int id, int permissionId)
     {
+        var currentUserId = GetUserId();
+        if (currentUserId is null) return Unauthorized();
+
+        if (permissionId == 4 && id == currentUserId.Value)
+            return StatusCode(403, "Kendi admin yetkinizi kaldıramazsınız.");
+
         var result = await _adminService.RemovePermissionFromUserAsync(id, permissionId);
         return result ? NoContent() : NotFound();
     }

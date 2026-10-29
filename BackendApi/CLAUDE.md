@@ -72,7 +72,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - Secrets (JWT key, connection string, GeoServer credentials) live in **user-secrets**. Never write secrets into `appsettings.json` or code.
 
 ## Outbound HTTP
-- Every outbound HttpClient sends a User-Agent from config.
+- Every HttpClient to an external/public service sends a User-Agent from its settings (`<Service>Settings:UserAgent`, required).
 - Log the status code of every non-2xx response before mapping it to an error.
 
 ## Key algorithms (read before changing)

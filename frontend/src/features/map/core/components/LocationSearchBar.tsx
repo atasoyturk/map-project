@@ -6,7 +6,7 @@ import { Z } from "../../../../shared/components/ui/zIndex";
 
 interface LocationSearchBarProps {
   map: OlMap | null;
-  onLocationSelected: (lon: number, lat: number) => void;
+  onLocationSelected: (lon: number, lat: number, address: string) => void;
   active?: boolean;
   onQueryCleared?: () => void;
 }
@@ -55,7 +55,7 @@ export function LocationSearchBar({ map, onLocationSelected, active, onQueryClea
       });
     }
 
-    onLocationSelected(lon, lat);
+    onLocationSelected(lon, lat, result.display_name);
   }
 
   return (

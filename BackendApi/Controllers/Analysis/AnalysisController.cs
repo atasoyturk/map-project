@@ -10,10 +10,14 @@ namespace BackendApi.Controllers.Analysis;
 [Route("api/analysis")]
 public sealed class AnalysisController : ApiControllerBase
 {
-    private readonly IAnalysisService _analysisService;
+    private readonly IAnalysisService       _analysisService;
+    private readonly ILocationReportService _locationReportService;
 
-    public AnalysisController(IAnalysisService analysisService)
-        => _analysisService = analysisService;
+    public AnalysisController(IAnalysisService analysisService, ILocationReportService locationReportService)
+    {
+        _analysisService       = analysisService;
+        _locationReportService = locationReportService;
+    }
 
     [HttpPost("temp-inventory")]
     [RequirePermission("area_scan")]
@@ -51,5 +55,10 @@ public sealed class AnalysisController : ApiControllerBase
         var result = await _analysisService.IsochroneAnalysisAsync(request);
         return Ok(result);
     }
+
+    [HttpPost("location-report")]
+    [RequirePermission("location_analysis")]
+    public async Task<IActionResult> LocationReport([FromBody] LocationReportRequestDto request)
+        => Ok(await _locationReportService.GetReportAsync(request));
 
 }

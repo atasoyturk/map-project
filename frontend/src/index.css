@@ -22,3 +22,17 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+/* Location report "Yazdır / PDF": print only the report panel. */
+@media print {
+  body:has(.location-report-print) * {
+    visibility: hidden;
+  }
+  body:has(.location-report-print) .location-report-print,
+  body:has(.location-report-print) .location-report-print * {
+    visibility: visible;
+  }
+  body:has(.location-report-print) .location-report-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+  }
+}

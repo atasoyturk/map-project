@@ -124,6 +124,7 @@ builder.Services.AddScoped<IPointService,   PointService>();
 builder.Services.AddScoped<ILineService,    LineService>();
 builder.Services.AddScoped<IPolygonService, PolygonService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
+builder.Services.AddScoped<ILocationReportService, LocationReportService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddScoped<IPermissionService,    PermissionService>();

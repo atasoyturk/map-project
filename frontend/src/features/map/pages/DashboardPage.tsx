@@ -55,6 +55,7 @@ import { useTripRouteLayer } from "../core/hooks/useTripRouteLayer";
 import type { TripPlanResultDto } from "../core/api/tripPlanningService";
 
 import { ThematicMapPanel } from "../core/components/ThematicMapPanel";
+import { LocationReportPanel } from "../core/components/LocationReportPanel";
 import { useIsochroneLayer } from "../core/hooks/useIsochroneLayer";
 import type { IsochroneResultDto } from "../core/api/thematicMapService";
 
@@ -95,6 +96,12 @@ export function DashboardPage() {
   const [thematicCenterPoint,  setThematicCenterPoint]  = useState<{ lon: number; lat: number } | null>(null);
   const [thematicResult,       setThematicResult]       = useState<IsochroneResultDto | null>(null);
 
+  const [reportOpen,         setReportOpen]         = useState(false);
+  const [reportPickMode,     setReportPickMode]     = useState<"center" | null>(null);
+  const [reportSearchTarget, setReportSearchTarget] = useState<"center" | null>(null);
+  const [reportCenter,       setReportCenter]       = useState<{ lon: number; lat: number; address?: string } | null>(null);
+  const [reportResult,       setReportResult]       = useState<IsochroneResultDto | null>(null);
+
   const { token, apiFetch, permissions, hasPermission, userId } = useAuth();
 
   const isPlainUser = !(hasPermission("point_create") || hasPermission("line_create") || hasPermission("polygon_create"));
@@ -113,7 +120,7 @@ export function DashboardPage() {
   useAnalysisHeatmapLayer(map, locAnalysisPoints);
   useSearchMarkerLayer(map, searchMarkerSourceRef.current);
 
-  function handleLocationSelected(lon: number, lat: number) {
+  function handleLocationSelected(lon: number, lat: number, address: string) {
     searchMarkerSourceRef.current.clear();
     searchMarkerSourceRef.current.addFeature(
       new Feature({ geometry: new Point(fromLonLat([lon, lat])) })
@@ -122,6 +129,7 @@ export function DashboardPage() {
     if (tripSearchTarget === "start") { setTripStartPoint({ lon, lat }); setTripSearchTarget(null); }
     else if (tripSearchTarget === "end") { setTripEndPoint({ lon, lat }); setTripSearchTarget(null); }
     else if (thematicSearchTarget === "center") { setThematicCenterPoint({ lon, lat }); setThematicSearchTarget(null); }
+    else if (reportSearchTarget === "center") { setReportCenter({ lon, lat, address }); setReportSearchTarget(null); }
   }
 
   // Annotations are loaded only for users with annotation_read (internal notes).
@@ -184,6 +192,17 @@ export function DashboardPage() {
   });
 
   useIsochroneLayer(map, thematicResult);
+
+  useTripPointClick({
+    map,
+    enabled: reportPickMode !== null,
+    onPick: (lon, lat) => {
+      setReportCenter({ lon, lat });
+      setReportPickMode(null);
+    },
+  });
+
+  useIsochroneLayer(map, reportResult);
 
   useWmsHeatmapLayer(map, heatmapActive, token, layers, !isPlainUser);
 
@@ -331,6 +350,8 @@ export function DashboardPage() {
         onTripPlanningToggle={() => setTripPlanningOpen((p) => !p)}
         thematicMapOpen={thematicMapOpen}
         onThematicMapToggle={() => setThematicMapOpen((p) => !p)}
+        locationReportOpen={reportOpen}
+        onLocationReportToggle={() => setReportOpen((p) => !p)}
       />
       <div style={{ position: "relative", flex: 1 }}>
         <MapView onMapReady={setMap} height="100vh" />
@@ -378,7 +399,7 @@ export function DashboardPage() {
         <LocationSearchBar
           map={map}
           onLocationSelected={handleLocationSelected}
-          active={tripSearchTarget !== null || thematicSearchTarget !== null}
+          active={tripSearchTarget !== null || thematicSearchTarget !== null || reportSearchTarget !== null}
           onQueryCleared={() => searchMarkerSourceRef.current.clear()}
         />
         {!isPlainUser && <FeatureTooltip info={tooltip} />}
@@ -470,6 +491,25 @@ export function DashboardPage() {
           onSearchTargetChange={setThematicSearchTarget}
           centerPoint={thematicCenterPoint}
           onResult={setThematicResult}
+        />
+      )}
+
+      {reportOpen && (
+        <LocationReportPanel
+          onClose={() => {
+            setReportOpen(false);
+            setReportPickMode(null);
+            setReportSearchTarget(null);
+            setReportCenter(null);
+            setReportResult(null);
+          }}
+          categories={categories}
+          pickMode={reportPickMode}
+          onPickModeChange={setReportPickMode}
+          searchTarget={reportSearchTarget}
+          onSearchTargetChange={setReportSearchTarget}
+          center={reportCenter}
+          onResult={setReportResult}
         />
       )}
 

@@ -43,6 +43,8 @@ interface NavbarProps {
   onTripPlanningToggle:    () => void;
   thematicMapOpen:         boolean;
   onThematicMapToggle:     () => void;
+  locationReportOpen:      boolean;
+  onLocationReportToggle:  () => void;
 }
 
 
@@ -74,6 +76,8 @@ export function Navbar({
   onTripPlanningToggle,
   thematicMapOpen,
   onThematicMapToggle,
+  locationReportOpen,
+  onLocationReportToggle,
 }: NavbarProps) {
 
   const [pendingGeometry, setPendingGeometry] = useState<PendingGeometry | null>(null);
@@ -427,9 +431,14 @@ export function Navbar({
         <NavDropdown
           label="Analiz"
           disabled={toolsLocked}
-          hasActiveItem={analysisActive || locAnalysisActive || heatmapActive || thematicMapOpen}
+          hasActiveItem={analysisActive || locAnalysisActive || heatmapActive || thematicMapOpen || locationReportOpen}
           onOpenChange={(open) => handleDropdownOpenChange("Analiz", open)}
         >
+          {canLocationAnalysis && (
+            <button onClick={onLocationReportToggle} disabled={toolsLocked} style={navItemStyle(locationReportOpen, "#14b8a6", "#99f6e4", toolsLocked)}>
+              Konum Raporu
+            </button>
+          )}
           {canAreaScan && (
             <button onClick={handleAnalysisToggle} disabled={toolsLocked} style={navItemStyle(analysisActive, "#eab308", "#fde047", toolsLocked)}>
               Alan Tara

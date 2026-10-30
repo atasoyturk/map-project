@@ -29,8 +29,7 @@ Talk to the user in **Turkish**, briefly. Code, commits and planning files stay 
 
 ## 4. Verify
 - Build, lint and test every side you touched with the commands in the root CLAUDE.md.
-- Run the `code-reviewer` agent (root rule 7).
-  Re-run it only if you changed code after the first review.
+- Run the `code-reviewer` agent once (root rule 7); after applying its fixes, rebuild instead of re-running it.
 
 ## 5. Report (gate 2 — wait for the user)
 In Turkish, max 8 lines + test list:

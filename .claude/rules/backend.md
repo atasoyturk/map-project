@@ -23,7 +23,7 @@ Controller → Service (interface + implementation, registered in `Program.cs`) 
 - New service → interface `IXService` + `XService`, register with `AddScoped` in `Program.cs`.
   Exception: `RouteSimulationService` is a singleton; it must use `IServiceScopeFactory` for DB access.
 - **Soft delete only**: use `entity.SoftDelete(userId)` (`Helpers/EntityExtensions.cs`). Every query filters `!IsDeleted`.
-  Exceptions: see `.claude/rules/migrations-seed.md` (link tables, `Role`).
+  Exceptions: see `.claude/rules/backend-migrations-seed.md` (link tables, `Role`).
 - Geometry: always parse WKT with `GeometryConverter.FromWkt` (10,000-point limit, rejects invalid geometries) and
   output with `GeometryConverter.ToWkt`. SRID 4326 (lon, lat).
 

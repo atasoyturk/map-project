@@ -11,6 +11,14 @@
 - Commit, push, or delete files — except steps of a skill that commits after the user's explicit approval
   (e.g. /next step 6, /config-audit step 3).
 
+## Task intake
+- Check `planning/tasks.json` and only the directly relevant task/backlog files for overlap; do not audit the codebase.
+- If covered, report the existing task ID and stop. Otherwise, use the next unique ID and create/update only the task index and its short MD.
+- Define the problem, expected behavior, scope, and up to 3 observable acceptance criteria. Do not prescribe implementation or test internals; leave those to `/next` planning.
+- Ask at most one question, only for a blocking product/security decision. Otherwise record the uncertainty for `/next`.
+- Respect the requested mode: plan-only means no edits; explicit task creation means task files only, no application code.
+- Validate the task entry and file path. Treat external LLM feedback as advisory; revise only for a material gap or contradiction, not speculative detail.
+
 ## How to work (always follow)
 1. **Think before coding.** State assumptions. If something is unclear or has several interpretations, ask before writing code.
 2. **Simplicity first.** Minimum code that solves the request. No extra features, no speculative abstractions or config.
@@ -20,10 +28,9 @@
 4. **Verify.** Define how the change will be checked (build, test, or manual steps in the browser) and report the result.
 5. For non-trivial tasks, propose a short plan first and wait for approval.
 6. The rules in this file and `.claude/rules/` apply to new code; places where existing code breaks them are known inconsistencies — do not fix them unasked.
-7. Before committing, run the `code-reviewer` agent on the changes; fix every BLOCKER and in-scope SHOULD FIX.
+7. Before committing, run the `code-reviewer` agent on the changes ONCE; fix every valid BLOCKER and in-scope SHOULD FIX. Do not re-run the reviewer in a loop; if you applied the fixes and the build passes, proceed to commit.
 8. Commit messages: short imperative subject only. No "Co-Authored-By" or other trailers.
-9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests.
-   A failing-first test must fail for the expected reason — read the error before writing the fix.
+9. Backend bug fixes start with a failing test that reproduces the bug; new backend logic ships with tests. A failing-first test must fail for the expected reason — read the error before writing the fix. If a test cannot be fixed in 2 attempts, STOP and ask the user to avoid infinite loops.
 
 ## Product
 Site-selection / location-analysis platform ("where should a chain open its next branch?").
@@ -35,7 +42,7 @@ Single-tenant: one separate installation per customer. Do not add TenantId or mu
 - Backend: `cd BackendApi && dotnet build --nologo -v q` / `dotnet run`
 - Frontend: `cd frontend && npm run dev` / `npm run build -- --logLevel error` / `npm run lint -- --quiet` / `npm test`
 - GeoServer: `docker start geoserver` (no compose file in the repo)
-- After any change, run the build of the side you changed. Do not finish a task with a failing build.
+- After any change, run the build of the side you changed. Do not finish a task with a failing build. However, if you are trapped and cannot fix a build without breaking a "Never do without asking" rule (e.g., needing a new NuGet package or EF Core migration), STOP and ask the user.
 - Backend tests: `dotnet test BackendApi.Tests --nologo -v q` (needs Docker; if Docker is not
   running, stop and tell the user — do not debug it; see `.claude/rules/backend-tests.md`).
 - E2E: `cd frontend; npm run e2e` — run by the user (needs the running backend and E2E_EMAIL / E2E_PASSWORD).
